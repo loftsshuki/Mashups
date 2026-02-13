@@ -1,10 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Wallet, BadgeDollarSign } from "lucide-react"
+import { BadgeDollarSign, Wallet } from "lucide-react"
+
 import { AuthGuard } from "@/components/auth/auth-guard"
+import {
+  NeonGrid,
+  NeonHero,
+  NeonPage,
+  NeonSectionHeader,
+} from "@/components/marketing/neon-page"
 import { createClient } from "@/lib/supabase/client"
-import { getEarningsLedgerForUser, getPayoutsForUser, summarizeEarnings } from "@/lib/data/earnings"
+import {
+  getEarningsLedgerForUser,
+  getPayoutsForUser,
+  summarizeEarnings,
+} from "@/lib/data/earnings"
 import type { EarningsLedgerEntry, Payout } from "@/lib/data/types"
 
 function formatMoney(cents: number, currency = "USD") {
@@ -42,35 +53,43 @@ function MonetizationContent() {
   }, [])
 
   if (loading) {
-    return <div className="mx-auto max-w-6xl px-4 py-8 pb-24">Loading monetization dashboard...</div>
+    return <NeonPage className="max-w-6xl">Loading monetization dashboard...</NeonPage>
   }
 
   const summary = summarizeEarnings(entries)
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Monetization</h1>
-      <p className="mt-2 text-muted-foreground">
-        Earnings ledger, available balance, and payout history.
-      </p>
+    <NeonPage className="max-w-6xl">
+      <NeonHero
+        eyebrow="Monetization"
+        title="Earnings ledger, available balance, and payout history."
+        description="Payout and ledger pages now follow the same visual section structure as the rest of the site."
+      />
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-border/50 bg-card p-4">
+      <NeonSectionHeader title="Revenue Snapshot" />
+      <NeonGrid className="sm:grid-cols-3">
+        <div className="neon-panel rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Total Earnings</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{formatMoney(summary.total)}</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">
+            {formatMoney(summary.total)}
+          </p>
         </div>
-        <div className="rounded-lg border border-border/50 bg-card p-4">
+        <div className="neon-panel rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Available</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{formatMoney(summary.available)}</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">
+            {formatMoney(summary.available)}
+          </p>
         </div>
-        <div className="rounded-lg border border-border/50 bg-card p-4">
+        <div className="neon-panel rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Pending</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{formatMoney(summary.pending)}</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">
+            {formatMoney(summary.pending)}
+          </p>
         </div>
-      </div>
+      </NeonGrid>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <section className="rounded-lg border border-border/50 bg-card p-4">
+      <NeonGrid className="mt-6 md:grid-cols-2">
+        <section className="neon-panel rounded-2xl p-4">
           <div className="mb-3 flex items-center gap-2">
             <BadgeDollarSign className="h-4 w-4 text-primary" />
             <h2 className="font-semibold text-foreground">Ledger Entries</h2>
@@ -78,7 +97,10 @@ function MonetizationContent() {
           <div className="space-y-2">
             {entries.length > 0 ? (
               entries.map((entry) => (
-                <div key={entry.id} className="rounded-md border border-border px-3 py-2 text-sm">
+                <div
+                  key={entry.id}
+                  className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
+                >
                   <p className="font-medium text-foreground">
                     {entry.source_type} | {formatMoney(entry.amount_cents, entry.currency)}
                   </p>
@@ -93,7 +115,7 @@ function MonetizationContent() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-border/50 bg-card p-4">
+        <section className="neon-panel rounded-2xl p-4">
           <div className="mb-3 flex items-center gap-2">
             <Wallet className="h-4 w-4 text-primary" />
             <h2 className="font-semibold text-foreground">Payout History</h2>
@@ -101,10 +123,16 @@ function MonetizationContent() {
           <div className="space-y-2">
             {payouts.length > 0 ? (
               payouts.map((payout) => (
-                <div key={payout.id} className="rounded-md border border-border px-3 py-2 text-sm">
-                  <p className="font-medium text-foreground">{formatMoney(payout.amount_cents)}</p>
+                <div
+                  key={payout.id}
+                  className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
+                >
+                  <p className="font-medium text-foreground">
+                    {formatMoney(payout.amount_cents)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {payout.status} | Requested {new Date(payout.requested_at).toLocaleDateString()}
+                    {payout.status} | Requested{" "}
+                    {new Date(payout.requested_at).toLocaleDateString()}
                   </p>
                 </div>
               ))
@@ -113,8 +141,8 @@ function MonetizationContent() {
             )}
           </div>
         </section>
-      </div>
-    </div>
+      </NeonGrid>
+    </NeonPage>
   )
 }
 
@@ -125,3 +153,4 @@ export default function MonetizationPage() {
     </AuthGuard>
   )
 }
+

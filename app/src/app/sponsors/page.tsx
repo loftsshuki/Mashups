@@ -1,31 +1,57 @@
-import { Megaphone, Trophy, Coins } from "lucide-react"
+import { Coins, Megaphone, Trophy } from "lucide-react"
+
+import {
+  NeonGrid,
+  NeonHero,
+  NeonPage,
+  NeonSectionHeader,
+} from "@/components/marketing/neon-page"
 
 const packages = [
-  { name: "Starter Challenge", price: "$2,500", includes: "1 sponsored challenge + homepage placement" },
-  { name: "Growth Sprint", price: "$8,000", includes: "4-week creator campaign + attribution reporting" },
-  { name: "Network Takeover", price: "$20,000", includes: "Featured category + creator cohort activation" },
-]
+  {
+    name: "Starter Challenge",
+    price: "$2,500",
+    includes: "1 sponsored challenge + homepage placement",
+    icon: Megaphone,
+  },
+  {
+    name: "Growth Sprint",
+    price: "$8,000",
+    includes: "4-week creator campaign + attribution reporting",
+    icon: Trophy,
+  },
+  {
+    name: "Network Takeover",
+    price: "$20,000",
+    includes: "Featured category + creator cohort activation",
+    icon: Coins,
+  },
+] as const
 
 export default function SponsorsPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Sponsor Programs</h1>
-      <p className="mt-2 text-muted-foreground">
-        Challenge sponsorship and branded creator activations.
-      </p>
+    <NeonPage className="max-w-6xl">
+      <NeonHero
+        eyebrow="Sponsorships"
+        title="Challenge sponsorship and branded creator activations."
+        description="Neon-style commercial section mapped to mashup-native promotion packages."
+      />
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {packages.map((pkg, i) => (
-          <div key={pkg.name} className="rounded-lg border border-border/50 bg-card p-4">
-            {i === 0 && <Megaphone className="h-5 w-5 text-primary" />}
-            {i === 1 && <Trophy className="h-5 w-5 text-primary" />}
-            {i === 2 && <Coins className="h-5 w-5 text-primary" />}
-            <p className="mt-2 font-semibold text-foreground">{pkg.name}</p>
-            <p className="mt-1 text-lg font-bold text-foreground">{pkg.price}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{pkg.includes}</p>
+      <NeonSectionHeader
+        title="Program Packages"
+        description="Structured like a Neon pricing/features row for easy comparison."
+      />
+      <NeonGrid className="md:grid-cols-3">
+        {packages.map((pkg) => (
+          <div key={pkg.name} className="neon-panel rounded-2xl p-5">
+            <pkg.icon className="h-5 w-5 text-primary" />
+            <p className="mt-3 text-base font-semibold text-foreground">{pkg.name}</p>
+            <p className="mt-1 text-2xl font-semibold text-foreground">{pkg.price}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{pkg.includes}</p>
           </div>
         ))}
-      </div>
-    </div>
+      </NeonGrid>
+    </NeonPage>
   )
 }
+

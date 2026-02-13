@@ -1,13 +1,19 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { MashupCard } from "@/components/mashup-card"
+
 import { CreatorAvatar } from "@/components/creator-avatar"
-import { mockMashups, mockCreators } from "@/lib/mock-data"
+import { MashupCard } from "@/components/mashup-card"
+import {
+  NeonHero,
+  NeonPage,
+  NeonSectionHeader,
+} from "@/components/marketing/neon-page"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { mockCreators, mockMashups } from "@/lib/mock-data"
 
 const popularSearches = [
   "Lo-fi beats",
@@ -18,7 +24,7 @@ const popularSearches = [
   "Phonk",
   "Drum & Bass",
   "Funk",
-]
+] as const
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -27,7 +33,6 @@ function useDebounce<T>(value: T, delay: number): T {
     const timer = setTimeout(() => {
       setDebouncedValue(value)
     }, delay)
-
     return () => clearTimeout(timer)
   }, [value, delay])
 
@@ -50,7 +55,7 @@ export default function SearchPage() {
       (m) =>
         m.title.toLowerCase().includes(q) ||
         m.genre.toLowerCase().includes(q) ||
-        m.creator.displayName.toLowerCase().includes(q)
+        m.creator.displayName.toLowerCase().includes(q),
     )
   }, [debouncedQuery])
 
@@ -61,40 +66,43 @@ export default function SearchPage() {
       (c) =>
         c.displayName.toLowerCase().includes(q) ||
         c.username.toLowerCase().includes(q) ||
-        c.bio.toLowerCase().includes(q)
+        c.bio.toLowerCase().includes(q),
     )
   }, [debouncedQuery])
 
   const hasQuery = debouncedQuery.trim().length > 0
   const hasResults = filteredMashups.length > 0 || filteredCreators.length > 0
 
-  function handlePopularClick(term: string) {
-    setQuery(term)
-    inputRef.current?.focus()
-  }
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-      {/* Search input */}
-      <div className="mx-auto mb-10 max-w-2xl">
+    <NeonPage>
+      <NeonHero
+        eyebrow="Search"
+        title="Find mashups, creators, and genres."
+        description="Search now follows the same sectioned visual system used across the rest of the redesigned site."
+      />
+
+      <section className="neon-panel mb-8 rounded-2xl p-4">
+        <NeonSectionHeader
+          title="Query"
+          description="Search by title, genre, creator, or campaign-related themes."
+        />
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             ref={inputRef}
             type="search"
             placeholder="Search mashups, creators, genres..."
-            className="h-12 pl-10 text-base"
+            className="h-12 rounded-xl pl-10 text-base"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-      </div>
+      </section>
 
-      {/* Results or initial state */}
       {hasQuery ? (
         hasResults ? (
           <Tabs defaultValue="mashups">
-            <TabsList className="mb-6">
+            <TabsList className="mb-6 rounded-xl bg-background/70">
               <TabsTrigger value="mashups">
                 Mashups ({filteredMashups.length})
               </TabsTrigger>
@@ -121,7 +129,7 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-border/50 bg-muted/30 px-6 py-12 text-center">
+                <div className="neon-panel rounded-2xl px-6 py-12 text-center">
                   <p className="text-sm text-muted-foreground">
                     No mashups found for &ldquo;{debouncedQuery}&rdquo;
                   </p>
@@ -133,19 +141,20 @@ export default function SearchPage() {
               {filteredCreators.length > 0 ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                   {filteredCreators.map((creator) => (
-                    <CreatorAvatar
-                      key={creator.username}
-                      username={creator.username}
-                      displayName={creator.displayName}
-                      avatarUrl={creator.avatarUrl}
-                      followerCount={creator.followerCount}
-                      mashupCount={creator.mashupCount}
-                      size="lg"
-                    />
+                    <div key={creator.username} className="neon-panel rounded-2xl p-3">
+                      <CreatorAvatar
+                        username={creator.username}
+                        displayName={creator.displayName}
+                        avatarUrl={creator.avatarUrl}
+                        followerCount={creator.followerCount}
+                        mashupCount={creator.mashupCount}
+                        size="lg"
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-border/50 bg-muted/30 px-6 py-12 text-center">
+                <div className="neon-panel rounded-2xl px-6 py-12 text-center">
                   <p className="text-sm text-muted-foreground">
                     No creators found for &ldquo;{debouncedQuery}&rdquo;
                   </p>
@@ -154,43 +163,34 @@ export default function SearchPage() {
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="rounded-lg border border-border/50 bg-muted/30 px-6 py-16 text-center">
+          <div className="neon-panel rounded-2xl px-6 py-16 text-center">
             <Search className="mx-auto h-10 w-10 text-muted-foreground/50" />
-            <p className="mt-4 text-lg font-medium text-foreground">
-              No results found
-            </p>
+            <p className="mt-4 text-lg font-medium text-foreground">No results found</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              No mashups or creators match &ldquo;{debouncedQuery}&rdquo;. Try
-              a different search term.
+              No mashups or creators match &ldquo;{debouncedQuery}&rdquo;.
             </p>
           </div>
         )
       ) : (
         <>
-          {/* Popular searches */}
-          <div className="mb-10">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">
-              Popular Searches
-            </h2>
+          <section className="mb-10">
+            <NeonSectionHeader title="Popular Searches" />
             <div className="flex flex-wrap gap-2">
               {popularSearches.map((term) => (
                 <Badge
                   key={term}
                   variant="secondary"
-                  className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-                  onClick={() => handlePopularClick(term)}
+                  className="cursor-pointer rounded-full px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => setQuery(term)}
                 >
                   {term}
                 </Badge>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Recent mashups */}
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-foreground">
-              Recent Mashups
-            </h2>
+          <section>
+            <NeonSectionHeader title="Recent Mashups" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {mockMashups.slice(0, 4).map((mashup) => (
                 <MashupCard
@@ -206,9 +206,10 @@ export default function SearchPage() {
                 />
               ))}
             </div>
-          </div>
+          </section>
         </>
       )}
-    </div>
+    </NeonPage>
   )
 }
+

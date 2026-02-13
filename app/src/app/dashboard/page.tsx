@@ -20,6 +20,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { deleteMashup } from "@/lib/data/mashups-mutations"
 import type { Mashup } from "@/lib/data/types"
+import { NeonHero, NeonPage } from "@/components/marketing/neon-page"
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60)
@@ -93,45 +94,42 @@ function DashboardContent() {
   }, [deleteTarget])
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+    <NeonPage>
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            My Mashups
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Manage your creations
-          </p>
-        </div>
-        <Button asChild>
+      <NeonHero
+        eyebrow="Dashboard"
+        title="My Mashups"
+        description="Manage your creations and route into analytics, rights, and monetization."
+        actions={
+          <Button className="rounded-full" asChild>
           <Link href="/create">
             <Plus className="h-4 w-4" />
             Create New
           </Link>
-        </Button>
-      </div>
+          </Button>
+        }
+      />
 
       <div className="mb-6 flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
           <Link href="/dashboard/analytics">
             <ChartColumn className="h-4 w-4" />
             Analytics
           </Link>
         </Button>
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
           <Link href="/dashboard/rights">
             <Shield className="h-4 w-4" />
             Rights Ops
           </Link>
         </Button>
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
           <Link href="/dashboard/monetization">
             <Wallet className="h-4 w-4" />
             Monetization
           </Link>
         </Button>
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
           <Link href="/admin/moderation">
             <Gavel className="h-4 w-4" />
             Moderation
@@ -295,7 +293,7 @@ function DashboardContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </NeonPage>
   )
 }
 

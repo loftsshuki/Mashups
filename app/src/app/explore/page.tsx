@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useMemo, useCallback, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { Suspense, useCallback, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+
+import { MashupCard } from "@/components/mashup-card"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectContent,
@@ -11,9 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MashupCard } from "@/components/mashup-card"
-import { mockMashups } from "@/lib/mock-data"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  NeonHero,
+  NeonPage,
+  NeonSectionHeader,
+} from "@/components/marketing/neon-page"
 import { getLocalRecommendationEvents } from "@/lib/data/recommendation-events"
+import { mockMashups } from "@/lib/mock-data"
 import { rankForYouMashups } from "@/lib/recommendations/for-you"
 
 const genres = [
@@ -31,7 +37,7 @@ const genres = [
   "Ambient",
   "Chiptune",
   "EDM",
-]
+] as const
 
 type SortOption = "for-you" | "trending" | "newest" | "most-liked"
 type TempoOption = "all" | "slow" | "mid" | "fast"
@@ -46,7 +52,6 @@ function ExploreContent() {
   const playableOnly = searchParams.get("playable") === "1"
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
-  // Simulate initial loading
   useState(() => {
     setTimeout(() => setIsInitialLoad(false), 300)
   })
@@ -65,37 +70,21 @@ function ExploreContent() {
       } else {
         params.set(key, value)
       }
+
       const queryString = params.toString()
       router.push(`/explore${queryString ? `?${queryString}` : ""}`, {
         scroll: false,
       })
     },
-    [searchParams, router]
+    [searchParams, router],
   )
-
-  function handleGenreClick(genre: string) {
-    updateParams("genre", genre)
-  }
-
-  function handleSortChange(sort: string) {
-    updateParams("sort", sort)
-  }
-
-  function handleTempoChange(tempo: string) {
-    updateParams("tempo", tempo)
-  }
-
-  function handlePlayableToggle() {
-    updateParams("playable", playableOnly ? "0" : "1")
-  }
 
   const filteredAndSorted = useMemo(() => {
     let results = [...mockMashups]
 
-    // Filter by genre
     if (activeGenre !== "All") {
       results = results.filter((m) =>
-        m.genre.toLowerCase().includes(activeGenre.toLowerCase())
+        m.genre.toLowerCase().includes(activeGenre.toLowerCase()),
       )
     }
 
@@ -111,12 +100,11 @@ function ExploreContent() {
       results = results.filter((m) => m.bpm > 120)
     }
 
-    // Sort
     switch (activeSort) {
       case "newest":
         results.sort(
           (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         break
       case "for-you": {
@@ -137,67 +125,68 @@ function ExploreContent() {
   }, [activeGenre, activeSort, activeTempo, playableOnly])
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Explore Mashups
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Discover fresh mixes from creators around the world
-        </p>
-      </div>
+    <NeonPage>
+      <NeonHero
+        eyebrow="Discovery"
+        title="Explore Mashups"
+        description="Discover fresh mixes from creators around the world."
+      />
 
-      {/* Filter bar */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {genres.map((genre) => (
+      <section className="neon-panel mb-8 rounded-2xl p-4">
+        <NeonSectionHeader
+          title="Filters"
+          description="Tune feed results by genre, tempo, playability, and rank logic."
+        />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {genres.map((genre) => (
+              <Badge
+                key={genre}
+                variant={activeGenre === genre ? "default" : "secondary"}
+                className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+                onClick={() => updateParams("genre", genre)}
+              >
+                {genre}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Badge
-              key={genre}
-              variant={activeGenre === genre ? "default" : "secondary"}
+              variant={playableOnly ? "default" : "secondary"}
               className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-              onClick={() => handleGenreClick(genre)}
+              onClick={() => updateParams("playable", playableOnly ? "0" : "1")}
             >
-              {genre}
+              Playable Only
             </Badge>
-          ))}
-        </div>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Badge
-            variant={playableOnly ? "default" : "secondary"}
-            className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-            onClick={handlePlayableToggle}
-          >
-            Playable Only
-          </Badge>
-          <Select value={activeTempo} onValueChange={handleTempoChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Tempo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tempo</SelectItem>
-              <SelectItem value="slow">Slow (&lt; 90 BPM)</SelectItem>
-              <SelectItem value="mid">Mid (90-120 BPM)</SelectItem>
-              <SelectItem value="fast">Fast (&gt; 120 BPM)</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-muted-foreground">Sort by:</span>
-          <Select value={activeSort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="for-you">For You</SelectItem>
-              <SelectItem value="trending">Trending</SelectItem>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="most-liked">Most Liked</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <Select value={activeTempo} onValueChange={(tempo) => updateParams("tempo", tempo)}>
+              <SelectTrigger className="w-[160px] rounded-xl">
+                <SelectValue placeholder="Tempo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tempo</SelectItem>
+                <SelectItem value="slow">Slow (&lt; 90 BPM)</SelectItem>
+                <SelectItem value="mid">Mid (90-120 BPM)</SelectItem>
+                <SelectItem value="fast">Fast (&gt; 120 BPM)</SelectItem>
+              </SelectContent>
+            </Select>
 
-      {/* Mashup grid */}
+            <Select value={activeSort} onValueChange={(sort) => updateParams("sort", sort)}>
+              <SelectTrigger className="w-[160px] rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="for-you">For You</SelectItem>
+                <SelectItem value="trending">Trending</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="most-liked">Most Liked</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
+
       {isInitialLoad ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -232,14 +221,14 @@ function ExploreContent() {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border border-border/50 bg-muted/30 px-6 py-16 text-center">
+        <div className="neon-panel rounded-2xl px-6 py-16 text-center">
           <p className="text-lg font-medium text-foreground">No mashups found</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Try a different genre, tempo, or sort option
+            Try a different genre, tempo, or sort option.
           </p>
         </div>
       )}
-    </div>
+    </NeonPage>
   )
 }
 
@@ -247,7 +236,7 @@ export default function ExplorePage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+        <NeonPage>
           <Skeleton className="mb-2 h-8 w-48" />
           <Skeleton className="mb-8 h-5 w-72" />
           <div className="mb-8 flex flex-wrap gap-2">
@@ -260,10 +249,11 @@ export default function ExplorePage() {
               <Skeleton key={i} className="aspect-square w-full rounded-xl" />
             ))}
           </div>
-        </div>
+        </NeonPage>
       }
     >
       <ExploreContent />
     </Suspense>
   )
 }
+

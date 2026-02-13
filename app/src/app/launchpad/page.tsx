@@ -1,45 +1,139 @@
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  NeonGrid,
+  NeonHero,
+  NeonPage,
+  NeonSectionHeader,
+} from "@/components/marketing/neon-page"
 
 const modules = [
-  { href: "/studio", title: "Collab Studio", status: "Live", desc: "Realtime presence + shared transport state." },
-  { href: "/campaigns", title: "Campaign Builder", status: "Live", desc: "Weekly short-form plan with hooks/captions." },
-  { href: "/dashboard/analytics", title: "Creator Analytics", status: "Live", desc: "Retention and engagement snapshot." },
-  { href: "/dashboard/monetization", title: "Monetization", status: "Live", desc: "Ledger, payouts, and checkout flow." },
-  { href: "/dashboard/rights", title: "Rights Ops", status: "Live", desc: "Declarations and claim workflow." },
-  { href: "/admin/moderation", title: "Moderation Console", status: "Beta", desc: "Admin claim actions and strikes." },
-  { href: "/pricing", title: "Subscription Plans", status: "Live", desc: "Creator and Studio monetization plans." },
-  { href: "/partner", title: "Partner Portal", status: "Beta", desc: "Catalog and policy controls for rightsholders." },
-  { href: "/enterprise", title: "Enterprise Lane", status: "Beta", desc: "White-label offering for agencies/networks." },
-  { href: "/sponsors", title: "Sponsor Programs", status: "Live", desc: "Challenge sponsorship package surfaces." },
-  { href: "/legal", title: "Legal Center", status: "Live", desc: "Terms, copyright, and repeat infringer policies." },
+  {
+    href: "/studio",
+    title: "Collab Studio",
+    status: "Live",
+    desc: "Realtime presence + shared transport state.",
+  },
+  {
+    href: "/campaigns",
+    title: "Campaign Builder",
+    status: "Live",
+    desc: "Weekly short-form plan with hooks/captions.",
+  },
+  {
+    href: "/dashboard/analytics",
+    title: "Creator Analytics",
+    status: "Live",
+    desc: "Retention and engagement snapshot.",
+  },
+  {
+    href: "/dashboard/monetization",
+    title: "Monetization",
+    status: "Live",
+    desc: "Ledger, payouts, and checkout flow.",
+  },
+  {
+    href: "/dashboard/rights",
+    title: "Rights Ops",
+    status: "Live",
+    desc: "Declarations and claim workflow.",
+  },
+  {
+    href: "/admin/moderation",
+    title: "Moderation Console",
+    status: "Beta",
+    desc: "Admin claim actions and strikes.",
+  },
+  {
+    href: "/pricing",
+    title: "Subscription Plans",
+    status: "Live",
+    desc: "Creator and studio monetization plans.",
+  },
+  {
+    href: "/partner",
+    title: "Partner Portal",
+    status: "Beta",
+    desc: "Catalog and policy controls for rightsholders.",
+  },
+  {
+    href: "/enterprise",
+    title: "Enterprise Lane",
+    status: "Beta",
+    desc: "White-label offering for agencies/networks.",
+  },
+  {
+    href: "/sponsors",
+    title: "Sponsor Programs",
+    status: "Live",
+    desc: "Challenge sponsorship package surfaces.",
+  },
+  {
+    href: "/legal",
+    title: "Legal Center",
+    status: "Live",
+    desc: "Terms, copyright, and repeat infringer policies.",
+  },
 ] as const
 
 export default function LaunchpadPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Launchpad</h1>
-      <p className="mt-2 text-muted-foreground">
-        Command center for all creator OS, rights, growth, and monetization modules.
-      </p>
+    <NeonPage>
+      <NeonHero
+        eyebrow="Control Plane"
+        title="Launchpad"
+        description="Command center for creator OS, rights, growth, and monetization modules."
+        actions={
+          <Button className="rounded-full" asChild>
+            <Link href="/create">
+              Start a New Mashup
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        }
+        aside={
+          <>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Live Modules
+            </p>
+            <p className="mt-2 text-3xl font-semibold">
+              {modules.filter((m) => m.status === "Live").length}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Active feature blocks across growth, rights, and publishing.
+            </p>
+          </>
+        }
+      />
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
+      <NeonSectionHeader
+        title="Modules"
+        description="Each section mirrors the product architecture used on the new homepage."
+      />
+      <NeonGrid className="md:grid-cols-2 xl:grid-cols-3">
         {modules.map((module) => (
           <Link
             key={module.href}
             href={module.href}
-            className="neon-surface rounded-lg p-4 transition-colors hover:border-primary/50"
+            className="neon-panel rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/45"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-foreground">{module.title}</h2>
               <Badge variant={module.status === "Live" ? "default" : "secondary"}>
                 {module.status}
               </Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">{module.desc}</p>
+            <p className="mt-4 inline-flex items-center text-xs font-medium text-primary">
+              Open module
+            </p>
           </Link>
         ))}
-      </div>
-    </div>
+      </NeonGrid>
+    </NeonPage>
   )
 }
+
