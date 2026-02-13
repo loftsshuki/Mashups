@@ -24,6 +24,18 @@ const modules = [
     desc: "Weekly short-form plan with hooks/captions.",
   },
   {
+    href: "/campaigns#cohort-invites",
+    title: "Creator Cohort Invites",
+    status: "Live",
+    desc: "Referral links and cohort-tier invite mechanics.",
+  },
+  {
+    href: "/explore?rights=safe",
+    title: "Rights-Safe Discovery",
+    status: "Live",
+    desc: "Filter feed to allow-routed tracks only.",
+  },
+  {
     href: "/dashboard/analytics",
     title: "Creator Analytics",
     status: "Live",
@@ -136,4 +148,3 @@ export default function LaunchpadPage() {
     </NeonPage>
   )
 }
-
