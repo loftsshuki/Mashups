@@ -73,7 +73,7 @@ export async function getMashups(): Promise<Mashup[]> {
       return mockMashups.map(mockToMashup)
     }
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,
@@ -169,7 +169,7 @@ export async function getTrendingMashups(limit = 6): Promise<Mashup[]> {
         .map(mockToMashup)
     }
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,
@@ -220,7 +220,7 @@ export async function getMashupsByCreator(creatorId: string): Promise<Mashup[]> 
         .map(mockToMashup)
     }
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,

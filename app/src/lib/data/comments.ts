@@ -32,7 +32,7 @@ export async function getComments(mashupId: string): Promise<Comment[]> {
       return []
     }
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       ...row,
       user: row.user ?? undefined,
     })) as Comment[]
