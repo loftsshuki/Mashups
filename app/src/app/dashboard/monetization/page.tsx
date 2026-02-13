@@ -1,21 +1,35 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { BadgeDollarSign, Wallet } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { BadgeDollarSign, FileText, Wallet } from "lucide-react"
 
 import { AuthGuard } from "@/components/auth/auth-guard"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   NeonGrid,
   NeonHero,
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
+import {
+  getEntitlementSummaryForUser,
+  getInvoiceSummariesForUser,
+  type EntitlementSummary,
+  type InvoiceSummary,
+} from "@/lib/data/billing"
 import { createClient } from "@/lib/supabase/client"
 import {
   getEarningsLedgerForUser,
   getPayoutsForUser,
   summarizeEarnings,
 } from "@/lib/data/earnings"
+import {
+  DEFAULT_PAYOUT_THRESHOLD_CENTS,
+  getPayoutEligibility,
+  sanitizeThresholdDollars,
+} from "@/lib/data/payout-threshold"
 import type { EarningsLedgerEntry, Payout } from "@/lib/data/types"
 
 function formatMoney(cents: number, currency = "USD") {
@@ -28,6 +42,11 @@ function formatMoney(cents: number, currency = "USD") {
 function MonetizationContent() {
   const [entries, setEntries] = useState<EarningsLedgerEntry[]>([])
   const [payouts, setPayouts] = useState<Payout[]>([])
+  const [entitlement, setEntitlement] = useState<EntitlementSummary | null>(null)
+  const [invoices, setInvoices] = useState<InvoiceSummary[]>([])
+  const [thresholdDollars, setThresholdDollars] = useState<string>(
+    (DEFAULT_PAYOUT_THRESHOLD_CENTS / 100).toString(),
+  )
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,12 +58,16 @@ function MonetizationContent() {
         } = await supabase.auth.getUser()
 
         const userId = user?.id ?? "mock-user"
-        const [ledgerRows, payoutRows] = await Promise.all([
+        const [ledgerRows, payoutRows, entitlementSummary, invoiceRows] = await Promise.all([
           getEarningsLedgerForUser(userId),
           getPayoutsForUser(userId),
+          getEntitlementSummaryForUser(userId),
+          getInvoiceSummariesForUser(userId),
         ])
         setEntries(ledgerRows)
         setPayouts(payoutRows)
+        setEntitlement(entitlementSummary)
+        setInvoices(invoiceRows)
       } finally {
         setLoading(false)
       }
@@ -52,11 +75,15 @@ function MonetizationContent() {
     void load()
   }, [])
 
+  const summary = summarizeEarnings(entries)
+  const payoutGate = useMemo(
+    () => getPayoutEligibility(entries, sanitizeThresholdDollars(thresholdDollars)),
+    [entries, thresholdDollars],
+  )
+
   if (loading) {
     return <NeonPage className="max-w-6xl">Loading monetization dashboard...</NeonPage>
   }
-
-  const summary = summarizeEarnings(entries)
 
   return (
     <NeonPage className="max-w-6xl">
@@ -86,6 +113,78 @@ function MonetizationContent() {
             {formatMoney(summary.pending)}
           </p>
         </div>
+      </NeonGrid>
+
+      <NeonGrid className="mt-6 md:grid-cols-2">
+        <section className="neon-panel rounded-2xl p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="font-semibold text-foreground">Entitlements</h2>
+            <Badge variant={entitlement?.status === "active" ? "default" : "secondary"}>
+              {entitlement?.status ?? "none"}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">Current plan</p>
+          <p className="mt-1 text-xl font-semibold text-foreground">
+            {entitlement?.planName ?? "Free"}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Seats: {entitlement?.seats ?? 1}
+            {entitlement?.renewsAt
+              ? ` | Renews ${new Date(entitlement.renewsAt).toLocaleDateString()}`
+              : ""}
+          </p>
+          {entitlement?.featureFlags?.length ? (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {entitlement.featureFlags.slice(0, 5).map((feature) => (
+                <Badge key={feature} variant="outline">
+                  {feature}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+        </section>
+
+        <section className="neon-panel rounded-2xl p-4">
+          <h2 className="font-semibold text-foreground">Payout Threshold Gate</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Configure minimum available balance required for payout requests.
+          </p>
+          <div className="mt-3 flex items-end gap-2">
+            <div className="flex-1">
+              <p className="mb-1 text-xs text-muted-foreground">Threshold (USD)</p>
+              <Input
+                value={thresholdDollars}
+                onChange={(event) => setThresholdDollars(event.target.value)}
+                inputMode="decimal"
+                className="h-9 rounded-lg"
+              />
+            </div>
+            <Button
+              size="sm"
+              className="rounded-full"
+              disabled={!payoutGate.eligible}
+              title={
+                payoutGate.eligible
+                  ? "Eligible for payout"
+                  : `Need ${formatMoney(payoutGate.shortfallCents)} more available`
+              }
+            >
+              Request Payout
+            </Button>
+          </div>
+          <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+            <p>Available: {formatMoney(payoutGate.availableCents)}</p>
+            <p>Pending: {formatMoney(payoutGate.pendingCents)}</p>
+            <p>Threshold: {formatMoney(payoutGate.thresholdCents)}</p>
+            {!payoutGate.eligible ? (
+              <p className="text-primary">
+                Shortfall: {formatMoney(payoutGate.shortfallCents)} before payout unlock.
+              </p>
+            ) : (
+              <p className="text-primary">Threshold met. You can trigger a payout request.</p>
+            )}
+          </div>
+        </section>
       </NeonGrid>
 
       <NeonGrid className="mt-6 md:grid-cols-2">
@@ -142,6 +241,32 @@ function MonetizationContent() {
           </div>
         </section>
       </NeonGrid>
+
+      <section className="neon-panel mt-6 rounded-2xl p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold text-foreground">Invoice Timeline</h2>
+        </div>
+        <div className="space-y-2">
+          {invoices.length > 0 ? (
+            invoices.map((invoice) => (
+              <div
+                key={invoice.id}
+                className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
+              >
+                <p className="font-medium text-foreground">
+                  {invoice.description} | {formatMoney(invoice.amountCents, invoice.currency)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {invoice.status} | {new Date(invoice.issuedAt).toLocaleString()}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No invoices yet.</p>
+          )}
+        </div>
+      </section>
     </NeonPage>
   )
 }
@@ -153,4 +278,3 @@ export default function MonetizationPage() {
     </AuthGuard>
   )
 }
-
