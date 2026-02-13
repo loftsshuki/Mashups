@@ -1,0 +1,207 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Menu, Music, User, LogOut, Settings } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MobileNav } from "@/components/layout/mobile-nav";
+import { createClient } from "@/lib/supabase/client";
+import { logout } from "@/lib/auth/auth-actions";
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/explore", label: "Explore" },
+  { href: "/create", label: "Create" },
+] as const;
+
+interface UserProfile {
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+export function Header() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function getUser() {
+      try {
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+
+        if (authUser) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("username, display_name, avatar_url")
+            .eq("id", authUser.id)
+            .single();
+
+          setUser(
+            profile ?? {
+              username: authUser.email?.split("@")[0] ?? "user",
+              display_name: null,
+              avatar_url: null,
+            }
+          );
+        }
+      } catch {
+        // Supabase not configured — no auth
+      }
+      setIsLoading(false);
+    }
+
+    getUser();
+  }, [pathname]);
+
+  const initials = user?.display_name
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() ?? user?.username?.slice(0, 2).toUpperCase() ?? "U";
+
+  return (
+    <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/80 border-b border-border">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Music className="size-5 text-primary" />
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-bold text-xl">
+            Mashups
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map(({ href, label }) => {
+            const isActive =
+              href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                )}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Desktop right actions */}
+        <div className="hidden md:flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/search" aria-label="Search">
+              <Search className="size-4" />
+            </Link>
+          </Button>
+
+          {isLoading ? (
+            <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar size="sm">
+                    {user.avatar_url && (
+                      <AvatarImage
+                        src={user.avatar_url}
+                        alt={user.display_name ?? user.username}
+                      />
+                    )}
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">
+                    {user.display_name ?? user.username}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    @{user.username}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/profile/${user.username}`}>
+                    <User className="mr-2 size-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="mr-2 size-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await logout();
+                    setUser(null);
+                    router.push("/");
+                  }}
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Log Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Mobile hamburger */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label="Open menu"
+            >
+              <Menu className="size-5" />
+            </Button>
+          </SheetTrigger>
+          <MobileNav open={mobileOpen} onOpenChange={setMobileOpen} />
+        </Sheet>
+      </div>
+    </header>
+  );
+}

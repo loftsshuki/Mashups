@@ -1,0 +1,405 @@
+"use client"
+
+import { useState, useCallback, useTransition } from "react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { UploadZone } from "@/components/create/upload-zone"
+import { TrackList, type UploadedTrack } from "@/components/create/track-list"
+import { MixerControls } from "@/components/create/mixer-controls"
+import { PublishForm } from "@/components/create/publish-form"
+import { uploadAudio } from "@/lib/storage/upload"
+import { createMashup } from "@/lib/data/mashups-mutations"
+
+const steps = [
+  {
+    number: 1,
+    title: "Upload Tracks",
+    description: "Add two or more tracks to blend",
+    icon: Upload,
+  },
+  {
+    number: 2,
+    title: "Mix & Arrange",
+    description: "Adjust timing, levels, and effects",
+    icon: Sliders,
+  },
+  {
+    number: 3,
+    title: "Publish",
+    description: "Share your mashup with the community",
+    icon: Share2,
+  },
+]
+
+interface MixerTrackState {
+  name: string
+  volume: number
+  muted: boolean
+  solo: boolean
+}
+
+export default function CreatePage() {
+  const [currentStep, setCurrentStep] = useState(1)
+  const [tracks, setTracks] = useState<UploadedTrack[]>([])
+  const [mixerTracks, setMixerTracks] = useState<MixerTrackState[]>([])
+  const [previewMessage, setPreviewMessage] = useState("")
+  const [isPending, startTransition] = useTransition()
+
+  // ---------------------------------------------------------------------------
+  // Step 1: Upload handlers
+  // ---------------------------------------------------------------------------
+
+  const handleFilesAdded = useCallback(async (files: File[]) => {
+    // Add each file to the track list with 0 progress
+    const newTracks: UploadedTrack[] = files.map((file) => ({
+      file,
+      name: file.name,
+      size: file.size,
+      uploadProgress: 0,
+    }))
+
+    setTracks((prev) => {
+      const updated = [...prev, ...newTracks]
+      return updated
+    })
+
+    // Upload each file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+
+      // Simulate progress stages before actual upload
+      setTracks((prev) => {
+        const idx = prev.findIndex(
+          (t) => t.file === file && t.uploadProgress === 0
+        )
+        if (idx === -1) return prev
+        const updated = [...prev]
+        updated[idx] = { ...updated[idx], uploadProgress: 30 }
+        return updated
+      })
+
+      const formData = new FormData()
+      formData.set("file", file)
+
+      // Try to get audio duration
+      let duration: number | undefined
+      try {
+        const objectUrl = URL.createObjectURL(file)
+        const audio = new Audio(objectUrl)
+        duration = await new Promise<number>((resolve) => {
+          audio.addEventListener("loadedmetadata", () => {
+            resolve(audio.duration)
+            URL.revokeObjectURL(objectUrl)
+          })
+          audio.addEventListener("error", () => {
+            resolve(0)
+            URL.revokeObjectURL(objectUrl)
+          })
+          // Timeout after 5s
+          setTimeout(() => {
+            resolve(0)
+            URL.revokeObjectURL(objectUrl)
+          }, 5000)
+        })
+      } catch {
+        duration = undefined
+      }
+
+      setTracks((prev) => {
+        const idx = prev.findIndex(
+          (t) => t.file === file && t.uploadProgress < 100
+        )
+        if (idx === -1) return prev
+        const updated = [...prev]
+        updated[idx] = { ...updated[idx], uploadProgress: 60 }
+        return updated
+      })
+
+      const result = await uploadAudio(formData)
+
+      setTracks((prev) => {
+        const idx = prev.findIndex(
+          (t) => t.file === file && t.uploadProgress < 100
+        )
+        if (idx === -1) return prev
+        const updated = [...prev]
+        if ("url" in result) {
+          updated[idx] = {
+            ...updated[idx],
+            uploadProgress: 100,
+            uploadedUrl: result.url,
+            duration,
+          }
+        } else {
+          // Upload failed — remove the track
+          updated.splice(idx, 1)
+        }
+        return updated
+      })
+    }
+  }, [])
+
+  const handleRemoveTrack = useCallback((index: number) => {
+    setTracks((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // Step 2: Mixer handlers
+  // ---------------------------------------------------------------------------
+
+  const initMixerTracks = useCallback(() => {
+    setMixerTracks(
+      tracks.map((t) => ({
+        name: t.name.replace(/\.[^.]+$/, ""), // strip extension
+        volume: 80,
+        muted: false,
+        solo: false,
+      }))
+    )
+  }, [tracks])
+
+  const handleVolumeChange = useCallback((index: number, volume: number) => {
+    setMixerTracks((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, volume } : t))
+    )
+  }, [])
+
+  const handleMuteToggle = useCallback((index: number) => {
+    setMixerTracks((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, muted: !t.muted } : t))
+    )
+  }, [])
+
+  const handleSoloToggle = useCallback((index: number) => {
+    setMixerTracks((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, solo: !t.solo } : t))
+    )
+  }, [])
+
+  const handlePreview = useCallback(() => {
+    setPreviewMessage(
+      "Real-time audio mixing is coming in a future update. For now, your volume and mute settings will be saved with the mashup metadata."
+    )
+    setTimeout(() => setPreviewMessage(""), 5000)
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // Step 3: Publish handler
+  // ---------------------------------------------------------------------------
+
+  const handlePublish = useCallback(
+    (formData: FormData) => {
+      startTransition(async () => {
+        await createMashup(null, formData)
+      })
+    },
+    []
+  )
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  const uploadedCount = tracks.filter((t) => t.uploadProgress === 100).length
+  const canProceedStep1 = uploadedCount >= 2
+  const canProceedStep2 = true
+
+  const goToStep = useCallback(
+    (step: number) => {
+      if (step === 2 && currentStep === 1) {
+        initMixerTracks()
+      }
+      setCurrentStep(step)
+    },
+    [currentStep, initMixerTracks]
+  )
+
+  // Compute first uploaded audio URL and total duration for publish form
+  const firstAudioUrl =
+    tracks.find((t) => t.uploadedUrl)?.uploadedUrl ?? ""
+  const totalDuration = tracks.reduce(
+    (sum, t) => sum + (t.duration ?? 0),
+    0
+  )
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+      {/* Page header */}
+      <div className="mb-10 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Create a Mashup
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Blend tracks together and make something new
+        </p>
+      </div>
+
+      {/* Step indicator */}
+      <div className="mx-auto mb-12 max-w-3xl">
+        <div className="flex items-start justify-between">
+          {steps.map((step, i) => {
+            const isActive = step.number === currentStep
+            const isCompleted = step.number < currentStep
+            return (
+              <div
+                key={step.number}
+                className="flex flex-1 flex-col items-center text-center"
+              >
+                <div className="relative flex flex-col items-center">
+                  {/* Connector line */}
+                  {i < steps.length - 1 && (
+                    <div
+                      className={cn(
+                        "absolute top-6 left-[calc(50%+24px)] h-px w-[calc(100%+48px)] sm:w-[calc(100%+80px)]",
+                        isCompleted ? "bg-primary" : "bg-border"
+                      )}
+                    />
+                  )}
+                  {/* Step circle */}
+                  <div
+                    className={cn(
+                      "relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 transition-colors",
+                      isCompleted
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : isActive
+                          ? "border-primary bg-card text-primary"
+                          : "border-primary/30 bg-card text-muted-foreground"
+                    )}
+                  >
+                    {isCompleted ? (
+                      <Check className="h-5 w-5" />
+                    ) : (
+                      <step.icon className="h-5 w-5" />
+                    )}
+                  </div>
+                  <p
+                    className={cn(
+                      "mt-3 text-sm font-semibold",
+                      isActive || isCompleted
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {step.title}
+                  </p>
+                  <p className="mt-1 max-w-[140px] text-xs text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Step content */}
+      <div className="mx-auto max-w-2xl">
+        {/* ----------------------------------------------------------------- */}
+        {/* Step 1: Upload Tracks */}
+        {/* ----------------------------------------------------------------- */}
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <UploadZone onFilesAdded={handleFilesAdded} />
+
+            <TrackList tracks={tracks} onRemove={handleRemoveTrack} />
+
+            {tracks.length > 0 && tracks.length < 2 && (
+              <p className="text-center text-sm text-muted-foreground">
+                Add at least {2 - uploadedCount} more track
+                {2 - uploadedCount > 1 ? "s" : ""} to continue
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* Step 2: Mix & Arrange */}
+        {/* ----------------------------------------------------------------- */}
+        {currentStep === 2 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Mixer Controls
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Adjust volume levels and mute/solo individual tracks
+              </p>
+            </div>
+
+            <MixerControls
+              tracks={mixerTracks}
+              onVolumeChange={handleVolumeChange}
+              onMuteToggle={handleMuteToggle}
+              onSoloToggle={handleSoloToggle}
+            />
+
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={handlePreview}>
+                <Music className="h-4 w-4" />
+                Preview Mix
+              </Button>
+            </div>
+
+            {previewMessage && (
+              <div className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3 text-center text-sm text-muted-foreground">
+                {previewMessage}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* Step 3: Publish */}
+        {/* ----------------------------------------------------------------- */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Publish Your Mashup
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Add details and share your creation with the community
+              </p>
+            </div>
+
+            <PublishForm
+              audioUrl={firstAudioUrl}
+              duration={Math.round(totalDuration)}
+              onPublish={handlePublish}
+              isPending={isPending}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="mx-auto mt-8 flex max-w-2xl items-center justify-between">
+        {currentStep > 1 ? (
+          <Button
+            variant="outline"
+            onClick={() => goToStep(currentStep - 1)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        ) : (
+          <div />
+        )}
+
+        {currentStep < 3 && (
+          <Button
+            onClick={() => goToStep(currentStep + 1)}
+            disabled={
+              (currentStep === 1 && !canProceedStep1) ||
+              (currentStep === 2 && !canProceedStep2)
+            }
+          >
+            Continue
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
