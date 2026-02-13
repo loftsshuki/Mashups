@@ -1,5 +1,6 @@
 "use client"
 
+import type { ComponentProps } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,6 +25,9 @@ interface MashupCardProps {
     displayName: string
     avatarUrl: string
   }
+  rightsBadge?: string
+  rightsBadgeVariant?: ComponentProps<typeof Badge>["variant"]
+  rightsScore?: number
   className?: string
 }
 
@@ -52,6 +56,9 @@ export function MashupCard({
   playCount,
   audioUrl,
   creator,
+  rightsBadge,
+  rightsBadgeVariant = "outline",
+  rightsScore,
   className,
 }: MashupCardProps) {
   const { state, playTrack, pause } = useAudio()
@@ -187,9 +194,17 @@ export function MashupCard({
 
           {/* Meta: genre badge + play count */}
           <div className="flex items-center justify-between">
-            <Badge variant="secondary" className="text-[10px]">
-              {genre}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge variant="secondary" className="text-[10px]">
+                {genre}
+              </Badge>
+              {rightsBadge ? (
+                <Badge variant={rightsBadgeVariant} className="text-[10px]">
+                  {rightsBadge}
+                  {typeof rightsScore === "number" ? ` ${rightsScore}` : ""}
+                </Badge>
+              ) : null}
+            </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <svg
                 viewBox="0 0 24 24"

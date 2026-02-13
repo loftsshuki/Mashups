@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useMemo, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { MashupCard } from "@/components/mashup-card"
@@ -19,6 +19,11 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import { getLocalRecommendationEvents } from "@/lib/data/recommendation-events"
+import {
+  getRightsSafetyAssessment,
+  isRightsSafe,
+  type RightsSafetyAssessment,
+} from "@/lib/data/rights-safety"
 import { mockMashups } from "@/lib/mock-data"
 import { rankForYouMashups } from "@/lib/recommendations/for-you"
 
@@ -41,6 +46,18 @@ const genres = [
 
 type SortOption = "for-you" | "trending" | "newest" | "most-liked"
 type TempoOption = "all" | "slow" | "mid" | "fast"
+type RightsOption = "all" | "safe"
+
+type DiscoverableMashup = {
+  mashup: (typeof mockMashups)[number]
+  safety: RightsSafetyAssessment
+}
+
+function getSafetyBadge(route: RightsSafetyAssessment["route"]) {
+  if (route === "allow") return { label: "Rights-Safe", variant: "default" as const }
+  if (route === "review") return { label: "Review", variant: "secondary" as const }
+  return { label: "Risk", variant: "destructive" as const }
+}
 
 function ExploreContent() {
   const searchParams = useSearchParams()
@@ -49,12 +66,14 @@ function ExploreContent() {
   const activeGenre = searchParams.get("genre") || "All"
   const activeSort = (searchParams.get("sort") as SortOption) || "for-you"
   const activeTempo = (searchParams.get("tempo") as TempoOption) || "all"
+  const activeRights: RightsOption = searchParams.get("rights") === "safe" ? "safe" : "all"
   const playableOnly = searchParams.get("playable") === "1"
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
-  useState(() => {
-    setTimeout(() => setIsInitialLoad(false), 300)
-  })
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   const updateParams = useCallback(
     (key: string, value: string) => {
@@ -63,6 +82,7 @@ function ExploreContent() {
         (key === "genre" && value === "All") ||
         (key === "sort" && value === "for-you") ||
         (key === "tempo" && value === "all") ||
+        (key === "rights" && value === "all") ||
         (key === "playable" && value !== "1")
 
       if (shouldDelete) {
@@ -80,56 +100,78 @@ function ExploreContent() {
   )
 
   const filteredAndSorted = useMemo(() => {
-    let results = [...mockMashups]
+    let results: DiscoverableMashup[] = mockMashups.map((mashup) => ({
+      mashup,
+      safety: getRightsSafetyAssessment(mashup.id),
+    }))
 
     if (activeGenre !== "All") {
-      results = results.filter((m) =>
-        m.genre.toLowerCase().includes(activeGenre.toLowerCase()),
+      results = results.filter((entry) =>
+        entry.mashup.genre.toLowerCase().includes(activeGenre.toLowerCase()),
       )
     }
 
     if (playableOnly) {
-      results = results.filter((m) => Boolean(m.audioUrl))
+      results = results.filter((entry) => Boolean(entry.mashup.audioUrl))
     }
 
     if (activeTempo === "slow") {
-      results = results.filter((m) => m.bpm < 90)
+      results = results.filter((entry) => entry.mashup.bpm < 90)
     } else if (activeTempo === "mid") {
-      results = results.filter((m) => m.bpm >= 90 && m.bpm <= 120)
+      results = results.filter(
+        (entry) => entry.mashup.bpm >= 90 && entry.mashup.bpm <= 120,
+      )
     } else if (activeTempo === "fast") {
-      results = results.filter((m) => m.bpm > 120)
+      results = results.filter((entry) => entry.mashup.bpm > 120)
+    }
+
+    if (activeRights === "safe") {
+      results = results.filter((entry) => isRightsSafe(entry.safety))
     }
 
     switch (activeSort) {
       case "newest":
         results.sort(
           (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            new Date(b.mashup.createdAt).getTime() - new Date(a.mashup.createdAt).getTime(),
         )
         break
       case "for-you": {
         const events = getLocalRecommendationEvents()
-        results = rankForYouMashups(results, events)
+        const rankedMashups = rankForYouMashups(
+          results.map((entry) => entry.mashup),
+          events,
+        )
+        const rankIndex = new Map(
+          rankedMashups.map((mashup, index) => [mashup.id, index]),
+        )
+        results.sort(
+          (a, b) =>
+            (rankIndex.get(a.mashup.id) ?? Number.MAX_SAFE_INTEGER) -
+            (rankIndex.get(b.mashup.id) ?? Number.MAX_SAFE_INTEGER),
+        )
         break
       }
       case "most-liked":
-        results.sort((a, b) => b.likeCount - a.likeCount)
+        results.sort((a, b) => b.mashup.likeCount - a.mashup.likeCount)
         break
       case "trending":
       default:
-        results.sort((a, b) => b.playCount - a.playCount)
+        results.sort((a, b) => b.mashup.playCount - a.mashup.playCount)
         break
     }
 
     return results
-  }, [activeGenre, activeSort, activeTempo, playableOnly])
+  }, [activeGenre, activeSort, activeTempo, activeRights, playableOnly])
+
+  const safeCount = filteredAndSorted.filter((entry) => entry.safety.route === "allow").length
 
   return (
     <NeonPage>
       <NeonHero
         eyebrow="Discovery"
         title="Explore Mashups"
-        description="Discover fresh mixes from creators around the world."
+        description="Discover fresh mixes from creators around the world with rights-safe routing baked in."
       />
 
       <section className="neon-panel mb-8 rounded-2xl p-4">
@@ -159,6 +201,13 @@ function ExploreContent() {
             >
               Playable Only
             </Badge>
+            <Badge
+              variant={activeRights === "safe" ? "default" : "secondary"}
+              className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+              onClick={() => updateParams("rights", activeRights === "safe" ? "all" : "safe")}
+            >
+              Rights-Safe Only
+            </Badge>
 
             <Select value={activeTempo} onValueChange={(tempo) => updateParams("tempo", tempo)}>
               <SelectTrigger className="w-[160px] rounded-xl">
@@ -185,6 +234,9 @@ function ExploreContent() {
             </Select>
           </div>
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {safeCount} rights-safe tracks in current results.
+        </p>
       </section>
 
       {isInitialLoad ? (
@@ -206,19 +258,25 @@ function ExploreContent() {
         </div>
       ) : filteredAndSorted.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredAndSorted.map((mashup) => (
-            <MashupCard
-              key={mashup.id}
-              id={mashup.id}
-              title={mashup.title}
-              coverUrl={mashup.coverUrl}
-              audioUrl={mashup.audioUrl}
-              genre={mashup.genre}
-              duration={mashup.duration}
-              playCount={mashup.playCount}
-              creator={mashup.creator}
-            />
-          ))}
+          {filteredAndSorted.map(({ mashup, safety }) => {
+            const badge = getSafetyBadge(safety.route)
+            return (
+              <MashupCard
+                key={mashup.id}
+                id={mashup.id}
+                title={mashup.title}
+                coverUrl={mashup.coverUrl}
+                audioUrl={mashup.audioUrl}
+                genre={mashup.genre}
+                duration={mashup.duration}
+                playCount={mashup.playCount}
+                creator={mashup.creator}
+                rightsBadge={badge.label}
+                rightsBadgeVariant={badge.variant}
+                rightsScore={safety.score}
+              />
+            )
+          })}
         </div>
       ) : (
         <div className="neon-panel rounded-2xl px-6 py-16 text-center">
@@ -256,4 +314,3 @@ export default function ExplorePage() {
     </Suspense>
   )
 }
-
