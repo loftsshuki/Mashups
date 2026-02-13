@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { CommandPalette } from "@/components/layout/command-palette";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/explore", label: "Explore" },
+  { href: "/launchpad", label: "Launchpad" },
   { href: "/challenges", label: "Challenges" },
-  { href: "/studio", label: "Studio" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/create", label: "Create" },
 ] as const;
 
@@ -117,6 +117,7 @@ export function Header() {
 
         {/* Desktop right actions */}
         <div className="hidden md:flex items-center gap-2">
+          <CommandPalette />
           <Button variant="ghost" size="icon" asChild>
             <Link href="/search" aria-label="Search">
               <Search className="size-4" />

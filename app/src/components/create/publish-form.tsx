@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Loader2, Plus, Trash2, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { uploadImage } from "@/lib/storage/upload"
+import { scorePublishReadiness } from "@/lib/audio/quality-score"
 
 const GENRES = [
   "Electronic",
@@ -72,6 +73,17 @@ export function PublishForm({
   const [coverPreview, setCoverPreview] = useState("")
   const [isUploadingCover, setIsUploadingCover] = useState(false)
   const [sourceTracks, setSourceTracks] = useState<SourceTrackInput[]>(initialSourceTracks)
+  const scores = useMemo(
+    () =>
+      scorePublishReadiness({
+        bpm: Number(bpm) || undefined,
+        titleLength: title.trim().length,
+        descriptionLength: description.trim().length,
+        sourceTrackCount: sourceTracks.filter((t) => t.title || t.artist).length,
+        hasCover: Boolean(coverImageUrl || coverPreview),
+      }),
+    [bpm, title, description, sourceTracks, coverImageUrl, coverPreview],
+  )
 
   const handleCoverUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -304,6 +316,36 @@ export function PublishForm({
           This mashup will be submitted to challenge <span className="font-medium">{challengeId}</span>.
         </div>
       )}
+
+      <div className="rounded-lg border border-border/50 bg-card p-4">
+        <p className="text-sm font-medium text-foreground">Publish Readiness</p>
+        <div className="mt-3 space-y-3">
+          <div>
+            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Audio Quality Score</span>
+              <span>{scores.audioQuality.toFixed(0)}</span>
+            </div>
+            <div className="h-2 rounded bg-muted">
+              <div
+                className="h-2 rounded bg-primary"
+                style={{ width: `${scores.audioQuality}%` }}
+              />
+            </div>
+          </div>
+          <div>
+            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Viral Readiness</span>
+              <span>{scores.viralReadiness.toFixed(0)}</span>
+            </div>
+            <div className="h-2 rounded bg-muted">
+              <div
+                className="h-2 rounded bg-secondary"
+                style={{ width: `${scores.viralReadiness}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
       <Button
         type="submit"
         size="lg"

@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "name": "Mashups Neon Effects",
+    "version": "1.0.0"
+  },
+  "effects": [
+    {
+      "name": "Glow/Primary/Soft",
+      "type": "drop_shadow",
+      "x": 0,
+      "y": 14,
+      "blur": 38,
+      "spread": -20,
+      "color_hex": "#ff4fa3",
+      "opacity": 0.38
+    },
+    {
+      "name": "Glow/Secondary/Soft",
+      "type": "drop_shadow",
+      "x": 0,
+      "y": 16,
+      "blur": 42,
+      "spread": -22,
+      "color_hex": "#ff6f7d",
+      "opacity": 0.32
+    },
+    {
+      "name": "Outline/Primary/1px",
+      "type": "inner_shadow",
+      "x": 0,
+      "y": 0,
+      "blur": 0,
+      "spread": 1,
+      "color_hex": "#ff4fa3",
+      "opacity": 0.36
+    }
+  ],
+  "gradients": [
+    {
+      "name": "Gradient/Primary-to-Secondary",
+      "angle": 35,
+      "stops": [
+        { "offset": 0, "color_hex": "#ff4fa3", "opacity": 1 },
+        { "offset": 1, "color_hex": "#ff6f7d", "opacity": 1 }
+      ]
+    },
+    {
+      "name": "Gradient/Card/Neon-Surface",
+      "angle": 160,
+      "stops": [
+        { "offset": 0, "color_hex": "#2b1f2a", "opacity": 1 },
+        { "offset": 1, "color_hex": "#322434", "opacity": 1 }
+      ]
+    }
+  ]
+}

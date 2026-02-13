@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/launchpad", label: "Launchpad", icon: Search },
   { href: "/challenges", label: "Challenges", icon: Trophy },
   { href: "/studio", label: "Studio", icon: Radio },
   { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },

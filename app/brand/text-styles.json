@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "name": "Mashups Text Styles",
+    "version": "1.0.0"
+  },
+  "font_families": {
+    "headline": "Space Grotesk",
+    "body": "Geist",
+    "mono": "Geist Mono"
+  },
+  "styles": [
+    {
+      "name": "Display/XL",
+      "font_family": "Space Grotesk",
+      "font_weight": 700,
+      "font_size": 64,
+      "line_height": 72,
+      "letter_spacing": -1.2
+    },
+    {
+      "name": "Heading/H1",
+      "font_family": "Space Grotesk",
+      "font_weight": 700,
+      "font_size": 40,
+      "line_height": 48,
+      "letter_spacing": -0.6
+    },
+    {
+      "name": "Heading/H2",
+      "font_family": "Space Grotesk",
+      "font_weight": 700,
+      "font_size": 32,
+      "line_height": 40,
+      "letter_spacing": -0.4
+    },
+    {
+      "name": "Heading/H3",
+      "font_family": "Space Grotesk",
+      "font_weight": 600,
+      "font_size": 24,
+      "line_height": 32,
+      "letter_spacing": -0.2
+    },
+    {
+      "name": "Body/L",
+      "font_family": "Geist",
+      "font_weight": 400,
+      "font_size": 18,
+      "line_height": 28,
+      "letter_spacing": 0
+    },
+    {
+      "name": "Body/M",
+      "font_family": "Geist",
+      "font_weight": 400,
+      "font_size": 16,
+      "line_height": 24,
+      "letter_spacing": 0
+    },
+    {
+      "name": "Body/S",
+      "font_family": "Geist",
+      "font_weight": 400,
+      "font_size": 14,
+      "line_height": 20,
+      "letter_spacing": 0
+    },
+    {
+      "name": "Label/S",
+      "font_family": "Geist",
+      "font_weight": 500,
+      "font_size": 12,
+      "line_height": 16,
+      "letter_spacing": 0.2
+    },
+    {
+      "name": "Code/S",
+      "font_family": "Geist Mono",
+      "font_weight": 500,
+      "font_size": 12,
+      "line_height": 16,
+      "letter_spacing": 0
+    }
+  ]
+}

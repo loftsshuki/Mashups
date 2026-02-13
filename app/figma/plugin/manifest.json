@@ -1,0 +1,13 @@
+{
+  "name": "Mashups Brand Seeder",
+  "id": "mashups-brand-seeder-local",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "relaunchButtons": [
+    {
+      "command": "seed",
+      "name": "Seed Brand Board"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { addSignatureParams, withMashupsSignature } from "@/lib/growth/signature"
 
 interface ShareButtonProps {
   mashupId: string
@@ -25,12 +26,13 @@ export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
     typeof window !== "undefined"
       ? `${window.location.origin}/mashup/${mashupId}`
       : `/mashup/${mashupId}`
+  const shareUrl = addSignatureParams(mashupUrl)
 
-  const shareText = `Check out "${title}" on Mashups.com`
+  const shareText = withMashupsSignature(`Check out "${title}"`)
 
   async function handleCopyLink() {
     try {
-      await navigator.clipboard.writeText(mashupUrl)
+      await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -39,12 +41,12 @@ export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
   }
 
   function handleShareX() {
-    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(mashupUrl)}`
+      const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=400")
   }
 
   function handleShareFacebook() {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(mashupUrl)}`
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=400")
   }
 
@@ -53,7 +55,7 @@ export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
       await navigator.share({
         title,
         text: shareText,
-        url: mashupUrl,
+        url: shareUrl,
       })
     } catch {
       // User cancelled or not supported
