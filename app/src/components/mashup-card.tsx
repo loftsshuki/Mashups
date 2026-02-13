@@ -91,7 +91,7 @@ export function MashupCard({
 
   return (
     <Link href={`/mashup/${id}`} className={cn("group block", className)}>
-      <Card className="overflow-hidden border-border/50 bg-card py-0 transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-primary/10">
+      <Card className="neon-panel overflow-hidden border-primary/20 py-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-primary/25">
         {/* Cover image with play button overlay */}
         <div className="relative aspect-square overflow-hidden">
           <Image
@@ -155,7 +155,7 @@ export function MashupCard({
 
           {/* Duration badge */}
           <div className="absolute right-2 bottom-2">
-            <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+            <span className="rounded-md border border-white/20 bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
               {formatDuration(duration)}
             </span>
           </div>

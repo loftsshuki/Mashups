@@ -83,13 +83,15 @@ export function Header() {
     .toUpperCase() ?? user?.username?.slice(0, 2).toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/80 border-b border-border">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/55 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Music className="size-5 text-primary" />
-          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-bold text-xl">
-            Mashups
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <div className="neon-rail rounded-xl p-1.5">
+            <Music className="size-4 text-primary-foreground" />
+          </div>
+          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-xl font-bold text-transparent">
+            mashups.com
           </span>
         </Link>
 
@@ -103,10 +105,10 @@ export function Header() {
                 key={href}
                 href={href}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "rounded-full px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                 )}
               >
                 {label}
@@ -118,7 +120,7 @@ export function Header() {
         {/* Desktop right actions */}
         <div className="hidden md:flex items-center gap-2">
           <CommandPalette />
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" className="rounded-full" asChild>
             <Link href="/search" aria-label="Search">
               <Search className="size-4" />
             </Link>
@@ -181,10 +183,10 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="rounded-full border-primary/30 bg-transparent" asChild>
                 <Link href="/login">Log In</Link>
               </Button>
-              <Button size="sm" asChild>
+              <Button size="sm" className="rounded-full neon-outline" asChild>
                 <Link href="/signup">Sign Up</Link>
               </Button>
             </>
