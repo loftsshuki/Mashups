@@ -21,18 +21,51 @@ interface ShareButtonProps {
 
 export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
+  const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [isSigning, setIsSigning] = useState(false)
 
   const mashupUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/mashup/${mashupId}`
       : `/mashup/${mashupId}`
-  const shareUrl = addSignatureParams(mashupUrl)
+  const fallbackShareUrl = addSignatureParams(mashupUrl)
 
   const shareText = withMashupsSignature(`Check out "${title}"`)
 
+  async function ensureSignedUrl() {
+    if (signedUrl) return signedUrl
+    if (typeof window === "undefined") return fallbackShareUrl
+
+    setIsSigning(true)
+    try {
+      const response = await fetch("/api/attribution/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignId: `share-${mashupId}`,
+          creatorId: "public-share",
+          destination: mashupUrl,
+          source: "mashup_share_menu",
+        }),
+      })
+
+      if (response.ok) {
+        const data = (await response.json()) as { url?: string }
+        if (data.url) {
+          setSignedUrl(data.url)
+          return data.url
+        }
+      }
+      return fallbackShareUrl
+    } finally {
+      setIsSigning(false)
+    }
+  }
+
   async function handleCopyLink() {
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      const link = await ensureSignedUrl()
+      await navigator.clipboard.writeText(link)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -40,22 +73,36 @@ export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
     }
   }
 
-  function handleShareX() {
-      const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
+  async function handleCopyCaption() {
+    try {
+      const link = await ensureSignedUrl()
+      await navigator.clipboard.writeText(`${shareText}\n${link}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback: do nothing
+    }
+  }
+
+  async function handleShareX() {
+    const link = await ensureSignedUrl()
+    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(link)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=400")
   }
 
-  function handleShareFacebook() {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+  async function handleShareFacebook() {
+    const link = await ensureSignedUrl()
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=400")
   }
 
   async function handleNativeShare() {
     try {
+      const link = await ensureSignedUrl()
       await navigator.share({
         title,
         text: shareText,
-        url: shareUrl,
+        url: link,
       })
     } catch {
       // User cancelled or not supported
@@ -80,7 +127,12 @@ export function ShareButton({ mashupId, title, className }: ShareButtonProps) {
           ) : (
             <Link2 className="h-4 w-4" />
           )}
-          {copied ? "Copied!" : "Copy Link"}
+          {copied ? "Copied!" : isSigning ? "Signing..." : "Copy Signed Link"}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleCopyCaption}>
+          <Share2 className="h-4 w-4" />
+          Copy Caption + Link
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleShareX}>

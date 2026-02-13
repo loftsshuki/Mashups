@@ -2,6 +2,9 @@ import Link from "next/link"
 
 const productLinks = [
   { href: "/launchpad", label: "Product" },
+  { href: "/packs", label: "Weekly Viral Pack" },
+  { href: "/scoreboard", label: "Creator Scoreboard" },
+  { href: "/momentum", label: "Momentum Feed" },
   { href: "/studio", label: "Studio" },
   { href: "/pricing", label: "Pricing" },
   { href: "/enterprise", label: "Enterprise" },
@@ -75,4 +78,3 @@ export function Footer() {
     </footer>
   )
 }
-

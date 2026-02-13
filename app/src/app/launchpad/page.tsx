@@ -18,10 +18,28 @@ const modules = [
     desc: "Realtime presence + shared transport state.",
   },
   {
+    href: "/studio",
+    title: "Studio Versioning",
+    status: "Live",
+    desc: "Timeline markers, notes, and restore snapshots.",
+  },
+  {
     href: "/campaigns",
     title: "Campaign Builder",
     status: "Live",
     desc: "Weekly short-form plan with hooks/captions.",
+  },
+  {
+    href: "/packs",
+    title: "Weekly Viral Pack",
+    status: "Live",
+    desc: "20 rights-safe hook-ready clips dropped every Monday.",
+  },
+  {
+    href: "/mashup/mash-001",
+    title: "15s Hook Generator",
+    status: "Live",
+    desc: "One-click hook cuts with caption and signed export links.",
   },
   {
     href: "/campaigns#cohort-invites",
@@ -52,6 +70,30 @@ const modules = [
     title: "Rights Ops",
     status: "Live",
     desc: "Declarations and claim workflow.",
+  },
+  {
+    href: "/mashup/mash-001",
+    title: "Rights Automation",
+    status: "Live",
+    desc: "Fingerprint confidence with auto route recommendations.",
+  },
+  {
+    href: "/scoreboard",
+    title: "Creator Scoreboard",
+    status: "Live",
+    desc: "Public leaderboard ranked by weekly growth.",
+  },
+  {
+    href: "/challenges",
+    title: "Challenge Engine",
+    status: "Live",
+    desc: "High-frequency themed challenges with sponsor and cash prizes.",
+  },
+  {
+    href: "/momentum",
+    title: "Momentum Feed",
+    status: "Live",
+    desc: "Rising tracks first with quality-gated sponsor slots.",
   },
   {
     href: "/admin/moderation",
@@ -128,7 +170,7 @@ export default function LaunchpadPage() {
       <NeonGrid className="md:grid-cols-2 xl:grid-cols-3">
         {modules.map((module) => (
           <Link
-            key={module.href}
+            key={`${module.href}-${module.title}`}
             href={module.href}
             className="neon-panel rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/45"
           >

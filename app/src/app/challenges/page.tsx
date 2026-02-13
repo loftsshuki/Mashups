@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 import { Clock3, Trophy } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,23 +13,64 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
-import { getChallengeEntries, mockChallenges } from "@/lib/data/challenges"
+import {
+  getChallengeCadenceLabel,
+  getChallengeEntries,
+  getOpenChallengeCount,
+  mockChallenges,
+} from "@/lib/data/challenges"
+import { mockMashups } from "@/lib/mock-data"
 
 export default function ChallengesPage() {
+  const [joiningChallengeId, setJoiningChallengeId] = useState<string | null>(null)
+  const [joinedChallengeId, setJoinedChallengeId] = useState<string | null>(null)
   const active = mockChallenges.find((c) => c.status === "active")
   const entries = active ? getChallengeEntries(active.id) : []
+  const openChallengeCount = getOpenChallengeCount()
+
+  async function joinChallenge(challengeId: string) {
+    setJoiningChallengeId(challengeId)
+    try {
+      const fallbackMashup = mockMashups[0]?.id ?? "mash-001"
+      const response = await fetch("/api/challenges/enter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId,
+          mashupId: fallbackMashup,
+        }),
+      })
+      if (response.ok) {
+        setJoinedChallengeId(challengeId)
+        setTimeout(() => setJoinedChallengeId((prev) => (prev === challengeId ? null : prev)), 2500)
+      }
+    } finally {
+      setJoiningChallengeId(null)
+    }
+  }
 
   return (
     <NeonPage>
       <NeonHero
         eyebrow="Challenges"
-        title="Weekly prompts to drive remix discovery."
-        description="Challenge surfaces follow the same section parity as the homepage with hero, cards, and proof blocks."
+        title="High-frequency challenge engine with real prizes."
+        description="Launch recurring creator loops with sponsor cash, brand packages, and rapid themed rounds."
+        aside={
+          <>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Open Challenges
+            </p>
+            <p className="mt-2 text-3xl font-semibold">{openChallengeCount}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Rolling cadence across daily, 2x weekly, and weekly formats.
+            </p>
+          </>
+        }
       />
 
       <NeonSectionHeader
         title="Current and Upcoming"
-        description="Launch recurring creator loops with clear deadlines and incentives."
+        description="Each challenge includes cadence, sponsor visibility, and one-click entry."
       />
       <NeonGrid className="md:grid-cols-2">
         {mockChallenges.map((challenge) => (
@@ -42,11 +86,29 @@ export default function ChallengesPage() {
               <Clock3 className="h-3.5 w-3.5" />
               <span>Ends {new Date(challenge.endsAt).toLocaleDateString()}</span>
             </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <Badge variant="outline">{getChallengeCadenceLabel(challenge.frequency)}</Badge>
+              <Badge variant="outline">{challenge.rewardType}</Badge>
+              {challenge.sponsor ? <Badge variant="secondary">Sponsored by {challenge.sponsor}</Badge> : null}
+            </div>
             <p className="mt-2 text-sm font-medium text-foreground">Prize: {challenge.prizeText}</p>
             {challenge.status === "active" ? (
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Button asChild size="sm" className="rounded-full">
                   <Link href={`/create?challenge=${challenge.id}`}>Submit Entry</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={() => joinChallenge(challenge.id)}
+                  disabled={joiningChallengeId === challenge.id}
+                >
+                  {joiningChallengeId === challenge.id
+                    ? "Joining..."
+                    : joinedChallengeId === challenge.id
+                      ? "Joined"
+                      : "Join Challenge"}
                 </Button>
               </div>
             ) : null}
@@ -86,4 +148,3 @@ export default function ChallengesPage() {
     </NeonPage>
   )
 }
-

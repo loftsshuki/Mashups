@@ -51,6 +51,7 @@ export default function CampaignsPage() {
   const [inviteCode, setInviteCode] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [inviteExpiresAt, setInviteExpiresAt] = useState<string | null>(null)
+  const [inviteRevSharePercent, setInviteRevSharePercent] = useState<number | null>(null)
   const [generatingInvite, setGeneratingInvite] = useState(false)
   const [copiedInvite, setCopiedInvite] = useState(false)
 
@@ -72,12 +73,14 @@ export default function CampaignsPage() {
         code?: string
         inviteUrl?: string
         expiresAt?: string
+        revSharePercent?: number
       }
 
       if (response.ok) {
         setInviteCode(data.code ?? null)
         setInviteLink(data.inviteUrl ?? null)
         setInviteExpiresAt(data.expiresAt ?? null)
+        setInviteRevSharePercent(data.revSharePercent ?? null)
       }
     } finally {
       setGeneratingInvite(false)
@@ -215,6 +218,11 @@ export default function CampaignsPage() {
             {inviteExpiresAt ? (
               <p className="mt-1 text-muted-foreground">
                 Expires {new Date(inviteExpiresAt).toLocaleString()}
+              </p>
+            ) : null}
+            {inviteRevSharePercent !== null ? (
+              <p className="mt-1 text-muted-foreground">
+                Referral revenue share: {inviteRevSharePercent.toFixed(1)}%
               </p>
             ) : null}
           </div>

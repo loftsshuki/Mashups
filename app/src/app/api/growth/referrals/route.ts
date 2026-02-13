@@ -11,6 +11,7 @@ interface ReferralBody {
   creatorTier?: CreatorTier
   destination?: string
   maxUses?: number
+  revShareBps?: number
 }
 
 const defaultMaxUses: Record<CreatorTier, number> = {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     const inviteUrl = `${appUrl}/a/${token}`
     const maxUses = body.maxUses ?? defaultMaxUses[body.creatorTier]
+    const revShareBps = Math.min(3000, Math.max(300, body.revShareBps ?? 1200))
     const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
     try {
@@ -62,7 +64,7 @@ export async function POST(request: Request) {
         user_id: null,
         mashup_id: null,
         event_type: "share",
-        context: `referral:${code}|tier:${body.creatorTier}|campaign:${body.campaignId}|max_uses:${maxUses}`,
+        context: `referral:${code}|tier:${body.creatorTier}|campaign:${body.campaignId}|max_uses:${maxUses}|rev_share_bps:${revShareBps}|rev_cents:${Math.round(maxUses * 240)}`,
       })
     } catch {
       // Non-blocking analytics insert.
@@ -74,9 +76,9 @@ export async function POST(request: Request) {
       expiresAt,
       maxUses,
       tier: body.creatorTier,
+      revSharePercent: revShareBps / 100,
     })
   } catch {
     return NextResponse.json({ error: "Invalid referral payload." }, { status: 400 })
   }
 }
-

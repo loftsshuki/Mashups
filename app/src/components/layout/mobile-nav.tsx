@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Search, BadgeDollarSign, Radio, ShieldCheck, PlusCircle, Compass } from "lucide-react";
+import {
+  LayoutGrid,
+  Search,
+  BadgeDollarSign,
+  Radio,
+  ShieldCheck,
+  PlusCircle,
+  Compass,
+  Trophy,
+  PackageOpen,
+  Flame,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +27,9 @@ import { Separator } from "@/components/ui/separator";
 
 const navLinks = [
   { href: "/launchpad", label: "Product", icon: LayoutGrid },
+  { href: "/packs", label: "Viral Pack", icon: PackageOpen },
+  { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
+  { href: "/momentum", label: "Momentum", icon: Flame },
   { href: "/studio", label: "Studio", icon: Radio },
   { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
   { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },

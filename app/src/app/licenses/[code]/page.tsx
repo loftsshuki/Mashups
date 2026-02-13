@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import Link from "next/link"
 
 export default async function LicenseVerificationPage({
   params,
@@ -44,6 +45,18 @@ export default async function LicenseVerificationPage({
             <p className="mt-1 text-sm text-foreground">
               {new Date(data.starts_at).toLocaleDateString()} - {new Date(data.ends_at).toLocaleDateString()}
             </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                href={`/api/licenses/certificate/${code}`}
+                className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+              >
+                Download Certificate JSON
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                Use this certificate in claims/disputes as instant license proof.
+              </p>
+            </div>
           </>
         )}
       </div>

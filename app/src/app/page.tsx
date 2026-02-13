@@ -29,15 +29,19 @@ const creatorChannels = [
 ] as const
 
 const featurePills = [
+  "Weekly Viral Pack",
+  "15s Hook Generator",
   "Campaign Copilot",
   "Realtime Studio",
   "Rights + Licensing",
   "Attribution Links",
+  "Creator Scoreboard",
   "Creator Payouts",
 ] as const
 
 const launchChecks = [
   ["Campaigns active", "48"],
+  ["Weekly pack clips", "20"],
   ["Creator clips shipped", "1,284"],
   ["Licenses issued", "319"],
 ] as const
@@ -148,6 +152,17 @@ export default function Home() {
                 <Link href="/launchpad">
                   Open Launchpad
                   <Zap className="size-4" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full border-primary/35 bg-transparent px-7"
+                asChild
+              >
+                <Link href="/packs">
+                  Weekly Viral Pack
+                  <Flame className="size-4" />
                 </Link>
               </Button>
             </div>
@@ -415,6 +430,12 @@ export default function Home() {
                 <Link href="/signup">
                   Get Started
                   <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" className="rounded-full" asChild>
+                <Link href="/scoreboard">
+                  Weekly Scoreboard
+                  <LineChart className="size-4" />
                 </Link>
               </Button>
               <Button variant="ghost" size="lg" className="rounded-full" asChild>

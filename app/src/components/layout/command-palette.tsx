@@ -13,6 +13,9 @@ interface CommandItem {
 
 const commands: CommandItem[] = [
   { label: "Create Mashup", href: "/create", keywords: "create upload mix publish" },
+  { label: "Weekly Viral Pack", href: "/packs", keywords: "weekly monday pack hook rights safe" },
+  { label: "Creator Scoreboard", href: "/scoreboard", keywords: "leaderboard growth weekly rank" },
+  { label: "Momentum Feed", href: "/momentum", keywords: "rising tracks velocity quality gate" },
   { label: "Explore", href: "/explore", keywords: "discover feed momentum trending" },
   { label: "Challenges", href: "/challenges", keywords: "contest challenge viral" },
   { label: "Studio", href: "/studio", keywords: "collab realtime session" },
