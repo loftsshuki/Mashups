@@ -1,17 +1,36 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+type NoopResult = { data: null; error: null }
+
+type NoopQueryChain = {
+  select: (..._args: unknown[]) => NoopQueryChain
+  eq: (..._args: unknown[]) => NoopQueryChain
+  order: (..._args: unknown[]) => NoopQueryChain
+  single: () => Promise<NoopResult>
+  limit: (..._args: unknown[]) => NoopQueryChain
+  insert: (..._args: unknown[]) => NoopQueryChain
+  delete: (..._args: unknown[]) => NoopQueryChain
+  then: (resolve: (value: NoopResult) => unknown) => unknown
+}
+
 export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
     // Return a minimal no-op client when Supabase is not configured
-    const noop = () => ({ data: null, error: null })
-    const chain: any = new Proxy({}, {
-      get: () => (..._args: any[]) => chain,
-    })
-    chain.then = (resolve: any) => resolve({ data: null, error: null })
+    const noopResult: NoopResult = { data: null, error: null }
+    const chain = {} as NoopQueryChain
+    chain.select = () => chain
+    chain.eq = () => chain
+    chain.order = () => chain
+    chain.single = async () => noopResult
+    chain.limit = () => chain
+    chain.insert = () => chain
+    chain.delete = () => chain
+    chain.then = (resolve) => resolve(noopResult)
+
     return {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),

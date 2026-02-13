@@ -112,6 +112,7 @@ export default function SearchPage() {
                       id={mashup.id}
                       title={mashup.title}
                       coverUrl={mashup.coverUrl}
+                      audioUrl={mashup.audioUrl}
                       genre={mashup.genre}
                       duration={mashup.duration}
                       playCount={mashup.playCount}
@@ -197,6 +198,7 @@ export default function SearchPage() {
                   id={mashup.id}
                   title={mashup.title}
                   coverUrl={mashup.coverUrl}
+                  audioUrl={mashup.audioUrl}
                   genre={mashup.genre}
                   duration={mashup.duration}
                   playCount={mashup.playCount}

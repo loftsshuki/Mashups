@@ -1,6 +1,14 @@
 import { mockMashups, getMockMashup, type MockMashup } from "@/lib/mock-data"
 import type { Mashup } from "./types"
 
+type CountRow = { count: number | null }
+type MashupQueryRow = Mashup & {
+  creator: Mashup["creator"] | null
+  source_tracks: Mashup["source_tracks"] | null
+  like_count: CountRow[] | null
+  comment_count: CountRow[] | null
+}
+
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -73,7 +81,9 @@ export async function getMashups(): Promise<Mashup[]> {
       return mockMashups.map(mockToMashup)
     }
 
-    return data.map((row: any) => ({
+    const rows = data as MashupQueryRow[]
+
+    return rows.map((row) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,
@@ -169,7 +179,9 @@ export async function getTrendingMashups(limit = 6): Promise<Mashup[]> {
         .map(mockToMashup)
     }
 
-    return data.map((row: any) => ({
+    const rows = data as MashupQueryRow[]
+
+    return rows.map((row) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,
@@ -220,7 +232,9 @@ export async function getMashupsByCreator(creatorId: string): Promise<Mashup[]> 
         .map(mockToMashup)
     }
 
-    return data.map((row: any) => ({
+    const rows = data as MashupQueryRow[]
+
+    return rows.map((row) => ({
       ...row,
       creator: row.creator ?? undefined,
       source_tracks: row.source_tracks ?? undefined,

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MashupCard } from "@/components/mashup-card"
 import { CreatorAvatar } from "@/components/creator-avatar"
+import { SmartMashupLab } from "@/components/discovery/smart-mashup-lab"
 import { mockMashups, mockCreators } from "@/lib/mock-data"
 
 const howItWorks = [
@@ -89,6 +90,7 @@ export default function Home() {
                 id={mashup.id}
                 title={mashup.title}
                 coverUrl={mashup.coverUrl}
+                audioUrl={mashup.audioUrl}
                 genre={mashup.genre}
                 duration={mashup.duration}
                 playCount={mashup.playCount}
@@ -99,6 +101,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <SmartMashupLab />
 
       {/* ── Featured Creators Section ── */}
       <section className="py-16 md:py-24">

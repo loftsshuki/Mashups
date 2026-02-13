@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
+import { useRef, useState } from "react"
 import { useAudio } from "@/lib/audio/audio-context"
 import { cn } from "@/lib/utils"
 

@@ -40,7 +40,7 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
           currentTrack: action.track,
           isPlaying: true,
           currentTime: 0,
-          queueIndex: idx !== -1 ? idx : state.queueIndex,
+          queueIndex: idx !== -1 ? idx : -1,
         }
       }
       // Resume current track

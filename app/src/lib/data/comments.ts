@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/client"
 import type { Comment } from "./types"
 
+type CommentRow = Omit<Comment, "user"> & {
+  user: Comment["user"] | null
+}
+
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -32,10 +36,12 @@ export async function getComments(mashupId: string): Promise<Comment[]> {
       return []
     }
 
-    return data.map((row: any) => ({
+    const rows = data as CommentRow[]
+
+    return rows.map((row) => ({
       ...row,
       user: row.user ?? undefined,
-    })) as Comment[]
+    }))
   } catch {
     return []
   }

@@ -32,6 +32,7 @@ const genres = [
 ]
 
 type SortOption = "trending" | "newest" | "most-liked"
+type TempoOption = "all" | "slow" | "mid" | "fast"
 
 function ExploreContent() {
   const searchParams = useSearchParams()
@@ -39,6 +40,8 @@ function ExploreContent() {
 
   const activeGenre = searchParams.get("genre") || "All"
   const activeSort = (searchParams.get("sort") as SortOption) || "trending"
+  const activeTempo = (searchParams.get("tempo") as TempoOption) || "all"
+  const playableOnly = searchParams.get("playable") === "1"
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   // Simulate initial loading
@@ -49,7 +52,13 @@ function ExploreContent() {
   const updateParams = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString())
-      if (value === "All" || value === "trending") {
+      const shouldDelete =
+        (key === "genre" && value === "All") ||
+        (key === "sort" && value === "trending") ||
+        (key === "tempo" && value === "all") ||
+        (key === "playable" && value !== "1")
+
+      if (shouldDelete) {
         params.delete(key)
       } else {
         params.set(key, value)
@@ -70,6 +79,14 @@ function ExploreContent() {
     updateParams("sort", sort)
   }
 
+  function handleTempoChange(tempo: string) {
+    updateParams("tempo", tempo)
+  }
+
+  function handlePlayableToggle() {
+    updateParams("playable", playableOnly ? "0" : "1")
+  }
+
   const filteredAndSorted = useMemo(() => {
     let results = [...mockMashups]
 
@@ -78,6 +95,18 @@ function ExploreContent() {
       results = results.filter((m) =>
         m.genre.toLowerCase().includes(activeGenre.toLowerCase())
       )
+    }
+
+    if (playableOnly) {
+      results = results.filter((m) => Boolean(m.audioUrl))
+    }
+
+    if (activeTempo === "slow") {
+      results = results.filter((m) => m.bpm < 90)
+    } else if (activeTempo === "mid") {
+      results = results.filter((m) => m.bpm >= 90 && m.bpm <= 120)
+    } else if (activeTempo === "fast") {
+      results = results.filter((m) => m.bpm > 120)
     }
 
     // Sort
@@ -98,7 +127,7 @@ function ExploreContent() {
     }
 
     return results
-  }, [activeGenre, activeSort])
+  }, [activeGenre, activeSort, activeTempo, playableOnly])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
@@ -127,7 +156,25 @@ function ExploreContent() {
           ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Badge
+            variant={playableOnly ? "default" : "secondary"}
+            className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+            onClick={handlePlayableToggle}
+          >
+            Playable Only
+          </Badge>
+          <Select value={activeTempo} onValueChange={handleTempoChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Tempo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tempo</SelectItem>
+              <SelectItem value="slow">Slow (&lt; 90 BPM)</SelectItem>
+              <SelectItem value="mid">Mid (90-120 BPM)</SelectItem>
+              <SelectItem value="fast">Fast (&gt; 120 BPM)</SelectItem>
+            </SelectContent>
+          </Select>
           <span className="text-sm text-muted-foreground">Sort by:</span>
           <Select value={activeSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[150px]">
@@ -168,6 +215,7 @@ function ExploreContent() {
               id={mashup.id}
               title={mashup.title}
               coverUrl={mashup.coverUrl}
+              audioUrl={mashup.audioUrl}
               genre={mashup.genre}
               duration={mashup.duration}
               playCount={mashup.playCount}
@@ -179,7 +227,7 @@ function ExploreContent() {
         <div className="rounded-lg border border-border/50 bg-muted/30 px-6 py-16 text-center">
           <p className="text-lg font-medium text-foreground">No mashups found</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Try a different genre or sort option
+            Try a different genre, tempo, or sort option
           </p>
         </div>
       )}

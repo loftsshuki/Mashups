@@ -55,10 +55,12 @@ export function MashupCard({
 }: MashupCardProps) {
   const { state, playTrack, pause } = useAudio()
   const isThisTrackPlaying = state.currentTrack?.id === id && state.isPlaying
+  const canPlay = Boolean(audioUrl)
 
   function handlePlayClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
+    if (!canPlay) return
 
     if (isThisTrackPlaying) {
       pause()
@@ -98,13 +100,17 @@ export function MashupCard({
           >
             <button
               onClick={handlePlayClick}
+              disabled={!canPlay}
               className={cn(
                 "flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 shadow-lg backdrop-blur-sm transition-all duration-300",
                 isThisTrackPlaying
                   ? "scale-100 opacity-100"
-                  : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+                  : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100",
+                !canPlay && "cursor-not-allowed opacity-40"
               )}
-              aria-label={isThisTrackPlaying ? "Pause" : "Play"}
+              aria-label={
+                canPlay ? (isThisTrackPlaying ? "Pause" : "Play") : "Audio unavailable"
+              }
             >
               {isThisTrackPlaying ? (
                 <Pause className="h-5 w-5 text-primary-foreground" fill="currentColor" />

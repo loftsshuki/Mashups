@@ -199,7 +199,7 @@ export function Header() {
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
-          <MobileNav open={mobileOpen} onOpenChange={setMobileOpen} />
+          <MobileNav />
         </Sheet>
       </div>
     </header>

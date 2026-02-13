@@ -124,17 +124,24 @@ export default function SignupPage() {
               >
                 I agree to the{" "}
                 <Link
-                  href="#"
+                  href="/legal/terms"
                   className="font-medium text-primary transition-colors hover:text-primary/80"
                 >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
                 <Link
-                  href="#"
+                  href="/legal/copyright"
                   className="font-medium text-primary transition-colors hover:text-primary/80"
                 >
-                  Privacy Policy
+                  Copyright Policy
+                </Link>
+                {" "}and{" "}
+                <Link
+                  href="/legal/repeat-infringer"
+                  className="font-medium text-primary transition-colors hover:text-primary/80"
+                >
+                  Repeat Infringer Policy
                 </Link>
               </label>
             </div>

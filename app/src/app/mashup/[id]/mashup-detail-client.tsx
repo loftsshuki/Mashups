@@ -34,6 +34,7 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
   const { state, playTrack, toggle } = useAudio()
   const isThisTrack = state.currentTrack?.id === mashup.id
   const isPlaying = isThisTrack && state.isPlaying
+  const canPlay = Boolean(mashup.audioUrl)
 
   const creatorInitials = mashup.creator.displayName
     .split(" ")
@@ -42,6 +43,7 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
     .slice(0, 2)
 
   function handlePlay() {
+    if (!canPlay) return
     if (isThisTrack) {
       toggle()
       return
@@ -75,8 +77,9 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
             {/* Play overlay */}
             <button
               onClick={handlePlay}
+              disabled={!canPlay}
               className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors hover:bg-black/30"
-              aria-label={isPlaying ? "Pause" : "Play"}
+              aria-label={canPlay ? (isPlaying ? "Pause" : "Play") : "Audio unavailable"}
             >
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/90 shadow-lg backdrop-blur-sm transition-transform hover:scale-105">
                 {isPlaying ? (

@@ -14,11 +14,6 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
-interface MobileNavProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass },
@@ -26,7 +21,7 @@ const navLinks = [
   { href: "/search", label: "Search", icon: Search },
 ] as const;
 
-export function MobileNav({ open, onOpenChange }: MobileNavProps) {
+export function MobileNav() {
   const pathname = usePathname();
 
   return (

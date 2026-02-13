@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 const footerLinks = [
-  { href: "#", label: "About" },
-  { href: "#", label: "Terms" },
-  { href: "#", label: "Privacy" },
-  { href: "#", label: "Contact" },
+  { href: "/legal/terms", label: "Terms" },
+  { href: "/legal/copyright", label: "Copyright" },
+  { href: "/legal/repeat-infringer", label: "Repeat Policy" },
+  { href: "mailto:legal@mashups.example", label: "Contact" },
 ] as const;
 
 export function Footer() {
