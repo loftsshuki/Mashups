@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useAudio } from "@/lib/audio/audio-context"
 import type { Track } from "@/lib/audio/types"
 import { Pause } from "lucide-react"
+import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
 
 interface MashupCardProps {
   id: string
@@ -64,6 +65,11 @@ export function MashupCard({
 
     if (isThisTrackPlaying) {
       pause()
+      void trackRecommendationEvent({
+        mashupId: id,
+        eventType: "skip",
+        context: "mashup_card",
+      })
       return
     }
 
@@ -76,6 +82,11 @@ export function MashupCard({
       duration,
     }
     playTrack(track)
+    void trackRecommendationEvent({
+      mashupId: id,
+      eventType: "play",
+      context: "mashup_card",
+    })
   }
 
   return (

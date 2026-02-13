@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Plus, Pencil, Trash2, Music } from "lucide-react"
+import { Plus, Pencil, Trash2, Music, ChartColumn, Shield, Wallet, Gavel } from "lucide-react"
 import { AuthGuard } from "@/components/auth/auth-guard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -108,6 +108,33 @@ function DashboardContent() {
           <Link href="/create">
             <Plus className="h-4 w-4" />
             Create New
+          </Link>
+        </Button>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/analytics">
+            <ChartColumn className="h-4 w-4" />
+            Analytics
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/rights">
+            <Shield className="h-4 w-4" />
+            Rights Ops
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/monetization">
+            <Wallet className="h-4 w-4" />
+            Monetization
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/admin/moderation">
+            <Gavel className="h-4 w-4" />
+            Moderation
           </Link>
         </Button>
       </div>

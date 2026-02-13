@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, PlusCircle, Search } from "lucide-react";
+import { Home, Compass, PlusCircle, Search, Trophy, Radio, BadgeDollarSign } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,9 @@ import { Separator } from "@/components/ui/separator";
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/challenges", label: "Challenges", icon: Trophy },
+  { href: "/studio", label: "Studio", icon: Radio },
+  { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
   { href: "/create", label: "Create", icon: PlusCircle },
   { href: "/search", label: "Search", icon: Search },
 ] as const;

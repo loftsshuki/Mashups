@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useCallback, useTransition } from "react"
+import { useState, useCallback, useTransition, useMemo, Suspense } from "react"
 import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { UploadZone } from "@/components/create/upload-zone"
@@ -10,6 +11,7 @@ import { MixerControls } from "@/components/create/mixer-controls"
 import { PublishForm } from "@/components/create/publish-form"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
+import { getMockMashup } from "@/lib/mock-data"
 
 const steps = [
   {
@@ -39,12 +41,20 @@ interface MixerTrackState {
   solo: boolean
 }
 
-export default function CreatePage() {
+function CreatePageContent() {
+  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(1)
   const [tracks, setTracks] = useState<UploadedTrack[]>([])
   const [mixerTracks, setMixerTracks] = useState<MixerTrackState[]>([])
   const [previewMessage, setPreviewMessage] = useState("")
   const [isPending, startTransition] = useTransition()
+
+  const forkId = searchParams.get("fork")
+  const challengeId = searchParams.get("challenge") ?? undefined
+  const forkedFrom = useMemo(
+    () => (forkId ? getMockMashup(forkId) : undefined),
+    [forkId],
+  )
 
   // ---------------------------------------------------------------------------
   // Step 1: Upload handlers
@@ -361,6 +371,11 @@ export default function CreatePage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Add details and share your creation with the community
               </p>
+              {forkedFrom && (
+                <div className="mt-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+                  Forking from: <span className="font-medium">{forkedFrom.title}</span>
+                </div>
+              )}
             </div>
 
             <PublishForm
@@ -368,6 +383,17 @@ export default function CreatePage() {
               duration={Math.round(totalDuration)}
               onPublish={handlePublish}
               isPending={isPending}
+              initialTitle={forkedFrom ? `${forkedFrom.title} (Fork)` : ""}
+              initialDescription={
+                forkedFrom
+                  ? `Forked from "${forkedFrom.title}" by ${forkedFrom.creator.displayName}.`
+                  : ""
+              }
+              initialGenre={forkedFrom?.genre ?? ""}
+              initialBpm={forkedFrom ? String(forkedFrom.bpm) : ""}
+              initialSourceTracks={forkedFrom?.sourceTracks}
+              forkParentId={forkedFrom?.id}
+              challengeId={challengeId}
             />
           </div>
         )}
@@ -401,5 +427,19 @@ export default function CreatePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+          <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
+        </div>
+      }
+    >
+      <CreatePageContent />
+    </Suspense>
   )
 }

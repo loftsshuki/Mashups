@@ -1,4 +1,4 @@
-import { mockMashups, getMockMashup } from "@/lib/mock-data"
+import { mockMashups, getMockMashup, getMashupChildren, getMashupLineage } from "@/lib/mock-data"
 import { MashupDetailClient } from "./mashup-detail-client"
 
 export function generateStaticParams() {
@@ -14,6 +14,8 @@ export default async function MashupPage({
 }) {
   const { id } = await params
   const mashup = getMockMashup(id) ?? mockMashups[0]
+  const lineage = getMashupLineage(mashup.id)
+  const forkedMashups = getMashupChildren(mashup.id)
 
-  return <MashupDetailClient mashup={mashup} />
+  return <MashupDetailClient mashup={mashup} lineage={lineage} forkedMashups={forkedMashups} />
 }

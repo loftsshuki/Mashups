@@ -12,6 +12,8 @@ export async function createMashup(prevState: unknown, formData: FormData) {
   const audioUrl = formData.get("audio_url") as string
   const coverImageUrl = formData.get("cover_image_url") as string
   const sourceTracksJson = formData.get("source_tracks") as string
+  const forkParentId = formData.get("fork_parent_id") as string | null
+  const challengeId = formData.get("challenge_id") as string | null
 
   if (!title || !audioUrl) {
     return { error: "Title and audio are required" }
@@ -58,6 +60,23 @@ export async function createMashup(prevState: unknown, formData: FormData) {
           )
         }
       } catch { /* ignore parse errors */ }
+    }
+
+    // Optional remix lineage link for forked mashups
+    if (forkParentId) {
+      await supabase.from("remix_relations").insert({
+        parent_mashup_id: forkParentId,
+        child_mashup_id: mashup.id,
+      })
+    }
+
+    // Optional challenge submission link
+    if (challengeId) {
+      await supabase.from("challenge_entries").insert({
+        challenge_id: challengeId,
+        mashup_id: mashup.id,
+        creator_id: user.id,
+      })
     }
 
     redirect(`/mashup/${mashup.id}`)

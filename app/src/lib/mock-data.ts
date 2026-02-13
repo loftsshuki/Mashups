@@ -16,6 +16,7 @@ export interface MockMashup {
   likeCount: number
   commentCount: number
   createdAt: string
+  parentId?: string
   sourceTracks: { title: string; artist: string }[]
 }
 
@@ -73,6 +74,7 @@ export const mockMashups: MockMashup[] = [
     likeCount: 31400,
     commentCount: 1205,
     createdAt: "2026-01-03T14:00:00Z",
+    parentId: "mash-001",
     sourceTracks: [
       { title: "Neon Nights", artist: "Strobe" },
       { title: "Beat Drop", artist: "Kaskade" },
@@ -97,6 +99,7 @@ export const mockMashups: MockMashup[] = [
     likeCount: 5100,
     commentCount: 187,
     createdAt: "2025-11-22T09:15:00Z",
+    parentId: "mash-001",
     sourceTracks: [
       { title: "Golden Hour", artist: "Mellow Drift" },
       { title: "Café Samba", artist: "Rio Sound" },
@@ -121,6 +124,7 @@ export const mockMashups: MockMashup[] = [
     likeCount: 14200,
     commentCount: 623,
     createdAt: "2026-01-18T17:45:00Z",
+    parentId: "mash-002",
     sourceTracks: [
       { title: "Cathedral", artist: "Symphonic Rage" },
       { title: "Sub Zero", artist: "Bass Architect" },
@@ -283,6 +287,22 @@ export const mockCreators: MockCreator[] = [
 
 export function getMockMashup(id: string): MockMashup | undefined {
   return mockMashups.find((m) => m.id === id)
+}
+
+export function getMashupChildren(parentId: string): MockMashup[] {
+  return mockMashups.filter((m) => m.parentId === parentId)
+}
+
+export function getMashupLineage(id: string): MockMashup[] {
+  const chain: MockMashup[] = []
+  let current = getMockMashup(id)
+
+  while (current) {
+    chain.unshift(current)
+    current = current.parentId ? getMockMashup(current.parentId) : undefined
+  }
+
+  return chain
 }
 
 export function getMockCreator(username: string): MockCreator | undefined {

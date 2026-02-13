@@ -10,9 +10,13 @@ import { ProgressBar } from "@/components/player/progress-bar"
 import { LikeButton } from "@/components/mashup/like-button"
 import { ShareButton } from "@/components/mashup/share-button"
 import { CommentSection } from "@/components/mashup/comment-section"
+import { RemixGraph } from "@/components/mashup/remix-graph"
 import { useAudio } from "@/lib/audio/audio-context"
 import type { Track } from "@/lib/audio/types"
 import type { MockMashup } from "@/lib/mock-data"
+import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
+import { useEffect } from "react"
+import { useState } from "react"
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60)
@@ -30,17 +34,35 @@ function formatCount(count: number): string {
   return count.toString()
 }
 
-export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
+export function MashupDetailClient({
+  mashup,
+  lineage,
+  forkedMashups,
+}: {
+  mashup: MockMashup
+  lineage: MockMashup[]
+  forkedMashups: MockMashup[]
+}) {
   const { state, playTrack, toggle } = useAudio()
   const isThisTrack = state.currentTrack?.id === mashup.id
   const isPlaying = isThisTrack && state.isPlaying
   const canPlay = Boolean(mashup.audioUrl)
+  const [licenseUrl, setLicenseUrl] = useState<string | null>(null)
+  const [issuingLicense, setIssuingLicense] = useState(false)
 
   const creatorInitials = mashup.creator.displayName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
+
+  useEffect(() => {
+    void trackRecommendationEvent({
+      mashupId: mashup.id,
+      eventType: "open",
+      context: "mashup_detail",
+    })
+  }, [mashup.id])
 
   function handlePlay() {
     if (!canPlay) return
@@ -57,6 +79,28 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
       duration: mashup.duration,
     }
     playTrack(track)
+  }
+
+  async function handleIssueLicense() {
+    setIssuingLicense(true)
+    try {
+      const response = await fetch("/api/licenses/issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mashupId: mashup.id,
+          licenseType: "organic_shorts",
+          territory: "US",
+          termDays: 365,
+        }),
+      })
+      if (response.ok) {
+        const data = (await response.json()) as { verificationUrl?: string }
+        if (data.verificationUrl) setLicenseUrl(data.verificationUrl)
+      }
+    } finally {
+      setIssuingLicense(false)
+    }
   }
 
   return (
@@ -124,7 +168,28 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
               mashupId={mashup.id}
               title={mashup.title}
             />
+            <Link
+              href={`/create?fork=${mashup.id}`}
+              className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              Fork This Mashup
+            </Link>
+            <button
+              onClick={handleIssueLicense}
+              disabled={issuingLicense}
+              className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+            >
+              {issuingLicense ? "Issuing..." : "Issue Shorts License"}
+            </button>
           </div>
+          {licenseUrl && (
+            <p className="max-w-[300px] text-xs text-muted-foreground">
+              License issued:{" "}
+              <a href={licenseUrl} className="text-primary underline" target="_blank" rel="noreferrer">
+                verification link
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Right: Details */}
@@ -175,6 +240,8 @@ export function MashupDetailClient({ mashup }: { mashup: MockMashup }) {
               </p>
             )}
           </div>
+
+          <RemixGraph lineage={lineage} forks={forkedMashups} />
 
           {/* Source tracks */}
           <div>

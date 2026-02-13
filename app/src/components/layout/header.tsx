@@ -23,6 +23,9 @@ import { logout } from "@/lib/auth/auth-actions";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/explore", label: "Explore" },
+  { href: "/challenges", label: "Challenges" },
+  { href: "/studio", label: "Studio" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/create", label: "Create" },
 ] as const;
 

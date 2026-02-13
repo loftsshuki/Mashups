@@ -42,6 +42,13 @@ interface PublishFormProps {
   duration: number
   onPublish: (data: FormData) => void
   isPending: boolean
+  initialTitle?: string
+  initialDescription?: string
+  initialGenre?: string
+  initialBpm?: string
+  initialSourceTracks?: SourceTrackInput[]
+  forkParentId?: string
+  challengeId?: string
 }
 
 export function PublishForm({
@@ -49,17 +56,22 @@ export function PublishForm({
   duration,
   onPublish,
   isPending,
+  initialTitle = "",
+  initialDescription = "",
+  initialGenre = "",
+  initialBpm = "",
+  initialSourceTracks = [{ title: "", artist: "" }],
+  forkParentId,
+  challengeId,
 }: PublishFormProps) {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [genre, setGenre] = useState("")
-  const [bpm, setBpm] = useState("")
+  const [title, setTitle] = useState(initialTitle)
+  const [description, setDescription] = useState(initialDescription)
+  const [genre, setGenre] = useState(initialGenre)
+  const [bpm, setBpm] = useState(initialBpm)
   const [coverImageUrl, setCoverImageUrl] = useState("")
   const [coverPreview, setCoverPreview] = useState("")
   const [isUploadingCover, setIsUploadingCover] = useState(false)
-  const [sourceTracks, setSourceTracks] = useState<SourceTrackInput[]>([
-    { title: "", artist: "" },
-  ])
+  const [sourceTracks, setSourceTracks] = useState<SourceTrackInput[]>(initialSourceTracks)
 
   const handleCoverUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,41 +114,30 @@ export function PublishForm({
     []
   )
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
 
-      const formData = new FormData()
-      formData.set("title", title)
-      formData.set("description", description)
-      formData.set("genre", genre)
-      formData.set("bpm", bpm)
-      formData.set("audio_url", audioUrl)
-      formData.set("cover_image_url", coverImageUrl)
-      formData.set("duration", String(duration))
+    const formData = new FormData()
+    formData.set("title", title)
+    formData.set("description", description)
+    formData.set("genre", genre)
+    formData.set("bpm", bpm)
+    formData.set("audio_url", audioUrl)
+    formData.set("cover_image_url", coverImageUrl)
+    formData.set("duration", String(duration))
+    if (forkParentId) formData.set("fork_parent_id", forkParentId)
+    if (challengeId) formData.set("challenge_id", challengeId)
 
-      // Filter out empty source tracks
-      const validTracks = sourceTracks.filter(
-        (t) => t.title.trim() || t.artist.trim()
-      )
-      if (validTracks.length > 0) {
-        formData.set("source_tracks", JSON.stringify(validTracks))
-      }
+    // Filter out empty source tracks
+    const validTracks = sourceTracks.filter(
+      (t) => t.title.trim() || t.artist.trim()
+    )
+    if (validTracks.length > 0) {
+      formData.set("source_tracks", JSON.stringify(validTracks))
+    }
 
-      onPublish(formData)
-    },
-    [
-      title,
-      description,
-      genre,
-      bpm,
-      audioUrl,
-      coverImageUrl,
-      duration,
-      sourceTracks,
-      onPublish,
-    ]
-  )
+    onPublish(formData)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -298,6 +299,11 @@ export function PublishForm({
       </div>
 
       {/* Submit */}
+      {challengeId && (
+        <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+          This mashup will be submitted to challenge <span className="font-medium">{challengeId}</span>.
+        </div>
+      )}
       <Button
         type="submit"
         size="lg"

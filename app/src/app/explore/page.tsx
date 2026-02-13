@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select"
 import { MashupCard } from "@/components/mashup-card"
 import { mockMashups } from "@/lib/mock-data"
+import { getLocalRecommendationEvents } from "@/lib/data/recommendation-events"
+import { rankForYouMashups } from "@/lib/recommendations/for-you"
 
 const genres = [
   "All",
@@ -31,7 +33,7 @@ const genres = [
   "EDM",
 ]
 
-type SortOption = "trending" | "newest" | "most-liked"
+type SortOption = "for-you" | "trending" | "newest" | "most-liked"
 type TempoOption = "all" | "slow" | "mid" | "fast"
 
 function ExploreContent() {
@@ -39,7 +41,7 @@ function ExploreContent() {
   const router = useRouter()
 
   const activeGenre = searchParams.get("genre") || "All"
-  const activeSort = (searchParams.get("sort") as SortOption) || "trending"
+  const activeSort = (searchParams.get("sort") as SortOption) || "for-you"
   const activeTempo = (searchParams.get("tempo") as TempoOption) || "all"
   const playableOnly = searchParams.get("playable") === "1"
   const [isInitialLoad, setIsInitialLoad] = useState(true)
@@ -54,7 +56,7 @@ function ExploreContent() {
       const params = new URLSearchParams(searchParams.toString())
       const shouldDelete =
         (key === "genre" && value === "All") ||
-        (key === "sort" && value === "trending") ||
+        (key === "sort" && value === "for-you") ||
         (key === "tempo" && value === "all") ||
         (key === "playable" && value !== "1")
 
@@ -117,6 +119,11 @@ function ExploreContent() {
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
         break
+      case "for-you": {
+        const events = getLocalRecommendationEvents()
+        results = rankForYouMashups(results, events)
+        break
+      }
       case "most-liked":
         results.sort((a, b) => b.likeCount - a.likeCount)
         break
@@ -181,6 +188,7 @@ function ExploreContent() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="for-you">For You</SelectItem>
               <SelectItem value="trending">Trending</SelectItem>
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="most-liked">Most Liked</SelectItem>
