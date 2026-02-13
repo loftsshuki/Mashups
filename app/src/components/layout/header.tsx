@@ -17,16 +17,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { CommandPalette } from "@/components/layout/command-palette";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/explore", label: "Explore" },
-  { href: "/launchpad", label: "Launchpad" },
-  { href: "/challenges", label: "Challenges" },
-  { href: "/create", label: "Create" },
+  { href: "/launchpad", label: "Product" },
+  { href: "/studio", label: "Studio" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/enterprise", label: "Enterprise" },
+  { href: "/legal", label: "Docs" },
 ] as const;
 
 interface UserProfile {
@@ -83,15 +82,25 @@ export function Header() {
     .toUpperCase() ?? user?.username?.slice(0, 2).toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/55 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/70 backdrop-blur-xl">
+      <div className="border-b border-border/60 bg-background/75">
+        <div className="mx-auto flex h-8 max-w-7xl items-center justify-center px-4 text-center text-xs text-muted-foreground sm:px-6 lg:px-8">
+          <span>
+            New: attribution signatures now power creator growth loops.
+          </span>
+          <Link href="/dashboard/analytics" className="ml-2 text-primary">
+            View analytics
+          </Link>
+        </div>
+      </div>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <div className="neon-rail rounded-xl p-1.5">
             <Music className="size-4 text-primary-foreground" />
           </div>
-          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-xl font-bold text-transparent">
-            mashups.com
+          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-xl font-semibold text-transparent">
+            mashups
           </span>
         </Link>
 
@@ -99,7 +108,7 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-1">
           {navLinks.map(({ href, label }) => {
             const isActive =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}
@@ -119,7 +128,6 @@ export function Header() {
 
         {/* Desktop right actions */}
         <div className="hidden md:flex items-center gap-2">
-          <CommandPalette />
           <Button variant="ghost" size="icon" className="rounded-full" asChild>
             <Link href="/search" aria-label="Search">
               <Search className="size-4" />
@@ -183,7 +191,12 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="outline" size="sm" className="rounded-full border-primary/30 bg-transparent" asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full border-primary/30 bg-transparent"
+                asChild
+              >
                 <Link href="/login">Log In</Link>
               </Button>
               <Button size="sm" className="rounded-full neon-outline" asChild>

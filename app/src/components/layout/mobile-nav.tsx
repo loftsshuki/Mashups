@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, PlusCircle, Search, Trophy, Radio, BadgeDollarSign } from "lucide-react";
+import { LayoutGrid, Search, BadgeDollarSign, Radio, ShieldCheck, PlusCircle, Compass } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,14 +15,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const navLinks = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/explore", label: "Explore", icon: Compass },
-  { href: "/launchpad", label: "Launchpad", icon: Search },
-  { href: "/challenges", label: "Challenges", icon: Trophy },
+  { href: "/launchpad", label: "Product", icon: LayoutGrid },
   { href: "/studio", label: "Studio", icon: Radio },
   { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
+  { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },
+  { href: "/legal", label: "Docs", icon: Search },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/create", label: "Create", icon: PlusCircle },
-  { href: "/search", label: "Search", icon: Search },
 ] as const;
 
 export function MobileNav() {
