@@ -9,6 +9,10 @@ interface EnterChallengeBody {
   mashupId?: string
 }
 
+const isSupabaseConfigured = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as EnterChallengeBody
@@ -17,6 +21,14 @@ export async function POST(request: Request) {
         { error: "challengeId and mashupId are required." },
         { status: 400 },
       )
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (isSupabaseConfigured() && !user?.id) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
     const challenge = mockChallenges.find((entry) => entry.id === body.challengeId)
@@ -31,11 +43,6 @@ export async function POST(request: Request) {
     const entryId = `entry_${randomUUID().replace(/-/g, "").slice(0, 12)}`
 
     try {
-      const supabase = await createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
       await supabase.from("recommendation_events").insert({
         user_id: user?.id ?? null,
         mashup_id: body.mashupId,
@@ -59,4 +66,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid challenge entry payload." }, { status: 400 })
   }
 }
-

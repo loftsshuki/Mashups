@@ -40,6 +40,12 @@ import {
   type StudioNote,
   type StudioSnapshot,
 } from "@/lib/data/studio-collab"
+import {
+  loadStudioStateFromDb,
+  saveStudioMarkerToDb,
+  saveStudioNoteToDb,
+  saveStudioSnapshotToDb,
+} from "@/lib/data/studio-persistence"
 import { createClient } from "@/lib/supabase/client"
 
 type StudioBroadcastEvent =
@@ -184,6 +190,20 @@ export default function StudioPage() {
   }, [session.id, markers, notes, snapshots])
 
   useEffect(() => {
+    let cancelled = false
+    void loadStudioStateFromDb(session.id).then((state) => {
+      if (cancelled || !state) return
+      if (state.markers.length > 0) setMarkers(state.markers)
+      if (state.notes.length > 0) setNotes(state.notes)
+      if (state.snapshots.length > 0) setSnapshots(state.snapshots)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [session.id])
+
+  useEffect(() => {
     const supabase = createClient()
     if (!("channel" in supabase)) return
 
@@ -272,7 +292,8 @@ export default function StudioPage() {
     setMarkers((prev) => upsertMarker(prev, marker))
     setMarkerLabel("")
     sendStudioBroadcast("studio_marker", { marker })
-  }, [markerLabel, markers.length, playhead, sendStudioBroadcast])
+    void saveStudioMarkerToDb(session.id, marker, producerAlias)
+  }, [markerLabel, markers.length, playhead, producerAlias, sendStudioBroadcast, session.id])
 
   const addNote = useCallback(() => {
     const trimmed = noteText.trim()
@@ -289,7 +310,8 @@ export default function StudioPage() {
     setNotes((prev) => upsertNote(prev, note))
     setNoteText("")
     sendStudioBroadcast("studio_note", { note })
-  }, [noteText, playhead, producerAlias, sendStudioBroadcast])
+    void saveStudioNoteToDb(session.id, note)
+  }, [noteText, playhead, producerAlias, sendStudioBroadcast, session.id])
 
   const saveSnapshot = useCallback(() => {
     const snapshot: StudioSnapshot = {
@@ -305,7 +327,18 @@ export default function StudioPage() {
 
     setSnapshots((prev) => upsertSnapshot(prev, snapshot))
     sendStudioBroadcast("studio_snapshot", { snapshot })
-  }, [bpm, isPlaying, markers.length, notes.length, playhead, sendStudioBroadcast, snapshots.length])
+    void saveStudioSnapshotToDb(session.id, snapshot, producerAlias)
+  }, [
+    bpm,
+    isPlaying,
+    markers.length,
+    notes.length,
+    playhead,
+    producerAlias,
+    sendStudioBroadcast,
+    session.id,
+    snapshots.length,
+  ])
 
   async function copyAudienceInvite() {
     if (typeof window === "undefined") return

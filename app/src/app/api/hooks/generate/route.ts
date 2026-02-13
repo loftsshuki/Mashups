@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { generateHookCuts } from "@/lib/growth/hook-generator"
 import { getMockMashup } from "@/lib/mock-data"
+import { createClient } from "@/lib/supabase/server"
 
 interface HookRequestBody {
   mashupId?: string
@@ -9,6 +10,10 @@ interface HookRequestBody {
   bpm?: number
   durationSec?: number
 }
+
+const isSupabaseConfigured = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +23,14 @@ export async function POST(request: Request) {
         { error: "Provide mashupId or title for hook generation." },
         { status: 400 },
       )
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (isSupabaseConfigured() && !user?.id) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
     const mashup = body.mashupId ? getMockMashup(body.mashupId) : undefined
@@ -33,4 +46,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid hook generation payload." }, { status: 400 })
   }
 }
-

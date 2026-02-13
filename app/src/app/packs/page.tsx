@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { CalendarDays, Copy, Link2, PackageOpen } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -12,16 +12,40 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import { withMashupsSignature } from "@/lib/growth/signature"
-import { buildWeeklyViralPack } from "@/lib/growth/viral-pack"
-import { mockMashups } from "@/lib/mock-data"
+import { getWeeklyViralPack } from "@/lib/data/viral-packs"
+import type { WeeklyViralPack } from "@/lib/growth/viral-pack"
 
 export default function ViralPacksPage() {
-  const pack = useMemo(() => buildWeeklyViralPack(mockMashups), [])
+  const [pack, setPack] = useState<WeeklyViralPack | null>(null)
+  const [loadingPack, setLoadingPack] = useState(true)
   const [loadingClipId, setLoadingClipId] = useState<string | null>(null)
   const [copiedClipId, setCopiedClipId] = useState<string | null>(null)
   const [signedLinks, setSignedLinks] = useState<Record<string, string>>({})
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadPack() {
+      setLoadingPack(true)
+      try {
+        const nextPack = await getWeeklyViralPack()
+        if (!cancelled) {
+          setPack(nextPack)
+        }
+      } finally {
+        if (!cancelled) setLoadingPack(false)
+      }
+    }
+
+    void loadPack()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   async function ensureSignedLink(clipId: string) {
+    if (!pack) return `${window.location.origin}/explore?rights=safe`
     if (signedLinks[clipId]) return signedLinks[clipId]
     setLoadingClipId(clipId)
     try {
@@ -56,6 +80,7 @@ export default function ViralPacksPage() {
     startSec: number,
     durationSec: number,
   ) {
+    if (!pack) return
     const link = await ensureSignedLink(clipId)
     const exportCopy = withMashupsSignature(
       `${title} | ${durationSec}s clip starting at ${startSec.toFixed(1)}s.\n${link}`,
@@ -75,10 +100,10 @@ export default function ViralPacksPage() {
           <div className="space-y-1">
             <p className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <CalendarDays className="h-4 w-4 text-primary" />
-              Published week {pack.publishWeek}
+              Published week {pack?.publishWeek ?? "loading"}
             </p>
             <p className="text-xs text-muted-foreground">
-              {pack.day === "Monday"
+              {pack?.day === "Monday"
                 ? "Fresh Monday drop is live."
                 : "Using most recent Monday drop."}
             </p>
@@ -88,10 +113,14 @@ export default function ViralPacksPage() {
 
       <NeonSectionHeader
         title="Pack Contents"
-        description={`${pack.clipCount} clips tuned for short-form hook performance.`}
+        description={
+          loadingPack || !pack
+            ? "Loading weekly pack..."
+            : `${pack.clipCount} clips tuned for short-form hook performance.`
+        }
       />
       <NeonGrid>
-        {pack.clips.map((clip) => (
+        {(pack?.clips ?? []).map((clip) => (
           <div key={clip.id} className="neon-panel rounded-2xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-foreground">{clip.title}</p>
@@ -116,7 +145,7 @@ export default function ViralPacksPage() {
                 <Copy className="h-4 w-4" />
                 {copiedClipId === clip.id
                   ? "Copied"
-                  : loadingClipId === clip.id
+                  : loadingClipId === clip.id || loadingPack
                     ? "Signing..."
                     : "Copy Export"}
               </Button>

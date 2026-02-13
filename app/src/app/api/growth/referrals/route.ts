@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 
 import { signAttributionLink } from "@/lib/attribution/signing"
+import { clampReferralRevShareBps } from "@/lib/growth/referral-accounting"
 import { createClient } from "@/lib/supabase/server"
 
 type CreatorTier = "large" | "medium" | "emerging"
@@ -20,6 +21,10 @@ const defaultMaxUses: Record<CreatorTier, number> = {
   emerging: 10,
 }
 
+const isSupabaseConfigured = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ReferralBody
@@ -28,6 +33,14 @@ export async function POST(request: Request) {
         { error: "campaignId, creatorTier, and destination are required." },
         { status: 400 },
       )
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (isSupabaseConfigured() && !user?.id) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
     const code = `${body.creatorTier.slice(0, 3)}_${randomUUID().replace(/-/g, "").slice(0, 10)}`
@@ -54,20 +67,34 @@ export async function POST(request: Request) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     const inviteUrl = `${appUrl}/a/${token}`
-    const maxUses = body.maxUses ?? defaultMaxUses[body.creatorTier]
-    const revShareBps = Math.min(3000, Math.max(300, body.revShareBps ?? 1200))
+    const maxUses = Math.max(
+      1,
+      Math.min(500, body.maxUses ?? defaultMaxUses[body.creatorTier]),
+    )
+    const revShareBps = clampReferralRevShareBps(body.revShareBps)
     const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
     try {
-      const supabase = await createClient()
-      await supabase.from("recommendation_events").insert({
-        user_id: null,
-        mashup_id: null,
-        event_type: "share",
-        context: `referral:${code}|tier:${body.creatorTier}|campaign:${body.campaignId}|max_uses:${maxUses}|rev_share_bps:${revShareBps}|rev_cents:${Math.round(maxUses * 240)}`,
+      const { error } = await supabase.from("referral_invites").insert({
+        code,
+        campaign_id: body.campaignId,
+        creator_tier: body.creatorTier,
+        destination,
+        max_uses: maxUses,
+        rev_share_bps: revShareBps,
+        expires_at: expiresAt,
+        user_id: user?.id ?? null,
       })
+      if (error && isSupabaseConfigured()) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
     } catch {
-      // Non-blocking analytics insert.
+      if (isSupabaseConfigured()) {
+        return NextResponse.json(
+          { error: "Unable to save referral invite." },
+          { status: 500 },
+        )
+      }
     }
 
     return NextResponse.json({

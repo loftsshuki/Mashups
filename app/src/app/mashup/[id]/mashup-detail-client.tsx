@@ -13,14 +13,18 @@ import { ShareButton } from "@/components/mashup/share-button"
 import { CommentSection } from "@/components/mashup/comment-section"
 import { RemixGraph } from "@/components/mashup/remix-graph"
 import { useAudio } from "@/lib/audio/audio-context"
+import { exportHookClipAsWav } from "@/lib/audio/hook-export"
 import type { Track } from "@/lib/audio/types"
-import { getForkContestsForMashup } from "@/lib/data/fork-contests"
+import {
+  getForkContestsForMashup,
+  type ForkContest,
+} from "@/lib/data/fork-contests"
 import type { MockMashup } from "@/lib/mock-data"
 import type { RightsSafetyAssessment } from "@/lib/data/rights-safety"
 import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
 import { withMashupsSignature } from "@/lib/growth/signature"
 import { useEffect } from "react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 interface HookGeneratorResult {
   mashupId: string
@@ -94,8 +98,11 @@ export function MashupDetailClient({
   const [hookLoading, setHookLoading] = useState(false)
   const [hookSignedLink, setHookSignedLink] = useState<string | null>(null)
   const [copiedHookId, setCopiedHookId] = useState<number | null>(null)
+  const [exportingHookId, setExportingHookId] = useState<number | null>(null)
   const [copiedContestId, setCopiedContestId] = useState<string | null>(null)
-  const forkContests = useMemo(() => getForkContestsForMashup(mashup.id), [mashup.id])
+  const [forkContests, setForkContests] = useState<ForkContest[]>(() =>
+    getForkContestsForMashup(mashup.id),
+  )
 
   const creatorInitials = mashup.creator.displayName
     .split(" ")
@@ -167,6 +174,28 @@ export function MashupDetailClient({
       cancelled = true
     }
   }, [mashup.audioUrl, mashup.id, rightsRefreshNonce])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadForkContests() {
+      try {
+        const response = await fetch(`/api/fork-contests/${mashup.id}`)
+        if (!response.ok) return
+        const data = (await response.json()) as { contests?: ForkContest[] }
+        if (!cancelled && Array.isArray(data.contests)) {
+          setForkContests(data.contests)
+        }
+      } catch {
+        // Keep fallback contests.
+      }
+    }
+
+    void loadForkContests()
+    return () => {
+      cancelled = true
+    }
+  }, [mashup.id])
 
   function handlePlay() {
     if (!canPlay) return
@@ -267,6 +296,32 @@ export function MashupDetailClient({
     await navigator.clipboard.writeText(payload)
     setCopiedHookId(hookIndex)
     setTimeout(() => setCopiedHookId((prev) => (prev === hookIndex ? null : prev)), 1800)
+  }
+
+  async function exportHookClip(hookIndex: number) {
+    if (!hookData || !mashup.audioUrl) return
+    const cut = hookData.cutPoints.find((entry) => entry.index === hookIndex)
+    if (!cut) return
+
+    setExportingHookId(hookIndex)
+    try {
+      const { blob, fileName } = await exportHookClipAsWav({
+        audioUrl: mashup.audioUrl,
+        startSec: cut.startSec,
+        durationSec: cut.durationSec,
+        fileNameBase: `${mashup.title}-hook-${hookIndex}`,
+      })
+      const objectUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = objectUrl
+      anchor.download = fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      document.body.removeChild(anchor)
+      URL.revokeObjectURL(objectUrl)
+    } finally {
+      setExportingHookId(null)
+    }
   }
 
   async function copyForkContestTemplate(contestId: string, template: string) {
@@ -498,6 +553,15 @@ export function MashupDetailClient({
                     >
                       <Copy className="h-3.5 w-3.5" />
                       {copiedHookId === cut.index ? "Copied" : "Copy Export"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => exportHookClip(cut.index)}
+                      disabled={!mashup.audioUrl || exportingHookId === cut.index}
+                    >
+                      {exportingHookId === cut.index ? "Exporting..." : "Export WAV"}
                     </Button>
                   </div>
                 ))}

@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { ArrowRight, Crown, TrendingUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -9,15 +12,37 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
-import { buildCreatorScoreboard } from "@/lib/growth/scoreboard"
-import { mockCreators, mockMashups } from "@/lib/mock-data"
+import {
+  getCreatorScoreboardRows,
+} from "@/lib/data/scoreboard"
+import type { CreatorScoreboardRow } from "@/lib/growth/scoreboard"
 
 function formatCount(value: number): string {
   return value.toLocaleString()
 }
 
 export default function ScoreboardPage() {
-  const rows = buildCreatorScoreboard(mockCreators, mockMashups)
+  const [rows, setRows] = useState<CreatorScoreboardRow[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadRows() {
+      setLoading(true)
+      try {
+        const nextRows = await getCreatorScoreboardRows()
+        if (!cancelled) setRows(nextRows)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void loadRows()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <NeonPage className="max-w-6xl">
@@ -37,7 +62,11 @@ export default function ScoreboardPage() {
 
       <NeonSectionHeader
         title="Top Movers"
-        description="Weekly ranking refreshes based on growth loops, not vanity totals."
+        description={
+          loading
+            ? "Loading weekly ranking..."
+            : "Weekly ranking refreshes based on growth loops, not vanity totals."
+        }
       />
       <NeonGrid>
         {rows.map((row) => (

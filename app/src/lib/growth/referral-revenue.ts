@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { summarizeReferralRevenueRows } from "@/lib/growth/referral-summary"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -20,50 +21,47 @@ const mockSummary: ReferralRevenueSummary = {
   inviteConversionRate: 0.41,
 }
 
-function parseRecurringRevenue(context: string | null): number {
-  if (!context) return 0
-  const match = context.match(/rev_cents:(\d+)/)
-  if (!match) return 0
-  return Number(match[1]) || 0
-}
-
 export async function getReferralRevenueSummary(): Promise<ReferralRevenueSummary> {
   if (!isSupabaseConfigured()) return mockSummary
 
   try {
     const supabase = createClient()
-    const { data, error } = await supabase
-      .from("recommendation_events")
-      .select("context,created_at")
-      .ilike("context", "%referral:%")
-      .order("created_at", { ascending: false })
-      .limit(300)
+    const [invitesResponse, eventsResponse] = await Promise.all([
+      supabase
+        .from("referral_invites")
+        .select("code,created_at")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabase
+        .from("referral_revenue_events")
+        .select("referral_code,revenue_share_cents,status,created_at")
+        .order("created_at", { ascending: false })
+        .limit(1000),
+    ])
 
-    if (error || !data) return mockSummary
-
-    const contexts = (data as Array<{ context: string | null }>).map((row) => row.context)
-    const uniqueInvites = new Set(
-      contexts
-        .map((context) => context?.match(/referral:([^|]+)/)?.[1] ?? null)
-        .filter((value): value is string => Boolean(value)),
-    )
-    const recurringRevenueCents = contexts.reduce(
-      (sum, context) => sum + parseRecurringRevenue(context),
-      0,
-    )
-    const activeInvitedCreators = Math.max(1, Math.round(uniqueInvites.size * 0.56))
-    const inviteConversionRate =
-      uniqueInvites.size > 0 ? activeInvitedCreators / uniqueInvites.size : 0
-
-    return {
-      invitedCreators: uniqueInvites.size,
-      activeInvitedCreators,
-      recurringRevenueCents,
-      monthlyProjectedCents: Math.round(recurringRevenueCents * 1.38),
-      inviteConversionRate,
+    if (
+      invitesResponse.error ||
+      eventsResponse.error ||
+      !invitesResponse.data ||
+      !eventsResponse.data
+    ) {
+      return mockSummary
     }
+
+    return summarizeReferralRevenueRows(
+      (invitesResponse.data as Record<string, unknown>[])
+        .map((row) => ({
+          code: typeof row.code === "string" ? row.code : "",
+        }))
+        .filter((row) => Boolean(row.code)),
+      (eventsResponse.data as Record<string, unknown>[]).map((row) => ({
+        referralCode: typeof row.referral_code === "string" ? row.referral_code : null,
+        revenueShareCents:
+          typeof row.revenue_share_cents === "number" ? row.revenue_share_cents : 0,
+        status: typeof row.status === "string" ? row.status : "pending",
+      })),
+    )
   } catch {
     return mockSummary
   }
 }
-
