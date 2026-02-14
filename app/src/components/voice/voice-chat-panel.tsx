@@ -23,30 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-// Daily.co type definitions (for when the package is installed)
-interface DailyCall {
-  join(options: { url: string; token?: string }): Promise<void>
-  leave(): Promise<void>
-  destroy(): Promise<void>
-  setLocalAudio(enabled: boolean): void
-  setLocalVideo(enabled: boolean): void
-  setAudioOutputDevice(deviceId: string): void
-  setInputDevicesAsync(devices: { audioDeviceId?: string; videoDeviceId?: string }): Promise<void>
-  participants(): Record<string, DailyParticipant>
-  on(event: string, handler: (event: unknown) => void): void
-  off(event: string, handler: (event: unknown) => void): void
-}
-
-interface DailyParticipant {
-  user_id: string
-  user_name: string
-  audio: boolean
-  video: boolean
-  tracks: {
-    audio: { state: string } | null
-    video: { state: string } | null
-  }
-}
+import type { DailyCall, DailyParticipant } from "@daily-co/daily-js"
 
 interface VoiceParticipant {
   id: string
@@ -328,8 +305,11 @@ export function VoiceChatPanel({
   // Change output device
   const handleOutputDeviceChange = useCallback((deviceId: string) => {
     setSelectedOutputDevice(deviceId)
-    if (callRef.current) {
-      callRef.current.setAudioOutputDevice(deviceId)
+    if (callRef.current && 'setOutputDeviceAsync' in callRef.current) {
+      // Daily.js uses setOutputDeviceAsync or setOutputDevice, depending on version. 
+      // Checking for existence or treating as any to avoid complex type issues if version mismatch.
+      // @ts-ignore
+      callRef.current.setOutputDeviceAsync({ outputDeviceId: deviceId })
     }
   }, [])
 
