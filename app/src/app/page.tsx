@@ -39,6 +39,7 @@ const featurePills = [
   "Attribution Links",
   "Creator Scoreboard",
   "Creator Payouts",
+  "Thunderdome Battles",
 ] as const
 
 const launchChecks = [
@@ -138,6 +139,34 @@ export default async function Home() {
                 The creator music platform for viral distribution at scale.
               </span>
             </h1>
+
+            {/* Thunderdome Promo Banner */}
+            <div className="mt-8 mb-4 relative overflow-hidden rounded-2xl border border-red-500/20 bg-red-950/10 p-6 md:p-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-left space-y-2">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-500">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    Live Now
+                  </div>
+                  <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">
+                    Enter the Thunderdome
+                  </h3>
+                  <p className="text-sm text-zinc-400 max-w-md">
+                    Live multiplayer production battles. 1v1 challenge mode active.
+                  </p>
+                </div>
+                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-[0_0_20px_rgba(220,38,38,0.4)] whitespace-nowrap" asChild>
+                  <Link href="/thunderdome">
+                    Fight in Arena
+                    <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
               Neon-level polish, adapted for mashup growth. Build tracks,
               activate creators, issue safe licenses, and convert every share

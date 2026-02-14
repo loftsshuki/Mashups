@@ -16,6 +16,53 @@ export default function FeaturesPage() {
                 </p>
             </div>
 
+            {/* 0. Thunderdome (LIVE) */}
+            <section className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-950/40 to-black p-8 md:p-12 text-center">
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+                <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        Phase 3: Live Now
+                    </div>
+
+                    <h2 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase text-white drop-shadow-2xl">
+                        THUNDERDOME
+                    </h2>
+
+                    <p className="text-xl md:text-2xl text-zinc-300 max-w-2xl mx-auto font-light">
+                        Real-time multiplayer production battles. <br />
+                        <span className="text-red-400 font-medium">Glitch vs Glitch.</span> Winner takes the crowd.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left max-w-2xl mx-auto pt-4">
+                        <div className="p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
+                            <div className="text-red-500 font-bold mb-1">Split-Screen</div>
+                            <div className="text-xs text-zinc-500">Watch opponent moves in real-time via WebSocket sync.</div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
+                            <div className="text-red-500 font-bold mb-1">Crowd Control</div>
+                            <div className="text-xs text-zinc-500">Twitch chat votes trigger arena hazards (Speed Up, Reverse).</div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
+                            <div className="text-red-500 font-bold mb-1">XP & Rank</div>
+                            <div className="text-xs text-zinc-500">Climb from Bedroom Producer to Stadium Legend.</div>
+                        </div>
+                    </div>
+
+                    <div className="pt-6">
+                        <a
+                            href="/thunderdome"
+                            className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all bg-red-600 rounded-full hover:bg-red-700 hover:scale-105 shadow-[0_0_30px_rgba(220,38,38,0.5)]"
+                        >
+                            Enter Arena
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             {/* 1. Daily Flip */}
             <section className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-4">
