@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 const navLinks = [
   { href: "/launchpad", label: "Product", icon: LayoutGrid },
   { href: "/packs", label: "Viral Pack", icon: PackageOpen },
+  { href: "/battles", label: "Battles", icon: Trophy },
   { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
   { href: "/momentum", label: "Momentum", icon: Flame },
   { href: "/studio", label: "Studio", icon: Radio },

@@ -23,6 +23,7 @@ import { logout } from "@/lib/auth/auth-actions";
 const navLinks = [
   { href: "/launchpad", label: "Product" },
   { href: "/packs", label: "Viral Pack" },
+  { href: "/battles", label: "Battles" },
   { href: "/scoreboard", label: "Scoreboard" },
   { href: "/studio", label: "Studio" },
   { href: "/pricing", label: "Pricing" },

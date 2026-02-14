@@ -78,7 +78,7 @@
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
 | **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
-| **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | ⚪ Backlog |
+| **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | ⚪ Backlog |
 
 ### 🟡 MEDIUM PRIORITY
