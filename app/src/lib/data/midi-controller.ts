@@ -228,7 +228,7 @@ export class MIDIControllerManager {
     }
   }
 
-  setOnMessageCallback(callback: (message: MIDIMessage) => void) {
+  setOnMessageCallback(callback: ((message: MIDIMessage) => void) | null) {
     this.onMessageCallback = callback
   }
 
@@ -258,7 +258,7 @@ export class MIDIControllerManager {
     return new Promise((resolve) => {
       const originalCallback = this.onMessageCallback
       
-      this.setOnMessageCallback((message) => {
+      this.setOnMessageCallback((message: MIDIMessage) => {
         if (message.command === 11 && message.control !== undefined) {
           this.setOnMessageCallback(originalCallback)
           resolve(message.control)
