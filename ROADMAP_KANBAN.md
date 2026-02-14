@@ -100,7 +100,7 @@
 |------|-------------|---------------------|----------|------|--------|
 | **Content ID Pre-Check** | Pre-publish claim risk assessment | YouTube Content ID API; risk heatmap on timeline; suggestions to fix; pass/fail score | TBD | 5d | 🟢 Done |
 | **Smart Contract Revenue Splits** | Blockchain auto-distribution | On-chain splits; automatic payout; transparent ledger; wallet abstraction (no crypto UX) | TBD | 6d | 🟢 Done |
-| **Fan Subscriptions (Patreon-style)** | Creator membership tiers | 3 tiers ($3/$10/$25); subscriber-only content; integrated paywall; Discord integration | TBD | 4d | ⚪ Backlog |
+| **Fan Subscriptions (Patreon-style)** | Creator membership tiers | 3 tiers ($3/$10/$25); subscriber-only content; integrated paywall; Discord integration | TBD | 4d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
