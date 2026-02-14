@@ -108,6 +108,7 @@ export function VoiceChatPanel({
       
       try {
         // Dynamic import to avoid SSR issues
+        // @ts-expect-error Optional dependency - falls back to simulation mode if not installed
         const Daily = (await import("@daily-co/daily-js")).default
         
         if (!isMounted) return
