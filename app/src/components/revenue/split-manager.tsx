@@ -148,7 +148,7 @@ export function SplitManager({
                               userId: i === 0 ? "current_user" : `user_${i}`,
                               displayName: i === 0 ? "You" : `Collaborator ${i}`,
                               percentage: r.percentage,
-                              role: r.role,
+                              role: r.role as RevenueRecipient["role"],
                             }))
                           )
                         }}
