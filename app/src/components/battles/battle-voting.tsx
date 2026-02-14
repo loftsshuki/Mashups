@@ -55,7 +55,7 @@ export function BattleVoting({
       title: entry.mashup.title,
       artist: entry.mashup.creator.displayName,
       coverUrl: entry.mashup.coverUrl,
-      src: entry.mashup.audioUrl,
+      audioUrl: entry.mashup.audioUrl,
     })
   }
   
@@ -249,7 +249,7 @@ export function BattleMatchup({
       title: entry.mashup.title,
       artist: entry.mashup.creator.displayName,
       coverUrl: entry.mashup.coverUrl,
-      src: entry.mashup.audioUrl,
+      audioUrl: entry.mashup.audioUrl,
     })
   }
   
