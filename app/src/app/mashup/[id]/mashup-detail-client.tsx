@@ -11,7 +11,7 @@ import { ProgressBar } from "@/components/player/progress-bar"
 import { LikeButton } from "@/components/mashup/like-button"
 import { ShareButton } from "@/components/mashup/share-button"
 import { CommentSection } from "@/components/mashup/comment-section"
-import { RemixGraph } from "@/components/mashup/remix-graph"
+import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { useAudio } from "@/lib/audio/audio-context"
 import { exportHookClipAsWav } from "@/lib/audio/hook-export"
 import type { Track } from "@/lib/audio/types"
@@ -594,7 +594,7 @@ export function MashupDetailClient({
             )}
           </div>
 
-          <RemixGraph lineage={lineage} forks={forkedMashups} />
+          <RemixFamilyTree lineage={lineage} forks={forkedMashups} currentId={mashup.id} />
 
           {forkContests.length > 0 ? (
             <div className="rounded-lg border border-border/70 bg-card/70 p-4">

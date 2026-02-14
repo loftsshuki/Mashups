@@ -36,7 +36,7 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Volume Automation Curves** | Node-based volume changes over time | Add/edit/delete automation nodes; curves render in real-time; export with automation | TBD | 3d | ⚪ Backlog |
+| **Volume Automation Curves** | Node-based volume changes over time | Add/edit/delete automation nodes; curves render in real-time; export with automation | TBD | 3d | 🟢 Done |
 | **Realtime Collab 2.0** | Cursor presence + follow mode | See collaborator cursors; "Follow [Name]" button; live audio cursor positions; conflict resolution | TBD | 4d | ⚪ Backlog |
 | **Voice Chat Integration** | Built-in studio communication | Daily.co WebRTC integration; push-to-talk; mute/unmute; speaker indicator per user | TBD | 3d | ⚪ Backlog |
 
@@ -56,9 +56,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **One-Click Platform Export** | Auto-optimize for TikTok/Reels/Shorts | 15/30/60s segment selection; 9:16 + 1:1 formats; auto-visualizer; direct upload APIs | TBD | 5d | ⚪ Backlog |
-| **AI Hook Generator** | Auto-find viral 15s clips | Analyze energy/drops/vocals; suggest top 3 hooks; "Viral Score" 0-100; A/B preview | TBD | 4d | ⚪ Backlog |
-| **Trending Sounds Integration** | Pull TikTok/Spotify trends | Trending sidebar; velocity indicator; one-click "remix this"; update hourly | TBD | 3d | ⚪ Backlog |
+| **One-Click Platform Export** | Auto-optimize for TikTok/Reels/Shorts | 15/30/60s segment selection; 9:16 + 1:1 formats; auto-visualizer; direct upload APIs | TBD | 5d | 🟢 Done |
+| **AI Hook Generator** | Auto-find viral 15s clips | Analyze energy/drops/vocals; suggest top 3 hooks; "Viral Score" 0-100; A/B preview | TBD | 4d | 🟢 Done |
+| **Trending Sounds Integration** | Pull TikTok/Spotify trends | Trending sidebar; velocity indicator; one-click "remix this"; update hourly | TBD | 3d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -77,7 +77,7 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | ⚪ Backlog |
+| **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | ⚪ Backlog |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | ⚪ Backlog |
 
