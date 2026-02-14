@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { mockCreators, mockMashups } from "@/lib/mock-data"
+import type { MockCreator, MockMashup } from "@/lib/mock-data"
 
 const popularSearches = [
   "Lo-fi beats",
@@ -42,33 +42,56 @@ function useDebounce<T>(value: T, delay: number): T {
 export default function SearchPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState("")
+  const [catalogMashups, setCatalogMashups] = useState<MockMashup[]>([])
+  const [catalogCreators, setCatalogCreators] = useState<MockCreator[]>([])
   const debouncedQuery = useDebounce(query, 300)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCatalog() {
+      const response = await fetch("/api/search/catalog", { cache: "no-store" })
+      if (!response.ok) return
+      const payload = (await response.json()) as {
+        mashups?: MockMashup[]
+        creators?: MockCreator[]
+      }
+      if (cancelled) return
+      if (Array.isArray(payload.mashups)) setCatalogMashups(payload.mashups)
+      if (Array.isArray(payload.creators)) setCatalogCreators(payload.creators)
+    }
+
+    void loadCatalog()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const filteredMashups = useMemo(() => {
     if (!debouncedQuery.trim()) return []
     const q = debouncedQuery.toLowerCase()
-    return mockMashups.filter(
+    return catalogMashups.filter(
       (m) =>
         m.title.toLowerCase().includes(q) ||
         m.genre.toLowerCase().includes(q) ||
         m.creator.displayName.toLowerCase().includes(q),
     )
-  }, [debouncedQuery])
+  }, [debouncedQuery, catalogMashups])
 
   const filteredCreators = useMemo(() => {
     if (!debouncedQuery.trim()) return []
     const q = debouncedQuery.toLowerCase()
-    return mockCreators.filter(
+    return catalogCreators.filter(
       (c) =>
         c.displayName.toLowerCase().includes(q) ||
         c.username.toLowerCase().includes(q) ||
         c.bio.toLowerCase().includes(q),
     )
-  }, [debouncedQuery])
+  }, [debouncedQuery, catalogCreators])
 
   const hasQuery = debouncedQuery.trim().length > 0
   const hasResults = filteredMashups.length > 0 || filteredCreators.length > 0
@@ -192,7 +215,7 @@ export default function SearchPage() {
           <section>
             <NeonSectionHeader title="Recent Mashups" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {mockMashups.slice(0, 4).map((mashup) => (
+              {catalogMashups.slice(0, 4).map((mashup) => (
                 <MashupCard
                   key={mashup.id}
                   id={mashup.id}
@@ -212,4 +235,3 @@ export default function SearchPage() {
     </NeonPage>
   )
 }
-

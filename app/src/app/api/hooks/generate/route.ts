@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 
 import { generateHookCuts } from "@/lib/growth/hook-generator"
-import { getMockMashup } from "@/lib/mock-data"
 import { createClient } from "@/lib/supabase/server"
 
 interface HookRequestBody {
@@ -33,7 +32,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
-    const mashup = body.mashupId ? getMockMashup(body.mashupId) : undefined
+    let mashup: { title?: string | null; bpm?: number | null; duration?: number | null } | undefined
+    if (body.mashupId) {
+      const { data } = await supabase
+        .from("mashups")
+        .select("title,bpm,duration")
+        .eq("id", body.mashupId)
+        .maybeSingle()
+      mashup = (data as { title?: string | null; bpm?: number | null; duration?: number | null } | null) ?? undefined
+    }
+
     const result = generateHookCuts({
       mashupId: body.mashupId ?? "adhoc-hook",
       title: body.title ?? mashup?.title ?? "Untitled Hook",

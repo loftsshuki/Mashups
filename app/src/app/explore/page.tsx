@@ -24,7 +24,7 @@ import {
   isRightsSafe,
   type RightsSafetyAssessment,
 } from "@/lib/data/rights-safety"
-import { mockMashups } from "@/lib/mock-data"
+import type { MockMashup } from "@/lib/mock-data"
 import { rankForYouMashups } from "@/lib/recommendations/for-you"
 
 const genres = [
@@ -49,7 +49,7 @@ type TempoOption = "all" | "slow" | "mid" | "fast"
 type RightsOption = "all" | "safe"
 
 type DiscoverableMashup = {
-  mashup: (typeof mockMashups)[number]
+  mashup: MockMashup
   safety: RightsSafetyAssessment
 }
 
@@ -68,11 +68,36 @@ function ExploreContent() {
   const activeTempo = (searchParams.get("tempo") as TempoOption) || "all"
   const activeRights: RightsOption = searchParams.get("rights") === "safe" ? "safe" : "all"
   const playableOnly = searchParams.get("playable") === "1"
+  const [catalogMashups, setCatalogMashups] = useState<MockMashup[]>([])
+  const [loadingCatalog, setLoadingCatalog] = useState(true)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   useEffect(() => {
     const timer = setTimeout(() => setIsInitialLoad(false), 300)
     return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCatalog() {
+      setLoadingCatalog(true)
+      try {
+        const response = await fetch("/api/discovery/explore", { cache: "no-store" })
+        if (!response.ok) return
+        const payload = (await response.json()) as { mashups?: MockMashup[] }
+        if (!cancelled && Array.isArray(payload.mashups)) {
+          setCatalogMashups(payload.mashups)
+        }
+      } finally {
+        if (!cancelled) setLoadingCatalog(false)
+      }
+    }
+
+    void loadCatalog()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const updateParams = useCallback(
@@ -100,7 +125,7 @@ function ExploreContent() {
   )
 
   const filteredAndSorted = useMemo(() => {
-    let results: DiscoverableMashup[] = mockMashups.map((mashup) => ({
+    let results: DiscoverableMashup[] = catalogMashups.map((mashup) => ({
       mashup,
       safety: getRightsSafetyAssessment(mashup.id),
     }))
@@ -162,7 +187,7 @@ function ExploreContent() {
     }
 
     return results
-  }, [activeGenre, activeSort, activeTempo, activeRights, playableOnly])
+  }, [activeGenre, activeSort, activeTempo, activeRights, playableOnly, catalogMashups])
 
   const safeCount = filteredAndSorted.filter((entry) => entry.safety.route === "allow").length
 
@@ -239,7 +264,7 @@ function ExploreContent() {
         </p>
       </section>
 
-      {isInitialLoad ? (
+      {isInitialLoad || loadingCatalog ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="space-y-3">

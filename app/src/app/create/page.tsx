@@ -11,7 +11,7 @@ import { MixerControls } from "@/components/create/mixer-controls"
 import { PublishForm } from "@/components/create/publish-form"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
-import { getMockMashup } from "@/lib/mock-data"
+import type { MockMashup } from "@/lib/mock-data"
 
 const steps = [
   {
@@ -47,14 +47,34 @@ function CreatePageContent() {
   const [tracks, setTracks] = useState<UploadedTrack[]>([])
   const [mixerTracks, setMixerTracks] = useState<MixerTrackState[]>([])
   const [previewMessage, setPreviewMessage] = useState("")
+  const [forkedFrom, setForkedFrom] = useState<MockMashup | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const forkId = searchParams.get("fork")
   const challengeId = searchParams.get("challenge") ?? undefined
-  const forkedFrom = useMemo(
-    () => (forkId ? getMockMashup(forkId) : undefined),
-    [forkId],
-  )
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadForkData(id: string) {
+      const response = await fetch(`/api/mashups/${id}/summary`, { cache: "no-store" })
+      if (!response.ok) return
+      const payload = (await response.json()) as { mashup?: MockMashup }
+      if (!cancelled) {
+        setForkedFrom(payload.mashup ?? null)
+      }
+    }
+
+    if (forkId) {
+      void loadForkData(forkId)
+    } else {
+      setForkedFrom(null)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [forkId])
 
   // ---------------------------------------------------------------------------
   // Step 1: Upload handlers

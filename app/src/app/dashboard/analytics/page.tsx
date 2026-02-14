@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import { AuthGuard } from "@/components/auth/auth-guard"
 import {
   NeonGrid,
@@ -7,15 +9,42 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
-import { buildCreatorAnalytics } from "@/lib/data/analytics"
-import { mockMashups } from "@/lib/mock-data"
+import type { CreatorAnalyticsSnapshot } from "@/lib/data/analytics"
 
 function formatPercent(value: number) {
   return `${(value * 100).toFixed(1)}%`
 }
 
 function AnalyticsContent() {
-  const stats = buildCreatorAnalytics(mockMashups)
+  const [stats, setStats] = useState<CreatorAnalyticsSnapshot | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadStats() {
+      setLoading(true)
+      try {
+        const response = await fetch("/api/analytics/creator", { cache: "no-store" })
+        if (!response.ok) return
+        const payload = (await response.json()) as { stats?: CreatorAnalyticsSnapshot }
+        if (!cancelled && payload.stats) {
+          setStats(payload.stats)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void loadStats()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (loading || !stats) {
+    return <NeonPage className="max-w-6xl">Loading analytics...</NeonPage>
+  }
 
   return (
     <NeonPage className="max-w-6xl">
@@ -78,4 +107,3 @@ export default function AnalyticsPage() {
     </AuthGuard>
   )
 }
-

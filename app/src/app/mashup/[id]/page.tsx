@@ -1,11 +1,7 @@
-import { mockMashups, getMockMashup, getMashupChildren, getMashupLineage } from "@/lib/mock-data"
-import { MashupDetailClient } from "./mashup-detail-client"
+import { notFound } from "next/navigation"
 
-export function generateStaticParams() {
-  return mockMashups.map((mashup) => ({
-    id: mashup.id,
-  }))
-}
+import { getMashupDetailView } from "@/lib/data/mashup-detail"
+import { MashupDetailClient } from "./mashup-detail-client"
 
 export default async function MashupPage({
   params,
@@ -13,9 +9,17 @@ export default async function MashupPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const mashup = getMockMashup(id) ?? mockMashups[0]
-  const lineage = getMashupLineage(mashup.id)
-  const forkedMashups = getMashupChildren(mashup.id)
 
-  return <MashupDetailClient mashup={mashup} lineage={lineage} forkedMashups={forkedMashups} />
+  try {
+    const detail = await getMashupDetailView(id)
+    return (
+      <MashupDetailClient
+        mashup={detail.mashup}
+        lineage={detail.lineage}
+        forkedMashups={detail.forkedMashups}
+      />
+    )
+  } catch {
+    notFound()
+  }
 }

@@ -1,11 +1,7 @@
-import { mockCreators, mockMashups, getMockCreator } from "@/lib/mock-data"
-import { ProfileClient } from "./profile-client"
+import { notFound } from "next/navigation"
 
-export function generateStaticParams() {
-  return mockCreators.map((creator) => ({
-    username: creator.username,
-  }))
-}
+import { getProfileDetailByUsername } from "@/lib/data/profile-detail"
+import { ProfileClient } from "./profile-client"
 
 export default async function ProfilePage({
   params,
@@ -13,10 +9,11 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>
 }) {
   const { username } = await params
-  const creator = getMockCreator(username) ?? mockCreators[0]
-  const creatorMashups = mockMashups.filter(
-    (m) => m.creator.username === creator.username
-  )
+  const detail = await getProfileDetailByUsername(username)
 
-  return <ProfileClient creator={creator} mashups={creatorMashups} />
+  if (!detail) {
+    notFound()
+  }
+
+  return <ProfileClient creator={detail.creator} mashups={detail.mashups} />
 }

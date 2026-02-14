@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CalendarDays, Copy, Link2, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -19,11 +19,11 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import {
-  buildCampaignFromTemplate,
+  type CampaignTemplate,
   getCampaignTemplates,
   type CreatorTier,
 } from "@/lib/campaigns/templates"
-import { mockMashups } from "@/lib/mock-data"
+import type { CampaignSlot } from "@/lib/campaigns/planner"
 import { withMashupsSignature } from "@/lib/growth/signature"
 
 export default function CampaignsPage() {
@@ -36,10 +36,8 @@ export default function CampaignsPage() {
       templates.find((template) => template.id === selectedTemplateId) ?? templates[0],
     [selectedTemplateId, templates],
   )
-  const slots = useMemo(
-    () => buildCampaignFromTemplate(mockMashups, selectedTemplateId),
-    [selectedTemplateId],
-  )
+  const [slots, setSlots] = useState<CampaignSlot[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(true)
 
   const [generatedLink, setGeneratedLink] = useState<string | null>(null)
   const [loadingSlotKey, setLoadingSlotKey] = useState<string | null>(null)
@@ -54,6 +52,32 @@ export default function CampaignsPage() {
   const [inviteRevSharePercent, setInviteRevSharePercent] = useState<number | null>(null)
   const [generatingInvite, setGeneratingInvite] = useState(false)
   const [copiedInvite, setCopiedInvite] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSlots(templateId: string) {
+      setLoadingSlots(true)
+      try {
+        const response = await fetch(
+          `/api/campaigns/slots?templateId=${encodeURIComponent(templateId)}`,
+          { cache: "no-store" },
+        )
+        if (!response.ok) return
+        const payload = (await response.json()) as { slots?: CampaignSlot[] }
+        if (!cancelled && Array.isArray(payload.slots)) {
+          setSlots(payload.slots)
+        }
+      } finally {
+        if (!cancelled) setLoadingSlots(false)
+      }
+    }
+
+    void loadSlots(selectedTemplateId)
+    return () => {
+      cancelled = true
+    }
+  }, [selectedTemplateId])
 
   async function generateInvite() {
     if (!selectedTemplate) return
@@ -277,6 +301,10 @@ export default function CampaignsPage() {
           )
         })}
       </NeonGrid>
+
+      {loadingSlots ? (
+        <p className="mt-4 text-xs text-muted-foreground">Refreshing campaign slots...</p>
+      ) : null}
 
       {generatedLink ? (
         <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-foreground">

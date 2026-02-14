@@ -5,7 +5,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MashupCard } from "@/components/mashup-card"
 import { FollowButton } from "@/components/profile/follow-button"
-import type { MockCreator, MockMashup } from "@/lib/mock-data"
+import type { ProfileDetailCreator } from "@/lib/data/profile-detail"
+import type { MockMashup } from "@/lib/mock-data"
 
 function formatCount(count: number): string {
   if (count >= 1_000_000) {
@@ -18,7 +19,7 @@ function formatCount(count: number): string {
 }
 
 interface ProfileClientProps {
-  creator: MockCreator
+  creator: ProfileDetailCreator
   mashups: MockMashup[]
 }
 
@@ -78,7 +79,7 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
 
           {/* Follow button */}
           <FollowButton
-            targetUserId={creator.username}
+            targetUserId={creator.id}
             initialFollowing={false}
             initialCount={creator.followerCount}
             className="mt-2"
