@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import { Skeleton } from "@/components/ui/skeleton"
 import { CountdownTimer } from "@/components/battles/countdown-timer"
 import { BattleVoting } from "@/components/battles/battle-voting"
@@ -337,20 +337,20 @@ export default function BattleDetailPage() {
           {/* Entries Tab */}
           <TabsContent value="entries" className="space-y-6">
             {canVote ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
+              <div className="flex items-start gap-3 p-4 rounded-lg border bg-muted/50">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="text-sm">
                   Voting is now open! Listen to entries and vote for your favorites. 
                   Artist names are hidden for fair judging.
-                </AlertDescription>
-              </Alert>
+                </div>
+              </div>
             ) : battle.status === "active" ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
+              <div className="flex items-start gap-3 p-4 rounded-lg border bg-muted/50">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="text-sm">
                   Submissions are open! Submit your mashup before the deadline to enter.
-                </AlertDescription>
-              </Alert>
+                </div>
+              </div>
             ) : null}
             
             <BattleVoting

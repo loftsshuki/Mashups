@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import type { Battle, BattleEntry } from "@/lib/data/battles"
 import { useAudio } from "@/lib/audio/audio-context"
 
@@ -164,10 +163,12 @@ export function BattleVoting({
                           </span>
                           <span className="font-medium">{votePercentage.toFixed(1)}%</span>
                         </div>
-                        <Progress 
-                          value={(entry.votes / maxVotes) * 100} 
-                          className="h-2"
-                        />
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${(entry.votes / maxVotes) * 100}%` }}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
