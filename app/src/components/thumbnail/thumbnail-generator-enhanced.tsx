@@ -66,6 +66,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#ffffff",
     fontFamily: "Inter, sans-serif",
     layout: "center",
+    textColor: "#ffffff",
   },
   {
     id: "neon",
@@ -75,6 +76,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#00ff88",
     fontFamily: "Impact, sans-serif",
     layout: "center",
+    textColor: "#ffffff",
   },
   {
     id: "sunset",
@@ -84,6 +86,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#ffffff",
     fontFamily: "Georgia, serif",
     layout: "overlay",
+    textColor: "#ffffff",
   },
   {
     id: "ocean",
@@ -93,6 +96,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#ffffff",
     fontFamily: "Inter, sans-serif",
     layout: "split",
+    textColor: "#ffffff",
   },
   {
     id: "cyber",
@@ -102,6 +106,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#ff00ff",
     fontFamily: "Courier New, monospace",
     layout: "center",
+    textColor: "#ffffff",
   },
   {
     id: "waveform",
@@ -111,6 +116,7 @@ const TEMPLATES: ThumbnailTemplate[] = [
     accentColor: "#58a6ff",
     fontFamily: "Inter, sans-serif",
     layout: "overlay",
+    textColor: "#ffffff",
   },
 ]
 
