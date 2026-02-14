@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { 
-  TrendingUp, 
-  Music2, 
-  Flame, 
-  ArrowUpRight, 
-  RefreshCw, 
+import {
+  TrendingUp,
+  Music2,
+  Flame,
+  ArrowUpRight,
+  RefreshCw,
   Clock,
   Hash,
   Play,
@@ -20,11 +20,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  TrendingSound, 
-  mockTrendingSounds,
-  fetchTrendingSounds,
-  VelocityIndicator 
+import {
+  TrendingSound,
+  MOCK_TRENDING_SOUNDS,
+  getTrendingSounds
 } from "@/lib/data/trending-sounds"
 
 // Phase 2: Enhanced Trending Sounds with velocity indicators and one-click remix
@@ -34,11 +33,11 @@ interface TrendingSidebarEnhancedProps {
   className?: string
 }
 
-export function TrendingSidebarEnhanced({ 
-  onRemixSound, 
-  className 
+export function TrendingSidebarEnhanced({
+  onRemixSound,
+  className
 }: TrendingSidebarEnhancedProps) {
-  const [sounds, setSounds] = useState<TrendingSound[]>(mockTrendingSounds)
+  const [sounds, setSounds] = useState<TrendingSound[]>(MOCK_TRENDING_SOUNDS)
   const [isLoading, setIsLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [selectedPlatform, setSelectedPlatform] = useState<"all" | "tiktok" | "spotify" | "youtube">("all")
@@ -48,7 +47,7 @@ export function TrendingSidebarEnhanced({
   const refreshSounds = useCallback(async () => {
     setIsLoading(true)
     try {
-      const fresh = await fetchTrendingSounds()
+      const fresh = await getTrendingSounds()
       setSounds(fresh)
       setLastUpdated(new Date())
     } catch (error) {
@@ -174,7 +173,7 @@ export function TrendingSidebarEnhanced({
                           <Music2 className="h-5 w-5 text-muted-foreground" />
                         </div>
                       )}
-                      
+
                       {/* Play overlay on hover */}
                       {hoveredSound === sound.id && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -194,9 +193,9 @@ export function TrendingSidebarEnhanced({
                             {sound.artist}
                           </p>
                         </div>
-                        
-                        <Badge 
-                          variant="outline" 
+
+                        <Badge
+                          variant="outline"
                           className={cn(
                             "text-[9px] h-4 px-1 flex items-center gap-0.5",
                             getVelocityColor(sound.velocity)
@@ -229,8 +228,8 @@ export function TrendingSidebarEnhanced({
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {sound.tags.slice(0, 2).map((tag) => (
-                          <span 
-                            key={tag} 
+                          <span
+                            key={tag}
                             className="text-[9px] text-muted-foreground flex items-center gap-0.5"
                           >
                             <Hash className="h-2 w-2" />

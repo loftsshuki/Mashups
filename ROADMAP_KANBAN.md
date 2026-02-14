@@ -83,7 +83,7 @@
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | 🟢 Done |
 | **The Daily Flip** | Daily mashup challenge | Daily 3-stem drop; 24hr leaderboard; streak tracking; auto-generated social share | TBD | 10d | ⚪ Backlog |
-| **Real-Time "Thunderdome"** | Synchronous Multiplayer Battles | WebSocket sync (<50ms); Split-screen view; Spectator voting | TBD | 14d | ⚪ Planned |
+| **Real-Time "Thunderdome"** | Synchronous Multiplayer Battles | WebSocket sync (<50ms); Split-screen view; Spectator voting | TBD | 14d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
