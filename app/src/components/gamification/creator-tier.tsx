@@ -3,7 +3,7 @@
 import { Star, TrendingUp, Award, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+
 import { Badge } from "@/components/ui/badge"
 import { 
   creatorTiers, 
@@ -61,7 +61,12 @@ export function CreatorTierCard({ gamification, className }: CreatorTierCardProp
                   </span>
                 )}
               </div>
-              <Progress value={progress} className="h-3" />
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
               {pointsToNext > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
                   {pointsToNext.toLocaleString()} points to next tier
