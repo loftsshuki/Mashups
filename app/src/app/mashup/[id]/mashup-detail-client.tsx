@@ -11,7 +11,7 @@ import { ProgressBar } from "@/components/player/progress-bar"
 import { LikeButton } from "@/components/mashup/like-button"
 import { ShareButton } from "@/components/mashup/share-button"
 import { TipButton } from "@/components/tips/tip-button"
-import { CommentSection } from "@/components/mashup/comment-section"
+import { CommentSectionV2 } from "@/components/mashup/comment-section-v2"
 import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
 import { SplitManager } from "@/components/revenue/split-manager"
@@ -690,7 +690,7 @@ export function MashupDetailClient({
             <h2 className="mb-4 text-lg font-semibold text-foreground">
               Comments
             </h2>
-            <CommentSection mashupId={mashup.id} />
+            <CommentSectionV2 mashupId={mashup.id} />
           </div>
         </div>
       </div>

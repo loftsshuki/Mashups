@@ -311,3 +311,99 @@ export interface StoredThumbnail {
   image_url: string | null
   created_at: string
 }
+
+// ── Phase 3: Community & Social ──
+
+export interface DailyFlip {
+  id: string
+  flip_number: number
+  title: string
+  description: string | null
+  stems: Array<{
+    name: string
+    type: string
+    color: string
+    bpm: number
+    key: string
+    audio_url?: string
+  }>
+  rules: string | null
+  started_at: string
+  ends_at: string
+  created_at: string
+}
+
+export interface DailyFlipEntry {
+  id: string
+  flip_id: string
+  user_id: string
+  mashup_id: string | null
+  audio_url: string | null
+  score: number
+  vote_count: number
+  rank: number | null
+  submitted_at: string
+  // Joined
+  user?: Profile
+}
+
+export interface Playlist {
+  id: string
+  title: string
+  description: string | null
+  cover_image_url: string | null
+  creator_id: string
+  is_collaborative: boolean
+  is_public: boolean
+  track_count: number
+  created_at: string
+  updated_at: string
+  // Joined
+  creator?: Profile
+}
+
+export interface PlaylistTrack {
+  id: string
+  playlist_id: string
+  mashup_id: string
+  added_by: string
+  position: number
+  added_at: string
+  // Joined
+  mashup?: Mashup
+  added_by_user?: Profile
+}
+
+export interface PlaylistCollaborator {
+  id: string
+  playlist_id: string
+  user_id: string
+  role: string
+  added_at: string
+  user?: Profile
+}
+
+export interface CommentReaction {
+  id: string
+  comment_id: string
+  user_id: string
+  emoji: string
+  created_at: string
+}
+
+export interface CommentV2 extends Comment {
+  parent_id: string | null
+  timestamp_sec: number | null
+  edited_at: string | null
+  reactions?: Array<{ emoji: string; count: number; reacted: boolean }>
+  replies?: CommentV2[]
+  reply_count?: number
+}
+
+export interface FeedPreferences {
+  user_id: string
+  preferred_genres: string[]
+  preferred_bpm_min: number | null
+  preferred_bpm_max: number | null
+  updated_at: string
+}

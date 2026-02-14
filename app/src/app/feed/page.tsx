@@ -1,136 +1,271 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Sparkles, TrendingUp, Zap, Users, Target, Gem, Flame } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Sparkles, TrendingUp, Target, Users as UsersIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { NeonHero, NeonPage } from "@/components/marketing/neon-page"
-import {
-  getRecommendations,
-  getTrendingAnalysis,
-  getRecommendationColor,
-  getRecommendationIcon,
-  type Recommendation,
-  type RecommendationType,
-} from "@/lib/data/recommendations"
+import { getFollowingFeed, getForYouFeed, getFeedGenres } from "@/lib/data/follow-feed"
+import { getTrendingAnalysis } from "@/lib/data/recommendations"
+import { MashupCard } from "@/components/mashup-card"
+import type { Mashup } from "@/lib/data/types"
 
-const typeIcons: Record<RecommendationType, typeof Sparkles> = {
-  trending: Flame,
-  skill_building: Zap,
-  compatible: Target,
-  similar_creators: Users,
-  daily_challenge: Target,
-  undiscovered: Gem,
-}
+type Tab = "for-you" | "following"
 
 export default function FeedPage() {
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
-  const [trending, setTrending] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<Tab>("for-you")
+  const [mashups, setMashups] = useState<Mashup[]>([])
+  const [genres, setGenres] = useState<string[]>([])
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [trending, setTrending] = useState<any>(null)
 
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  // ------------------------------------------------------------------
+  // Load genres + trending data once on mount
+  // ------------------------------------------------------------------
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true)
+    async function loadSideData() {
+      const [genreList, trendData] = await Promise.all([
+        getFeedGenres(),
+        getTrendingAnalysis(),
+      ])
+      setGenres(genreList)
+      setTrending(trendData)
+    }
+    loadSideData()
+  }, [])
+
+  // ------------------------------------------------------------------
+  // Load / reload feed whenever tab, genre, or page changes
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadFeed() {
+      const isFirstPage = page === 1
+      if (isFirstPage) {
+        setIsLoading(true)
+      } else {
+        setIsLoadingMore(true)
+      }
+
       try {
-        const [recs, trendData] = await Promise.all([
-          getRecommendations("current_user", {
-            preferredGenres: ["Electronic", "Hip-Hop"],
-            preferredBPM: { min: 120, max: 140 },
-            favoriteCreators: [],
-            recentActivity: [],
-            skillLevel: "intermediate",
-          }),
-          getTrendingAnalysis(),
-        ])
-        setRecommendations(recs)
-        setTrending(trendData)
+        const fetcher = activeTab === "following" ? getFollowingFeed : getForYouFeed
+        const opts: { page: number; limit: number; genre?: string } = {
+          page,
+          limit: 12,
+        }
+        if (selectedGenre) opts.genre = selectedGenre
+
+        const result = await fetcher(opts)
+
+        if (cancelled) return
+
+        if (isFirstPage) {
+          setMashups(result.mashups)
+        } else {
+          setMashups((prev) => [...prev, ...result.mashups])
+        }
+        setHasMore(result.hasMore)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) {
+          setIsLoading(false)
+          setIsLoadingMore(false)
+        }
       }
     }
-    loadData()
-  }, [])
+
+    loadFeed()
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, selectedGenre, page])
+
+  // ------------------------------------------------------------------
+  // Infinite scroll via IntersectionObserver
+  // ------------------------------------------------------------------
+  const observerCallback = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries
+      if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading) {
+        setPage((p) => p + 1)
+      }
+    },
+    [hasMore, isLoadingMore, isLoading],
+  )
+
+  useEffect(() => {
+    const node = sentinelRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(observerCallback, {
+      rootMargin: "200px",
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [observerCallback])
+
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+  function switchTab(tab: Tab) {
+    if (tab === activeTab) return
+    setActiveTab(tab)
+    setMashups([])
+    setPage(1)
+    setHasMore(true)
+  }
+
+  function selectGenre(genre: string | null) {
+    setSelectedGenre(genre)
+    setMashups([])
+    setPage(1)
+    setHasMore(true)
+  }
+
+  // ------------------------------------------------------------------
+  // Render helpers
+  // ------------------------------------------------------------------
+  const isEmpty = !isLoading && mashups.length === 0
 
   return (
     <NeonPage>
       <NeonHero
-        eyebrow="For You"
+        eyebrow="Feed"
         title="Your Personalized Feed"
-        description="AI-powered recommendations based on your taste, skill level, and what's trending now."
+        description="Discover new mashups from creators you follow and AI-powered recommendations tailored to your taste."
       />
 
+      {/* ---- Tabs ---- */}
+      <div className="mb-6 flex gap-2">
+        <Button
+          variant={activeTab === "for-you" ? "default" : "outline"}
+          size="sm"
+          onClick={() => switchTab("for-you")}
+          className="gap-1.5"
+        >
+          <Sparkles className="h-4 w-4" />
+          For You
+        </Button>
+        <Button
+          variant={activeTab === "following" ? "default" : "outline"}
+          size="sm"
+          onClick={() => switchTab("following")}
+          className="gap-1.5"
+        >
+          <UsersIcon className="h-4 w-4" />
+          Following
+        </Button>
+      </div>
+
+      {/* ---- Genre filter bar ---- */}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <Badge
+          variant={selectedGenre === null ? "default" : "outline"}
+          className="cursor-pointer whitespace-nowrap select-none"
+          onClick={() => selectGenre(null)}
+        >
+          All
+        </Badge>
+        {genres.map((genre) => (
+          <Badge
+            key={genre}
+            variant={selectedGenre === genre ? "default" : "outline"}
+            className="cursor-pointer whitespace-nowrap select-none"
+            onClick={() => selectGenre(genre)}
+          >
+            {genre}
+          </Badge>
+        ))}
+      </div>
+
+      {/* ---- Main grid + sidebar ---- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Feed */}
-        <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Recommended For You
-          </h2>
-
+        <div className="lg:col-span-2">
           {isLoading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-square w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
               ))}
             </div>
+          ) : isEmpty ? (
+            activeTab === "following" ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
+                <UsersIcon className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-1">
+                  You aren&apos;t following anyone yet
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+                  Follow creators you love and their latest mashups will show up here.
+                </p>
+                <Link href="/explore">
+                  <Button>Explore Creators</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
+                <Sparkles className="h-10 w-10 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-1">No mashups found</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Try selecting a different genre or check back later for new recommendations.
+                </p>
+              </div>
+            )
           ) : (
-            <div className="space-y-4">
-              {recommendations.map((rec) => {
-                const Icon = typeIcons[rec.type]
-                return (
-                  <Card key={rec.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex">
-                        {/* Left accent bar */}
-                        <div className={"w-1 " + getRecommendationColor(rec.type).split(" ")[1]} />
-                        
-                        <div className="flex-1 p-5">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">{getRecommendationIcon(rec.type)}</span>
-                                <Badge 
-                                  variant="secondary" 
-                                  className={getRecommendationColor(rec.type)}
-                                >
-                                  {rec.type.replace("_", " ")}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {rec.confidence}% match
-                                </span>
-                              </div>
-                              
-                              <h3 className="font-semibold text-lg">{rec.title}</h3>
-                              <p className="text-muted-foreground mt-1">{rec.description}</p>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                💡 {rec.reason}
-                              </p>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {mashups.map((m) => (
+                  <MashupCard
+                    key={m.id}
+                    id={m.id}
+                    title={m.title}
+                    coverUrl={m.cover_image_url ?? "/images/placeholder-cover.svg"}
+                    genre={m.genre ?? "Other"}
+                    duration={m.duration ?? 0}
+                    playCount={m.play_count}
+                    audioUrl={m.audio_url}
+                    creator={{
+                      username: m.creator?.username ?? "unknown",
+                      displayName: m.creator?.display_name ?? "Unknown",
+                      avatarUrl: m.creator?.avatar_url ?? "",
+                    }}
+                  />
+                ))}
+              </div>
 
-                              <div className="flex flex-wrap gap-2 mt-4">
-                                {rec.actions.map((action) => (
-                                  <Link key={action.label} href={action.href}>
-                                    <Button size="sm">
-                                      {action.label}
-                                    </Button>
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
+              {/* Loading more indicator */}
+              {isLoadingMore && (
+                <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="aspect-square w-full rounded-xl" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
+
+          {/* Sentinel element for infinite scroll */}
+          <div ref={sentinelRef} className="h-1" />
         </div>
 
-        {/* Sidebar - Trending */}
+        {/* ---- Sidebar - Trending ---- */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -140,12 +275,12 @@ export default function FeedPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isLoading ? (
+              {!trending ? (
                 <Skeleton className="h-20" />
               ) : (
                 <>
                   <div>
-                    <h4 className="text-sm font-medium mb-2">🔥 Hot Genres</h4>
+                    <h4 className="text-sm font-medium mb-2">Hot Genres</h4>
                     <div className="space-y-2">
                       {trending?.trendingGenres.slice(0, 3).map((g: any) => (
                         <div key={g.genre} className="flex items-center justify-between text-sm">
@@ -159,7 +294,7 @@ export default function FeedPage() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium mb-2">📈 Rising Creators</h4>
+                    <h4 className="text-sm font-medium mb-2">Rising Creators</h4>
                     <div className="space-y-2">
                       {trending?.risingCreators.slice(0, 2).map((c: any) => (
                         <div key={c.creatorId} className="flex items-center gap-2">
@@ -176,13 +311,13 @@ export default function FeedPage() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium mb-2">🎵 Viral Sounds</h4>
+                    <h4 className="text-sm font-medium mb-2">Viral Sounds</h4>
                     <div className="space-y-2">
                       {trending?.viralSounds.slice(0, 2).map((s: any) => (
                         <div key={s.trackId} className="text-sm">
                           <p className="font-medium">{s.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {s.artist} • {s.platform}
+                            {s.artist} &bull; {s.platform}
                           </p>
                         </div>
                       ))}

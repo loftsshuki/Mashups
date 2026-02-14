@@ -80,15 +80,15 @@
 | **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | 🟢 Done |
-| **The Daily Flip** | Daily mashup challenge | Daily 3-stem drop; 24hr leaderboard; streak tracking; auto-generated social share | TBD | 10d | ⚪ Backlog |
+| **The Daily Flip** | Daily mashup challenge | Daily 3-stem drop; 24hr leaderboard; streak tracking; auto-generated social share | TBD | 10d | ✅ Done |
 
 ### 🟡 MEDIUM PRIORITY
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Collaborative Playlists** | Community-curated collections | Anyone can add; playlist comments; "Journey mode" auto-crossfade; collaborative cursors | TBD | 3d | ⚪ Backlog |
-| **Follow Feed** | TikTok-style discovery | Infinite scroll; algorithmic sort; genre filters; "For You" vs "Following" tabs | TBD | 4d | ⚪ Backlog |
-| **Comment System 2.0** | Timestamped comments | Comments at specific timestamps; reply threads; emoji reactions; @mentions | TBD | 3d | ⚪ Backlog |
+| **Collaborative Playlists** | Community-curated collections | Anyone can add; playlist comments; "Journey mode" auto-crossfade; collaborative cursors | TBD | 3d | ✅ Done |
+| **Follow Feed** | TikTok-style discovery | Infinite scroll; algorithmic sort; genre filters; "For You" vs "Following" tabs | TBD | 4d | ✅ Done |
+| **Comment System 2.0** | Timestamped comments | Comments at specific timestamps; reply threads; emoji reactions; @mentions | TBD | 3d | ✅ Done |
 
 ---
 
