@@ -23,7 +23,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-import type { DailyCall, DailyParticipant } from "@daily-co/daily-js"
+// Local type definitions for Daily.co (optional dependency)
+interface DailyCall {
+  join(options: { url: string; token?: string }): Promise<void>
+  leave(): Promise<void>
+  destroy(): Promise<void>
+  setLocalAudio(enabled: boolean): void
+  setLocalVideo(enabled: boolean): void
+  setAudioOutputDevice(deviceId: string): void
+  setInputDevicesAsync(devices: { audioDeviceId?: string; videoDeviceId?: string }): Promise<void>
+  participants(): Record<string, DailyParticipant>
+  on(event: string, handler: (event: unknown) => void): void
+  off(event: string, handler: (event: unknown) => void): void
+}
+
+interface DailyParticipant {
+  user_id: string
+  user_name: string
+  audio: boolean
+  video: boolean
+  tracks: {
+    audio: { state: string } | null
+    video: { state: string } | null
+  }
+}
 
 interface VoiceParticipant {
   id: string
