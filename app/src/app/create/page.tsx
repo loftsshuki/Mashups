@@ -24,12 +24,13 @@ import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
 
+import type { AttributionSource } from "@/lib/data/attribution"
+import type { GeneratedCaptions, GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
+
 // Phase 3: Lazy load export components
 const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
 const CaptionEditor = lazy(() => import("@/components/captions/caption-editor").then(m => ({ default: m.CaptionEditor })))
-const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator }))
-import type { AttributionSource } from "@/lib/data/attribution"
-import type { GeneratedCaptions, GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
+const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator })))
 
 const steps = [
   {

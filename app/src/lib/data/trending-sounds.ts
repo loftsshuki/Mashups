@@ -4,6 +4,8 @@
  * In production, this would call TikTok API + Spotify Charts
  */
 
+import { fetchSpotifyTrending } from "./spotify-service"
+
 export interface TrendingSound {
   id: string
   title: string
@@ -218,6 +220,20 @@ export async function getTrendingSounds(
   await new Promise((resolve) => setTimeout(resolve, 500))
 
   let sounds = [...MOCK_TRENDING_SOUNDS]
+
+  // Try to fetch real data
+  try {
+    const realData = await fetchSpotifyTrending()
+    if (realData.length > 0) {
+      // Merge or replace. For now, let's prepend them
+      sounds = [...realData, ...sounds]
+
+      // Re-rank
+      sounds.forEach((s, i) => s.rank = i + 1)
+    }
+  } catch (e) {
+    console.warn("Failed to fetch real trending data, falling back to mocks")
+  }
 
   // Filter by platform
   if (platform !== "all") {
