@@ -13,7 +13,11 @@ import { StemUploadZone, StemList, type StemUploadResult, type SeparatedStems } 
 import { StemMixer } from "@/components/create/stem-mixer"
 import { TimelineEditor } from "@/components/create/timeline-editor"
 import { SmartMatchPanel } from "@/components/create/smart-match-panel"
+import { AutomationLane } from "@/components/create/automation-lane"
+import { PlatformExport } from "@/components/create/platform-export"
+import { HookGenerator } from "@/components/create/hook-generator"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
+import type { AutomationNode } from "@/lib/audio/automation"
 import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
@@ -65,6 +69,7 @@ function CreatePageContent() {
   const [timelineTracks, setTimelineTracks] = useState<TimelineTrack[]>([])
   const [timelinePlayhead, setTimelinePlayhead] = useState(0)
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
+  const [automationNodes, setAutomationNodes] = useState<AutomationNode[]>([])
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
@@ -641,6 +646,43 @@ function CreatePageContent() {
                 {previewMessage}
               </div>
             )}
+
+            {/* Volume Automation */}
+            <div className="pt-6 border-t border-border/50">
+              <h3 className="text-base font-semibold mb-1">Volume Automation</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Create fades and volume changes over time
+              </p>
+              <AutomationLane
+                nodes={automationNodes}
+                duration={totalDuration}
+                onNodesChange={setAutomationNodes}
+                color="#ec4899"
+              />
+            </div>
+
+            {/* AI Hook Generator */}
+            <div className="pt-6 border-t border-border/50">
+              <HookGenerator
+                audioUrl={firstAudioUrl}
+                totalDuration={totalDuration}
+                onSelectHook={(start, duration) => {
+                  // Could use this to set export region
+                  console.log("Selected hook:", start, duration)
+                }}
+              />
+            </div>
+
+            {/* Platform Export */}
+            <div className="pt-6 border-t border-border/50">
+              <PlatformExport
+                audioUrl={firstAudioUrl}
+                totalDuration={totalDuration}
+                onExport={(settings) => {
+                  console.log("Export settings:", settings)
+                }}
+              />
+            </div>
           </div>
         )}
 
