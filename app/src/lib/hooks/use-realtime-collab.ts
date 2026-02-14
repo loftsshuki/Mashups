@@ -41,7 +41,7 @@ export function useRealtimeCollab({
     isConnected: false,
     session: null,
   })
-  
+
   const [followingUserId, setFollowingUserId] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null)
   const cursorThrottleRef = useRef<number>(0)
@@ -62,7 +62,7 @@ export function useRealtimeCollab({
     channel.on("presence", { event: "sync" }, () => {
       const presenceState = channel.presenceState()
       const collaborators: Collaborator[] = []
-      
+
       Object.entries(presenceState).forEach(([key, presences]) => {
         const presenceArray = presences as Array<{
           userId: string
@@ -74,7 +74,7 @@ export function useRealtimeCollab({
           lastSeen: string
         }>
         const presence = presenceArray[0]
-        
+
         if (presence && presence.userId !== userId) {
           collaborators.push({
             id: `collab_${presence.userId}`,
@@ -92,7 +92,7 @@ export function useRealtimeCollab({
           })
         }
       })
-      
+
       setState(prev => ({ ...prev, collaborators }))
     })
 
@@ -111,28 +111,30 @@ export function useRealtimeCollab({
     })
 
     // Handle broadcast messages (cursor updates, operations)
-    channel.on("broadcast", { event: "cursor_update" }, ({ payload }: { payload: { userId?: string; cursor?: CursorPosition } | undefined }) => {
+    channel.on("broadcast", { event: "cursor_update" }, (event: any) => {
+      const payload = event.payload as { userId?: string; cursor?: CursorPosition } | undefined
       if (payload?.userId === userId) return
-      
+
       setState(prev => ({
         ...prev,
         collaborators: prev.collaborators.map(c =>
           c.userId === payload?.userId
             ? {
-                ...c,
-                cursor: {
-                  x: payload?.cursor?.x ?? c.cursor.x,
-                  y: payload?.cursor?.y ?? c.cursor.y,
-                  timestamp: Date.now(),
-                },
-                lastSeen: new Date().toISOString(),
-              }
+              ...c,
+              cursor: {
+                x: payload?.cursor?.x ?? c.cursor.x,
+                y: payload?.cursor?.y ?? c.cursor.y,
+                timestamp: Date.now(),
+              },
+              lastSeen: new Date().toISOString(),
+            }
             : c
         ),
       }))
     })
 
-    channel.on("broadcast", { event: "operation" }, ({ payload }: { payload: { userId?: string } & CollabOperation | undefined }) => {
+    channel.on("broadcast", { event: "operation" }, (event: any) => {
+      const payload = event.payload as { userId?: string } & CollabOperation | undefined
       if (payload?.userId !== userId && onOperation) {
         onOperation(payload as CollabOperation)
       }
@@ -142,7 +144,7 @@ export function useRealtimeCollab({
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         setState(prev => ({ ...prev, isConnected: true }))
-        
+
         // Track initial presence
         await channel.track({
           userId,
@@ -169,7 +171,7 @@ export function useRealtimeCollab({
   // Broadcast cursor position (throttled)
   const broadcastCursor = useCallback((position: CursorPosition) => {
     localCursorRef.current = position
-    
+
     const now = Date.now()
     if (now - cursorThrottleRef.current < 50) return // Throttle to 20fps
     cursorThrottleRef.current = now
@@ -267,12 +269,12 @@ function getUserColor(userId: string): string {
     "#8b5cf6", // purple
     "#ec4899", // pink
   ]
-  
+
   let hash = 0
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash)
   }
-  
+
   return colors[Math.abs(hash) % colors.length]
 }
 

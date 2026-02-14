@@ -10,6 +10,7 @@
     "test": "node --test --experimental-strip-types tests/**/*.test.mts"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.68.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
     "@vercel/blob": "^2.2.0",
