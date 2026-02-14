@@ -128,10 +128,10 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Lyrics & Transcription** | Auto-transcribe + karaoke | Whisper API; synced lyrics display; search by lyric; karaoke mode (vocal mute) | TBD | 4d | ⚪ Backlog |
-| **AI Mastering** | Auto-finalize tracks | Loudness normalization (LUFS); EQ balancing; stereo widening; genre presets | TBD | 3d | ⚪ Backlog |
-| **Style Transfer** | Apply artist style to track | "Make this sound like Daft Punk"; style embeddings; transferable via examples | TBD | 5d | ⚪ Backlog |
-| **Smart Stem Swapping** | Genre-bending workflow | Right-click "Swap Kit"; preserve rhythm/midi; replace timbre (e.g. Rock drums -> Techno) | TBD | 12d | ⚪ Backlog |
+| **Lyrics & Transcription** | Auto-transcribe + karaoke | Whisper API; synced lyrics display; search by lyric; karaoke mode (vocal mute) | TBD | 4d | ✅ Done |
+| **AI Mastering** | Auto-finalize tracks | Loudness normalization (LUFS); EQ balancing; stereo widening; genre presets | TBD | 3d | ✅ Done |
+| **Style Transfer** | Apply artist style to track | "Make this sound like Daft Punk"; style embeddings; transferable via examples | TBD | 5d | ✅ Done |
+| **Smart Stem Swapping** | Genre-bending workflow | Right-click "Swap Kit"; preserve rhythm/midi; replace timbre (e.g. Rock drums -> Techno) | TBD | 12d | ✅ Done |
 
 ---
 

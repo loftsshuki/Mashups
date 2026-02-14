@@ -407,3 +407,123 @@ export interface FeedPreferences {
   preferred_bpm_max: number | null
   updated_at: string
 }
+
+// ── Phase 5: AI-Powered Features ──
+
+export type MasteringStatus = "pending" | "processing" | "completed" | "failed"
+
+export interface MasteringPreset {
+  id: string
+  user_id: string | null
+  name: string
+  is_system: boolean
+  genre: string | null
+  settings: {
+    targetLufs?: number
+    eqBands?: Array<{ freq: number; gain: number; q: number }>
+    compression?: { threshold: number; ratio: number; attack: number; release: number }
+    stereoWidth?: number
+    limiterCeiling?: number
+  }
+  created_at: string
+}
+
+export interface MasteringJob {
+  id: string
+  user_id: string
+  mashup_id: string | null
+  preset_id: string | null
+  status: MasteringStatus
+  input_url: string | null
+  output_url: string | null
+  analysis: {
+    inputLufs?: number
+    outputLufs?: number
+    truePeak?: number
+    dynamicRange?: number
+    spectralBalance?: Record<string, number>
+  }
+  settings: Record<string, unknown>
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+  // Joined
+  preset?: MasteringPreset
+}
+
+export interface StylePreset {
+  id: string
+  name: string
+  description: string | null
+  artist_reference: string | null
+  genre: string | null
+  style_embedding: Record<string, unknown>
+  preview_url: string | null
+  is_system: boolean
+  created_at: string
+}
+
+export interface StyleTransferJob {
+  id: string
+  user_id: string
+  mashup_id: string | null
+  style_preset_id: string | null
+  target_stem: string | null
+  status: MasteringStatus
+  input_url: string | null
+  output_url: string | null
+  settings: Record<string, unknown>
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+  // Joined
+  preset?: StylePreset
+}
+
+export interface StemSwapKit {
+  id: string
+  name: string
+  description: string | null
+  genre: string
+  stem_type: string
+  audio_url: string | null
+  bpm_range_min: number | null
+  bpm_range_max: number | null
+  is_system: boolean
+  created_at: string
+}
+
+export interface StemSwapJob {
+  id: string
+  user_id: string
+  mashup_id: string | null
+  kit_id: string | null
+  target_stem: string
+  status: MasteringStatus
+  input_url: string | null
+  output_url: string | null
+  settings: Record<string, unknown>
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+  // Joined
+  kit?: StemSwapKit
+}
+
+export interface LyricsRecord {
+  id: string
+  mashup_id: string
+  user_id: string
+  language: string
+  synced_lyrics: Array<{
+    text: string
+    startTime: number
+    endTime: number
+    words?: Array<{ word: string; startTime: number; endTime: number }>
+  }>
+  plain_text: string | null
+  source: string
+  confidence: number | null
+  created_at: string
+  updated_at: string
+}
