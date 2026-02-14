@@ -245,3 +245,69 @@ export interface TaxDocument {
   document_url: string | null
   generated_at: string
 }
+
+// ── Phase 2: Watermark & Export ──
+
+export type WatermarkType = "metadata" | "spectral" | "inaudible"
+export type CustodyEventType = "created" | "exported" | "detected" | "claimed" | "verified"
+
+export interface AudioFingerprintRecord {
+  id: string
+  mashup_id: string
+  user_id: string
+  fingerprint_hash: string
+  spectral_features: Record<string, unknown>
+  duration_seconds: number | null
+  created_at: string
+}
+
+export interface WatermarkEmbedding {
+  id: string
+  mashup_id: string
+  fingerprint_id: string | null
+  watermark_type: WatermarkType
+  payload: Record<string, unknown>
+  embedded_at: string
+}
+
+export interface WatermarkCustodyEvent {
+  id: string
+  fingerprint_id: string
+  event_type: CustodyEventType
+  platform: string | null
+  detected_url: string | null
+  detected_by: string | null
+  confidence: number | null
+  metadata: Record<string, unknown>
+  occurred_at: string
+}
+
+export interface StoredCaptions {
+  id: string
+  mashup_id: string
+  user_id: string
+  language: string
+  segments: Array<{
+    id: string
+    text: string
+    startTime: number
+    endTime: number
+    confidence: number
+  }>
+  social_captions: Record<string, string>
+  format: string
+  created_at: string
+  updated_at: string
+}
+
+export interface StoredThumbnail {
+  id: string
+  mashup_id: string
+  user_id: string
+  template_id: string | null
+  platform: string
+  width: number
+  height: number
+  image_url: string | null
+  created_at: string
+}

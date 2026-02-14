@@ -91,11 +91,57 @@ function MonetizationContent() {
     void load()
   }, [])
 
-  const summary = summarizeEarnings(entries)
+  const filteredEntries = useMemo(
+    () =>
+      filterLedgerByDateRange(entries, {
+        startDate: statementStartDate,
+        endDate: statementEndDate,
+      }),
+    [entries, statementEndDate, statementStartDate],
+  )
+  const filteredPayouts = useMemo(
+    () =>
+      filterPayoutsByDateRange(payouts, {
+        startDate: statementStartDate,
+        endDate: statementEndDate,
+      }),
+    [payouts, statementEndDate, statementStartDate],
+  )
+  const filteredInvoices = useMemo(
+    () =>
+      filterInvoicesByDateRange(invoices, {
+        startDate: statementStartDate,
+        endDate: statementEndDate,
+      }),
+    [invoices, statementEndDate, statementStartDate],
+  )
+
+  const summary = summarizeEarnings(filteredEntries)
   const payoutGate = useMemo(
     () => getPayoutEligibility(entries, sanitizeThresholdDollars(thresholdDollars)),
     [entries, thresholdDollars],
   )
+
+  function downloadStatementCsv() {
+    const csv = buildMonetizationStatementCsv({
+      entries: filteredEntries,
+      payouts: filteredPayouts,
+      invoices: filteredInvoices,
+    })
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const objectUrl = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    const suffix = [
+      statementStartDate || "start-any",
+      statementEndDate || "end-any",
+    ].join("_")
+    anchor.href = objectUrl
+    anchor.download = `mashups-statement-${suffix}.csv`
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(objectUrl)
+  }
 
   if (loading) {
     return <NeonPage className="max-w-6xl">Loading monetization dashboard...</NeonPage>
@@ -130,6 +176,62 @@ function MonetizationContent() {
           </p>
         </div>
       </NeonGrid>
+
+      <section className="neon-panel mt-6 rounded-2xl p-4">
+        <NeonSectionHeader
+          title="Statement Range"
+          description="Filter records by date and export a consolidated CSV statement."
+          action={
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={downloadStatementCsv}
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          }
+        />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <p className="mb-1 text-xs text-muted-foreground">From</p>
+            <Input
+              type="date"
+              value={statementStartDate}
+              onChange={(event) => setStatementStartDate(event.target.value)}
+              className="h-9 rounded-lg"
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-xs text-muted-foreground">To</p>
+            <Input
+              type="date"
+              value={statementEndDate}
+              onChange={(event) => setStatementEndDate(event.target.value)}
+              className="h-9 rounded-lg"
+            />
+          </div>
+          <div className="flex items-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-full"
+              onClick={() => {
+                setStatementStartDate("")
+                setStatementEndDate("")
+              }}
+              disabled={!statementStartDate && !statementEndDate}
+            >
+              Clear Range
+            </Button>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Showing {filteredEntries.length} ledger rows, {filteredPayouts.length} payouts, and{" "}
+          {filteredInvoices.length} invoices in the current statement window.
+        </p>
+      </section>
 
       <section className="neon-panel mt-6 rounded-2xl p-4">
         <NeonSectionHeader
@@ -246,8 +348,8 @@ function MonetizationContent() {
             <h2 className="font-semibold text-foreground">Ledger Entries</h2>
           </div>
           <div className="space-y-2">
-            {entries.length > 0 ? (
-              entries.map((entry) => (
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
                   className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
@@ -272,8 +374,8 @@ function MonetizationContent() {
             <h2 className="font-semibold text-foreground">Payout History</h2>
           </div>
           <div className="space-y-2">
-            {payouts.length > 0 ? (
-              payouts.map((payout) => (
+            {filteredPayouts.length > 0 ? (
+              filteredPayouts.map((payout) => (
                 <div
                   key={payout.id}
                   className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
@@ -300,8 +402,8 @@ function MonetizationContent() {
           <h2 className="font-semibold text-foreground">Invoice Timeline</h2>
         </div>
         <div className="space-y-2">
-          {invoices.length > 0 ? (
-            invoices.map((invoice) => (
+          {filteredInvoices.length > 0 ? (
+            filteredInvoices.map((invoice) => (
               <div
                 key={invoice.id}
                 className="rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"

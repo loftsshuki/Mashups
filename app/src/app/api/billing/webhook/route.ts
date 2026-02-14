@@ -6,6 +6,10 @@ import {
   clampReferralRevShareBps,
   computeReferralRevenueShareCents,
 } from "@/lib/growth/referral-accounting"
+import {
+  isReferralInviteRedeemable,
+  summarizeReferralInviteRow,
+} from "@/lib/growth/referral-invites"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -41,16 +45,24 @@ async function recordReferralRevenueEvent(input: {
   const supabase = await createClient()
   const { data: inviteData } = await supabase
     .from("referral_invites")
-    .select("code,rev_share_bps")
+    .select("code,campaign_id,creator_tier,destination,max_uses,uses_count,rev_share_bps,expires_at,created_at")
     .eq("code", input.referralCode)
-    .maybeSingle()
+    .limit(1)
 
-  const invite = inviteData as { code: string; rev_share_bps: number | null } | null
-  const revShareBps = clampReferralRevShareBps(invite?.rev_share_bps ?? undefined)
+  const row =
+    Array.isArray(inviteData) && inviteData.length > 0
+      ? (inviteData[0] as Record<string, unknown>)
+      : null
+  const invite = row ? summarizeReferralInviteRow(row) : null
+  if (!invite || !isReferralInviteRedeemable(invite.state)) {
+    return null
+  }
+
+  const revShareBps = clampReferralRevShareBps(asNumber(row?.rev_share_bps) ?? undefined)
   const revenueShareCents = computeReferralRevenueShareCents(input.amountCents, revShareBps)
 
   await supabase.from("referral_revenue_events").insert({
-    referral_code: invite?.code ?? input.referralCode,
+    referral_code: invite.code,
     provider_event_type: input.providerEventType,
     amount_cents: Math.max(0, Math.round(input.amountCents)),
     revenue_share_cents: revenueShareCents,
@@ -63,7 +75,7 @@ async function recordReferralRevenueEvent(input: {
     },
   })
 
-  return { revenueShareCents, revShareBps, referralCode: invite?.code ?? input.referralCode }
+  return { revenueShareCents, revShareBps, referralCode: invite.code }
 }
 
 export async function POST(request: Request) {

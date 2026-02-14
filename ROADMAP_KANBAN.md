@@ -64,9 +64,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Attribution Watermark System** | Invisible + visible tracking | Audio fingerprint (inaudible); visual watermark templates; chain-of-custody tracking | TBD | 4d | ⚪ Backlog |
-| **Auto-Caption Generator** | Platform-native captions | Generate captions from lyrics/transcription; platform-optimized formatting; hashtag suggestions | TBD | 2d | ⚪ Backlog |
-| **Thumbnail Generator** | Auto-create cover art from waveform | Multiple templates; customizable colors/text; export PNG/SVG | TBD | 2d | ⚪ Backlog |
+| **Attribution Watermark System** | Invisible + visible tracking | Audio fingerprint (inaudible); visual watermark templates; chain-of-custody tracking | TBD | 4d | ✅ Done |
+| **Auto-Caption Generator** | Platform-native captions | Generate captions from lyrics/transcription; platform-optimized formatting; hashtag suggestions | TBD | 2d | ✅ Done |
+| **Thumbnail Generator** | Auto-create cover art from waveform | Multiple templates; customizable colors/text; export PNG/SVG | TBD | 2d | ✅ Done |
 
 ---
 

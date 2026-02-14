@@ -759,6 +759,61 @@ function CreatePageContent() {
               forkParentId={forkedFrom?.id}
               challengeId={challengeId}
             />
+
+            {/* Export Tools: Attribution / Captions / Thumbnail */}
+            <div className="border-t border-border/50 pt-6">
+              <h3 className="mb-3 text-sm font-semibold text-foreground">Export Tools</h3>
+              <div className="mb-4 flex gap-1 rounded-lg border border-border/70 bg-muted/30 p-1">
+                {([
+                  { key: "attribution" as const, label: "Attribution", icon: FileText },
+                  { key: "captions" as const, label: "Captions", icon: Music2 },
+                  { key: "thumbnail" as const, label: "Thumbnail", icon: ImageIcon },
+                ]).map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveExportTab(key)}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors",
+                      activeExportTab === key
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>}>
+                {activeExportTab === "attribution" && (
+                  <AttributionEditor
+                    initialSources={attributionSources}
+                    onSourcesChange={setAttributionSources}
+                    mashupDuration={Math.round(totalDuration)}
+                  />
+                )}
+                {activeExportTab === "captions" && (
+                  <CaptionEditor
+                    initialCaptions={generatedCaptions ?? undefined}
+                    onCaptionsChange={setGeneratedCaptions}
+                    onGenerate={async () => {
+                      const { transcribeAudio } = await import("@/lib/data/auto-caption")
+                      const response = await fetch(firstAudioUrl)
+                      const blob = await response.blob()
+                      const captions = await transcribeAudio(blob)
+                      return captions
+                    }}
+                  />
+                )}
+                {activeExportTab === "thumbnail" && (
+                  <ThumbnailCreator
+                    mashupTitle={forkedFrom ? `${forkedFrom.title} (Fork)` : "Untitled Mashup"}
+                    onThumbnailGenerated={setGeneratedThumbnail}
+                  />
+                )}
+              </Suspense>
+            </div>
           </div>
         )}
       </div>
