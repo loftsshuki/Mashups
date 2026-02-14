@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { 
-  ImageIcon, 
-  Wand2, 
-  RefreshCw, 
-  Download, 
+import {
+  ImageIcon,
+  Wand2,
+  RefreshCw,
+  Download,
   Palette,
   Type,
   Layout,
@@ -42,6 +42,7 @@ interface ThumbnailTemplate {
   accentColor: string
   fontFamily: string
   layout: "center" | "split" | "overlay"
+  textColor?: string
 }
 
 interface ThumbnailConfig {
@@ -141,14 +142,14 @@ export function ThumbnailGeneratorEnhanced({
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedThumbnails, setGeneratedThumbnails] = useState<string[]>([])
   const [selectedThumbnail, setSelectedThumbnail] = useState<number | null>(null)
-  
+
   // Customization options
   const [showWaveform, setShowWaveform] = useState(true)
   const [fontSize, setFontSize] = useState(48)
   const [blur, setBlur] = useState(0)
   const [overlayOpacity, setOverlayOpacity] = useState(50)
   const [customColor, setCustomColor] = useState("")
-  
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Generate waveform data if not provided
@@ -194,11 +195,11 @@ export function ThumbnailGeneratorEnhanced({
         ctx.filter = `blur(${blur}px)`
         ctx.drawImage(img, 0, 0, width, height)
         ctx.filter = "none"
-        
+
         // Draw overlay
         ctx.fillStyle = `rgba(0,0,0,${overlayOpacity / 100})`
         ctx.fillRect(0, 0, width, height)
-        
+
         drawTextAndWaveform(ctx, width, height)
       }
       img.src = coverArt
@@ -213,14 +214,14 @@ export function ThumbnailGeneratorEnhanced({
       const waveform = generateWaveform()
       const barWidth = width / waveform.length
       const barHeight = height * 0.3
-      
+
       ctx.fillStyle = selectedTemplate.accentColor + "40" // Add transparency
-      
+
       waveform.forEach((value, i) => {
         const h = value * barHeight
         const x = i * barWidth
         const y = (height - h) / 2
-        
+
         ctx.fillRect(x, y, barWidth - 1, h)
       })
     }
@@ -230,13 +231,13 @@ export function ThumbnailGeneratorEnhanced({
     ctx.fillStyle = selectedTemplate.textColor || "#ffffff"
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
-    
+
     // Word wrap title
     const maxWidth = width * 0.8
     const words = title.split(" ")
     let line = ""
     const lines: string[] = []
-    
+
     for (const word of words) {
       const testLine = line + word + " "
       const metrics = ctx.measureText(testLine)
@@ -248,14 +249,14 @@ export function ThumbnailGeneratorEnhanced({
       }
     }
     lines.push(line)
-    
+
     const lineHeight = fontSize * 1.2
     const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2
-    
+
     lines.forEach((line, i) => {
       ctx.fillText(line.trim(), width / 2, startY + i * lineHeight)
     })
-    
+
     // Draw subtitle
     if (subtitle) {
       ctx.font = `${fontSize * 0.5}px ${selectedTemplate.fontFamily}`
@@ -279,20 +280,20 @@ export function ThumbnailGeneratorEnhanced({
     setSelectedThumbnail(null)
 
     const thumbnails: string[] = []
-    
+
     // Generate 4 variations with different templates
     const variations = TEMPLATES.slice(0, 4)
-    
+
     for (const template of variations) {
       setSelectedTemplate(template)
       await new Promise((resolve) => setTimeout(resolve, 100))
-      
+
       const canvas = canvasRef.current
       if (canvas) {
         thumbnails.push(canvas.toDataURL("image/png"))
       }
     }
-    
+
     setGeneratedThumbnails(thumbnails)
     setIsGenerating(false)
   }, [title, aspectRatio])
@@ -300,13 +301,13 @@ export function ThumbnailGeneratorEnhanced({
   // Export selected thumbnail
   const exportThumbnail = () => {
     if (selectedThumbnail === null) return
-    
+
     const dataUrl = generatedThumbnails[selectedThumbnail]
     const link = document.createElement("a")
     link.download = `mashup-thumbnail-${Date.now()}.png`
     link.href = dataUrl
     link.click()
-    
+
     onThumbnailGenerated?.(dataUrl)
   }
 
@@ -351,7 +352,7 @@ export function ThumbnailGeneratorEnhanced({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="relative aspect-square max-w-[300px] mx-auto">
                 <canvas
                   ref={canvasRef}
@@ -424,7 +425,7 @@ export function ThumbnailGeneratorEnhanced({
                 <Palette className="h-3 w-3" />
                 Customization
               </label>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
                   <span>Font Size</span>
@@ -454,7 +455,7 @@ export function ThumbnailGeneratorEnhanced({
                       onValueChange={(v) => setBlur(v[0])}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
                       <span>Overlay Opacity</span>
