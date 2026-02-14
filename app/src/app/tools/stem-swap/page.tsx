@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Shuffle, Drum, Guitar, Mic, Music, Waves, Layers, CheckCircle, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import { Shuffle, Drum, Guitar, Mic, Music, Waves, Layers, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NeonPage, NeonHero, NeonSectionHeader, NeonGrid } from "@/components/marketing/neon-page"
 import { AuthGuard } from "@/components/auth/auth-guard"
@@ -113,6 +114,13 @@ function StemSwapContent() {
 
   return (
     <NeonPage>
+      <Link
+        href="/tools"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Tools
+      </Link>
       <NeonHero
         eyebrow="AI Tools"
         title="Smart Stem Swapping"

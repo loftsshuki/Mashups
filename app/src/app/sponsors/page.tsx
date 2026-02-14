@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { Coins, Megaphone, Trophy } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Sponsors",
+  description: "Sponsor mashup creators and campaigns on Mashups.",
+}
 
 import {
   NeonGrid,

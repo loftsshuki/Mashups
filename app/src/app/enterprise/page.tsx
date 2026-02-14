@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight, BarChart3, Building2, Shield } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Enterprise",
+  description: "Enterprise licensing and solutions for labels and distributors on Mashups.",
+}
 
 import { Button } from "@/components/ui/button"
 import {

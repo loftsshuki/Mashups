@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { Library, ShieldCheck, Workflow } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Partner Program",
+  description: "Partner with Mashups for licensing, distribution, and catalog integration.",
+}
 
 import {
   NeonGrid,

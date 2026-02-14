@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Palette, Wand2, Music, Layers, Sparkles, CheckCircle } from "lucide-react"
+import Link from "next/link"
+import { Palette, Wand2, Music, Layers, Sparkles, CheckCircle, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NeonPage, NeonHero, NeonSectionHeader, NeonGrid } from "@/components/marketing/neon-page"
 import { AuthGuard } from "@/components/auth/auth-guard"
@@ -90,6 +91,13 @@ function StyleTransferContent() {
 
   return (
     <NeonPage>
+      <Link
+        href="/tools"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Tools
+      </Link>
       <NeonHero
         eyebrow="Style Transfer"
         title="Style Transfer"

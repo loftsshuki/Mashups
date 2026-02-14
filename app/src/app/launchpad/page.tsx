@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Product",
+  description: "Mashups product overview and feature showcase.",
+}
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

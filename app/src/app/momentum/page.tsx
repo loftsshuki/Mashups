@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { Flame, TrendingUp } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Momentum",
+  description: "Discover mashups gaining traction right now on Mashups.",
+}
 
 import { MashupCard } from "@/components/mashup-card"
 import {

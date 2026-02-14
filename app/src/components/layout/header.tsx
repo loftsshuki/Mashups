@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Menu, Music, User, LogOut, Settings } from "lucide-react";
+import {
+  Search,
+  Menu,
+  Music,
+  User,
+  LogOut,
+  Settings,
+  ChevronDown,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,20 +28,26 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/lib/auth/auth-actions";
 
-const navLinks = [
+const primaryLinks = [
   { href: "/feed", label: "For You" },
   { href: "/explore", label: "Explore" },
   { href: "/create", label: "Create" },
   { href: "/tools", label: "AI Tools" },
+  { href: "/trending", label: "Trending" },
+] as const;
+
+const communityLinks = [
   { href: "/battles", label: "Battles" },
   { href: "/daily-flip", label: "Daily Flip" },
   { href: "/playlists", label: "Playlists" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/trending", label: "Trending" },
-  { href: "/studio", label: "Studio" },
-  { href: "/momentum", label: "Momentum" },
   { href: "/scoreboard", label: "Scoreboard" },
-  { href: "/launchpad", label: "Product" },
+] as const;
+
+const moreLinks = [
+  { href: "/marketplace", label: "Marketplace" },
+  { href: "/studio", label: "Studio" },
+  { href: "/subscriptions", label: "Subscriptions" },
+  { href: "/momentum", label: "Momentum" },
   { href: "/pricing", label: "Pricing" },
 ] as const;
 
@@ -115,7 +129,7 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ href, label }) => {
+          {primaryLinks.map(({ href, label }) => {
             const isActive =
               pathname === href || pathname.startsWith(`${href}/`);
             return (
@@ -133,6 +147,56 @@ export function Header() {
               </Link>
             );
           })}
+
+          {/* Community dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                communityLinks.some(
+                  (l) =>
+                    pathname === l.href || pathname.startsWith(`${l.href}/`)
+                )
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+              )}
+            >
+              Community
+              <ChevronDown className="size-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              {communityLinks.map(({ href, label }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href}>{label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* More dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                moreLinks.some(
+                  (l) =>
+                    pathname === l.href || pathname.startsWith(`${l.href}/`)
+                )
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+              )}
+            >
+              More
+              <ChevronDown className="size-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              {moreLinks.map(({ href, label }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href}>{label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* Desktop right actions */}

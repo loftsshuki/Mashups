@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Pause, Music, ShieldCheck, Sparkles, Copy } from "lucide-react"
+import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, ListPlus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -404,6 +404,13 @@ export function MashupDetailClient({
               creatorName={mashup.creator.displayName}
               mashupId={mashup.id}
             />
+            <Link
+              href={`/playlists?add=${mashup.id}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <ListPlus className="h-4 w-4" />
+              Add to Playlist
+            </Link>
             <Link
               href={`/create?fork=${mashup.id}`}
               className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"

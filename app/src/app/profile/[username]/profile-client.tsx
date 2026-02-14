@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MashupCard } from "@/components/mashup-card"
 import { FollowButton } from "@/components/profile/follow-button"
+import { TipButton } from "@/components/tips/tip-button"
 import type { ProfileDetailCreator } from "@/lib/data/profile-detail"
 import type { MockMashup } from "@/lib/mock-data"
 import { BadgeShowcase } from "@/components/gamification/badge-showcase"
@@ -80,13 +81,18 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
             </div>
           </div>
 
-          {/* Follow button */}
-          <FollowButton
-            targetUserId={creator.id}
-            initialFollowing={false}
-            initialCount={creator.followerCount}
-            className="mt-2"
-          />
+          {/* Follow + Tip */}
+          <div className="mt-2 flex items-center gap-2">
+            <FollowButton
+              targetUserId={creator.id}
+              initialFollowing={false}
+              initialCount={creator.followerCount}
+            />
+            <TipButton
+              creatorId={creator.id}
+              creatorName={creator.displayName}
+            />
+          </div>
         </div>
       </div>
 

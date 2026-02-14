@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { DailyFlip } from "@/components/features/daily-flip"
+
+export const metadata: Metadata = {
+  title: "Features",
+  description: "Explore the features that power Mashups: daily flip, live deck, stem swapping, and more.",
+}
 import { LivePerformanceDeck } from "@/components/features/live-deck"
 import { StemSwapper } from "@/components/features/stem-swapper"
 

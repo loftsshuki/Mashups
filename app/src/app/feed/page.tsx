@@ -269,9 +269,14 @@ export default function FeedPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingUp className="h-4 w-4" />
-                Trending Now
+              <CardTitle className="flex items-center justify-between text-base">
+                <span className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Trending Now
+                </span>
+                <Link href="/trending" className="text-xs font-normal text-primary hover:underline">
+                  View all
+                </Link>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -341,7 +346,7 @@ export default function FeedPage() {
               <p className="text-sm text-muted-foreground mt-1">
                 Create a mashup with only 150+ BPM tracks
               </p>
-              <Link href="/battles/daily">
+              <Link href="/daily-flip">
                 <Button className="w-full mt-4" variant="secondary">
                   Accept Challenge
                 </Button>

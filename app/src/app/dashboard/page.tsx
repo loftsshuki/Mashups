@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Plus, Pencil, Trash2, Music, ChartColumn, Shield, Wallet, Gavel } from "lucide-react"
+import { Plus, Pencil, Trash2, Music, ChartColumn, Shield, Wallet, Gavel, Banknote, Droplets } from "lucide-react"
 import { AuthGuard } from "@/components/auth/auth-guard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -133,6 +133,18 @@ function DashboardContent() {
           <Link href="/admin/moderation">
             <Gavel className="h-4 w-4" />
             Moderation
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
+          <Link href="/dashboard/royalties">
+            <Banknote className="h-4 w-4" />
+            Royalties
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" className="rounded-full" asChild>
+          <Link href="/dashboard/watermarks">
+            <Droplets className="h-4 w-4" />
+            Watermarks
           </Link>
         </Button>
       </div>

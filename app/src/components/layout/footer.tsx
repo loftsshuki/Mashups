@@ -1,13 +1,26 @@
 import Link from "next/link"
 
-const productLinks = [
-  { href: "/launchpad", label: "Product" },
-  { href: "/packs", label: "Weekly Viral Pack" },
-  { href: "/scoreboard", label: "Creator Scoreboard" },
-  { href: "/momentum", label: "Momentum Feed" },
+const createLinks = [
+  { href: "/create", label: "Create Mashup" },
+  { href: "/tools", label: "AI Tools" },
   { href: "/studio", label: "Studio" },
+  { href: "/marketplace", label: "Marketplace" },
+] as const
+
+const discoverLinks = [
+  { href: "/feed", label: "For You" },
+  { href: "/explore", label: "Explore" },
+  { href: "/trending", label: "Trending Sounds" },
+  { href: "/battles", label: "Battles" },
+  { href: "/daily-flip", label: "Daily Flip" },
+  { href: "/playlists", label: "Playlists" },
+] as const
+
+const creatorsLinks = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/royalties", label: "Royalties" },
+  { href: "/subscriptions", label: "Subscriptions" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/enterprise", label: "Enterprise" },
 ] as const
 
 const legalLinks = [
@@ -21,8 +34,8 @@ export function Footer() {
     <footer className="w-full border-t border-border/70">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="neon-panel rounded-3xl p-6">
-          <div className="grid gap-6 md:grid-cols-4">
-            <div className="md:col-span-2">
+          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-5">
+            <div className="sm:col-span-2 md:col-span-1">
               <p className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-xl font-semibold text-transparent">
                 mashups.com
               </p>
@@ -33,10 +46,42 @@ export function Footer() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Product
+                Create
               </p>
               <div className="mt-3 space-y-2">
-                {productLinks.map((link) => (
+                {createLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Discover
+              </p>
+              <div className="mt-3 space-y-2">
+                {discoverLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Creators
+              </p>
+              <div className="mt-3 space-y-2">
+                {creatorsLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -62,7 +107,7 @@ export function Footer() {
                   </Link>
                 ))}
                 <Link
-                  href="mailto:legal@mashups.example"
+                  href="mailto:legal@mashups.com"
                   className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact

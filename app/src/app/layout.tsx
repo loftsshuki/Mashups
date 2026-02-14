@@ -19,7 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mashups — Create, Share, Discover Music Mashups",
+  title: {
+    default: "Mashups — Create, Share, Discover Music Mashups",
+    template: "%s | Mashups",
+  },
   description:
     "The community platform for music mashup creators. Upload tracks, mix them together, and share your creations with the world.",
   openGraph: {
