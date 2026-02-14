@@ -58,7 +58,7 @@
 |------|-------------|---------------------|----------|------|--------|
 | **One-Click Platform Export** | Auto-optimize for TikTok/Reels/Shorts | 15/30/60s segment selection; 9:16 + 1:1 formats; auto-visualizer; direct upload APIs | TBD | 5d | 🟢 Done |
 | **AI Hook Generator** | Auto-find viral 15s clips | Analyze energy/drops/vocals; suggest top 3 hooks; "Viral Score" 0-100; A/B preview | TBD | 4d | 🟢 Done |
-| **Trending Sounds Integration** | Pull TikTok/Spotify trends | Trending sidebar; velocity indicator; one-click "remix this"; update hourly | TBD | 3d | ⚪ Backlog |
+| **Trending Sounds Integration** | Pull TikTok/Spotify trends | Trending sidebar; velocity indicator; one-click "remix this"; update hourly | TBD | 3d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -77,7 +77,7 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | ⚪ Backlog |
+| **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | ⚪ Backlog |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | ⚪ Backlog |
 

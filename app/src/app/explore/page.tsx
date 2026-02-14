@@ -18,6 +18,7 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
+import { TrendingSidebar } from "@/components/create/trending-sidebar"
 import { getLocalRecommendationEvents } from "@/lib/data/recommendation-events"
 import {
   getRightsSafetyAssessment,
@@ -199,118 +200,126 @@ function ExploreContent() {
         description="Discover fresh mixes from creators around the world with rights-safe routing baked in."
       />
 
-      <section className="neon-panel mb-8 rounded-2xl p-4">
-        <NeonSectionHeader
-          title="Filters"
-          description="Tune feed results by genre, tempo, playability, and rank logic."
-        />
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {genres.map((genre) => (
-              <Badge
-                key={genre}
-                variant={activeGenre === genre ? "default" : "secondary"}
-                className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-                onClick={() => updateParams("genre", genre)}
-              >
-                {genre}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Badge
-              variant={playableOnly ? "default" : "secondary"}
-              className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-              onClick={() => updateParams("playable", playableOnly ? "0" : "1")}
-            >
-              Playable Only
-            </Badge>
-            <Badge
-              variant={activeRights === "safe" ? "default" : "secondary"}
-              className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
-              onClick={() => updateParams("rights", activeRights === "safe" ? "all" : "safe")}
-            >
-              Rights-Safe Only
-            </Badge>
-
-            <Select value={activeTempo} onValueChange={(tempo) => updateParams("tempo", tempo)}>
-              <SelectTrigger className="w-[160px] rounded-xl">
-                <SelectValue placeholder="Tempo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tempo</SelectItem>
-                <SelectItem value="slow">Slow (&lt; 90 BPM)</SelectItem>
-                <SelectItem value="mid">Mid (90-120 BPM)</SelectItem>
-                <SelectItem value="fast">Fast (&gt; 120 BPM)</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={activeSort} onValueChange={(sort) => updateParams("sort", sort)}>
-              <SelectTrigger className="w-[160px] rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="for-you">For You</SelectItem>
-                <SelectItem value="trending">Trending</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="most-liked">Most Liked</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          {safeCount} rights-safe tracks in current results.
-        </p>
-      </section>
-
-      {isInitialLoad || loadingCatalog ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="aspect-square w-full rounded-xl" />
-              <Skeleton className="h-4 w-3/4" />
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-6 w-6 rounded-full" />
-                <Skeleton className="h-3 w-20" />
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex-1">
+          <section className="neon-panel mb-8 rounded-2xl p-4">
+            <NeonSectionHeader
+              title="Filters"
+              description="Tune feed results by genre, tempo, playability, and rank logic."
+            />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap gap-2">
+                {genres.map((genre) => (
+                  <Badge
+                    key={genre}
+                    variant={activeGenre === genre ? "default" : "secondary"}
+                    className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+                    onClick={() => updateParams("genre", genre)}
+                  >
+                    {genre}
+                  </Badge>
+                ))}
               </div>
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-3 w-10" />
+
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Badge
+                  variant={playableOnly ? "default" : "secondary"}
+                  className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => updateParams("playable", playableOnly ? "0" : "1")}
+                >
+                  Playable Only
+                </Badge>
+                <Badge
+                  variant={activeRights === "safe" ? "default" : "secondary"}
+                  className="cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => updateParams("rights", activeRights === "safe" ? "all" : "safe")}
+                >
+                  Rights-Safe Only
+                </Badge>
+
+                <Select value={activeTempo} onValueChange={(tempo) => updateParams("tempo", tempo)}>
+                  <SelectTrigger className="w-[160px] rounded-xl">
+                    <SelectValue placeholder="Tempo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tempo</SelectItem>
+                    <SelectItem value="slow">Slow (&lt; 90 BPM)</SelectItem>
+                    <SelectItem value="mid">Mid (90-120 BPM)</SelectItem>
+                    <SelectItem value="fast">Fast (&gt; 120 BPM)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={activeSort} onValueChange={(sort) => updateParams("sort", sort)}>
+                  <SelectTrigger className="w-[160px] rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="for-you">For You</SelectItem>
+                    <SelectItem value="trending">Trending</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="most-liked">Most Liked</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          ))}
+            <p className="mt-3 text-xs text-muted-foreground">
+              {safeCount} rights-safe tracks in current results.
+            </p>
+          </section>
+
+          {isInitialLoad || loadingCatalog ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-square w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-3 w-10" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredAndSorted.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSorted.map(({ mashup, safety }) => {
+                const badge = getSafetyBadge(safety.route)
+                return (
+                  <MashupCard
+                    key={mashup.id}
+                    id={mashup.id}
+                    title={mashup.title}
+                    coverUrl={mashup.coverUrl}
+                    audioUrl={mashup.audioUrl}
+                    genre={mashup.genre}
+                    duration={mashup.duration}
+                    playCount={mashup.playCount}
+                    creator={mashup.creator}
+                    rightsBadge={badge.label}
+                    rightsBadgeVariant={badge.variant}
+                    rightsScore={safety.score}
+                  />
+                )
+              })}
+            </div>
+          ) : (
+            <div className="neon-panel rounded-2xl px-6 py-16 text-center">
+              <p className="text-lg font-medium text-foreground">No mashups found</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Try a different genre, tempo, or sort option.
+              </p>
+            </div>
+          )}
         </div>
-      ) : filteredAndSorted.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredAndSorted.map(({ mashup, safety }) => {
-            const badge = getSafetyBadge(safety.route)
-            return (
-              <MashupCard
-                key={mashup.id}
-                id={mashup.id}
-                title={mashup.title}
-                coverUrl={mashup.coverUrl}
-                audioUrl={mashup.audioUrl}
-                genre={mashup.genre}
-                duration={mashup.duration}
-                playCount={mashup.playCount}
-                creator={mashup.creator}
-                rightsBadge={badge.label}
-                rightsBadgeVariant={badge.variant}
-                rightsScore={safety.score}
-              />
-            )
-          })}
-        </div>
-      ) : (
-        <div className="neon-panel rounded-2xl px-6 py-16 text-center">
-          <p className="text-lg font-medium text-foreground">No mashups found</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Try a different genre, tempo, or sort option.
-          </p>
-        </div>
-      )}
+
+        <aside className="shrink-0 lg:w-80">
+          <TrendingSidebar />
+        </aside>
+      </div>
     </NeonPage>
   )
 }
