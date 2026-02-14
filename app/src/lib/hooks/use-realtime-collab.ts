@@ -85,6 +85,7 @@ export function useRealtimeCollab({
             cursor: {
               x: presence.cursor?.x ?? 0,
               y: presence.cursor?.y ?? 0,
+              viewport: presence.cursor?.viewport,
               timestamp: Date.now(),
             },
             isActive: presence.isActive ?? true,
@@ -141,7 +142,7 @@ export function useRealtimeCollab({
     })
 
     // Subscribe to channel
-    channel.subscribe(async (status) => {
+    channel.subscribe(async (status: string) => {
       if (status === "SUBSCRIBED") {
         setState(prev => ({ ...prev, isConnected: true }))
 
