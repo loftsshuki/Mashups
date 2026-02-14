@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Trash2, AlertCircle, Check, FileText, Music } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 
 interface AttributionEditorProps {
   initialSources?: AttributionSource[]
@@ -92,16 +92,16 @@ export function AttributionEditor({
       </div>
 
       {!validation.valid && validation.errors.length > 0 && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <ul className="list-disc list-inside text-sm">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+            <ul className="list-disc list-inside text-sm text-destructive">
               {validation.errors.slice(0, 3).map((error, i) => (
                 <li key={i}>{error}</li>
               ))}
             </ul>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       )}
 
       <div className="space-y-3">
