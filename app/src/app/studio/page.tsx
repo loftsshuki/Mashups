@@ -25,6 +25,7 @@ const VoiceChatPanel = lazy(() => import("@/components/voice/voice-chat-panel").
 const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
 const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel })))
 
+import { AuthGuard } from "@/components/auth/auth-guard"
 import {
   NeonGrid,
   NeonHero,
@@ -159,7 +160,7 @@ const defaultSession: CollaborationSession =
     startedAt: new Date().toISOString(),
   }
 
-export default function StudioPage() {
+function StudioContent() {
   const [sessions, setSessions] = useState<CollaborationSession[]>(mockCollaborationSessions)
   const [activeSessionId, setActiveSessionId] = useState(() => defaultSession.id)
   const session = useMemo(
@@ -810,5 +811,13 @@ export default function StudioPage() {
         </NeonGrid>
       </section>
     </NeonPage>
+  )
+}
+
+export default function StudioPage() {
+  return (
+    <AuthGuard>
+      <StudioContent />
+    </AuthGuard>
   )
 }

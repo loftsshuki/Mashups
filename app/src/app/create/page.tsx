@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2 } from "lucide-react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Shield } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { AuthGuard } from "@/components/auth/auth-guard"
 import { UploadZone } from "@/components/create/upload-zone"
 import { TrackList, type UploadedTrack } from "@/components/create/track-list"
 import { MixerControls } from "@/components/create/mixer-controls"
@@ -28,6 +29,7 @@ import type { MockMashup } from "@/lib/mock-data"
 const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
 const CaptionEditor = lazy(() => import("@/components/captions/caption-editor").then(m => ({ default: m.CaptionEditor })))
 const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator })))
+const RiskAssessmentPanel = lazy(() => import("@/components/content-id/risk-assessment").then(m => ({ default: m.RiskAssessmentPanel })))
 import type { AttributionSource } from "@/lib/data/attribution"
 import type { GeneratedCaptions } from "@/lib/data/auto-caption"
 import type { GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
@@ -84,7 +86,7 @@ function CreatePageContent() {
   const [attributionSources, setAttributionSources] = useState<AttributionSource[]>([])
   const [generatedCaptions, setGeneratedCaptions] = useState<GeneratedCaptions | null>(null)
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail | null>(null)
-  const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
+  const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail" | "contentid">("attribution")
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
@@ -765,6 +767,7 @@ function CreatePageContent() {
               <h3 className="mb-3 text-sm font-semibold text-foreground">Export Tools</h3>
               <div className="mb-4 flex gap-1 rounded-lg border border-border/70 bg-muted/30 p-1">
                 {([
+                  { key: "contentid" as const, label: "Content ID", icon: Shield },
                   { key: "attribution" as const, label: "Attribution", icon: FileText },
                   { key: "captions" as const, label: "Captions", icon: Music2 },
                   { key: "thumbnail" as const, label: "Thumbnail", icon: ImageIcon },
@@ -786,6 +789,12 @@ function CreatePageContent() {
               </div>
 
               <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>}>
+                {activeExportTab === "contentid" && (
+                  <RiskAssessmentPanel
+                    mashupId="draft"
+                    duration={Math.round(totalDuration)}
+                  />
+                )}
                 {activeExportTab === "attribution" && (
                   <AttributionEditor
                     initialSources={attributionSources}
@@ -851,14 +860,16 @@ function CreatePageContent() {
 
 export default function CreatePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-          <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
-        </div>
-      }
-    >
-      <CreatePageContent />
-    </Suspense>
+    <AuthGuard>
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+            <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
+          </div>
+        }
+      >
+        <CreatePageContent />
+      </Suspense>
+    </AuthGuard>
   )
 }

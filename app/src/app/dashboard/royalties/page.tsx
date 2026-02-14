@@ -427,6 +427,34 @@ function RoyaltiesContent() {
                 variant="outline"
                 size="sm"
                 className="h-8 gap-1 rounded-full text-xs"
+                onClick={() => {
+                  const url = doc.document_url
+                  if (url) {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = `${doc.document_type}-${doc.tax_year}.pdf`
+                    document.body.appendChild(a)
+                    a.click()
+                    document.body.removeChild(a)
+                  } else {
+                    const blob = new Blob(
+                      [
+                        `${doc.document_type} — Tax Year ${doc.tax_year}\n` +
+                        `Total Earnings: ${formatMoney(doc.total_earnings_cents)}\n` +
+                        `Generated: ${new Date(doc.generated_at).toLocaleDateString()}\n`,
+                      ],
+                      { type: "text/plain" }
+                    )
+                    const objectUrl = URL.createObjectURL(blob)
+                    const a = document.createElement("a")
+                    a.href = objectUrl
+                    a.download = `${doc.document_type}-${doc.tax_year}.txt`
+                    document.body.appendChild(a)
+                    a.click()
+                    document.body.removeChild(a)
+                    URL.revokeObjectURL(objectUrl)
+                  }
+                }}
               >
                 <Download className="h-3 w-3" />
                 Export

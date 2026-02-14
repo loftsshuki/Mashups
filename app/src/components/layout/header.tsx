@@ -22,16 +22,19 @@ import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
   { href: "/feed", label: "For You" },
-  { href: "/launchpad", label: "Product" },
-  { href: "/packs", label: "Viral Pack" },
-  { href: "/battles", label: "Battles" },
+  { href: "/explore", label: "Explore" },
+  { href: "/create", label: "Create" },
   { href: "/tools", label: "AI Tools" },
-  { href: "/scoreboard", label: "Scoreboard" },
+  { href: "/battles", label: "Battles" },
+  { href: "/daily-flip", label: "Daily Flip" },
+  { href: "/playlists", label: "Playlists" },
+  { href: "/marketplace", label: "Marketplace" },
+  { href: "/trending", label: "Trending" },
   { href: "/studio", label: "Studio" },
-  { href: "/features", label: "New Features" },
+  { href: "/momentum", label: "Momentum" },
+  { href: "/scoreboard", label: "Scoreboard" },
+  { href: "/launchpad", label: "Product" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/enterprise", label: "Enterprise" },
-  { href: "/legal", label: "Docs" },
 ] as const;
 
 interface UserProfile {
