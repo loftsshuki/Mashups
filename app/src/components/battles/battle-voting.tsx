@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Play, Heart, Check, AlertCircle } from "lucide-react"
+import { Play, Heart, Check, AlertCircle, Trophy } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -56,15 +56,19 @@ export function BattleVoting({
       artist: entry.mashup.creator.displayName,
       coverUrl: entry.mashup.coverUrl,
       audioUrl: entry.mashup.audioUrl,
+      duration: entry.mashup.duration,
     })
   }
   
   return (
     <div className="space-y-4">
       {/* Voting Status */}
-      <Alert className={hasVoted ? "bg-green-500/10 border-green-500/20" : undefined}>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+      <div className={cn(
+        "flex items-start gap-3 p-4 rounded-lg border",
+        hasVoted ? "bg-green-500/10 border-green-500/20" : "bg-muted/50 border-border"
+      )}>
+        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+        <div className="text-sm">
           {hasVoted ? (
             "Thanks for voting! Results will be revealed when voting ends."
           ) : userVotesRemaining > 0 ? (
@@ -75,8 +79,8 @@ export function BattleVoting({
           ) : (
             "You've used all your votes for this battle."
           )}
-        </AlertDescription>
-      </Alert>
+        </div>
+      </div>
       
       {/* Entries List */}
       <div className="space-y-3">
@@ -240,16 +244,15 @@ export function BattleMatchup({
   showResults: boolean
 }) {
   const { state, playTrack } = useAudio()
-  const [playingId, setPlayingId] = useState<string | null>(null)
   
   const handlePlay = (entry: BattleEntry) => {
-    setPlayingId(entry.id)
     playTrack({
       id: entry.mashupId,
       title: entry.mashup.title,
       artist: entry.mashup.creator.displayName,
       coverUrl: entry.mashup.coverUrl,
       audioUrl: entry.mashup.audioUrl,
+      duration: entry.mashup.duration,
     })
   }
   
@@ -259,7 +262,7 @@ export function BattleMatchup({
   
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 relative">
         {/* Entry 1 */}
         <Card className={cn(
           "overflow-hidden transition-all",
