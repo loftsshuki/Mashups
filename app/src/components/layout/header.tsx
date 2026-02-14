@@ -25,6 +25,7 @@ const navLinks = [
   { href: "/launchpad", label: "Product" },
   { href: "/packs", label: "Viral Pack" },
   { href: "/battles", label: "Battles" },
+  { href: "/daily", label: "Daily Flip" },
   { href: "/thunderdome", label: "Thunderdome" },
   { href: "/tools", label: "AI Tools" },
   { href: "/scoreboard", label: "Scoreboard" },
