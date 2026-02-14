@@ -29,7 +29,10 @@ export function useTwitchChat({ channel, onCommand }: UseTwitchChatProps) {
 
             const client = new tmi.Client({
                 channels: [channel],
-                webSocket: true // Explicitly use WebSocket
+                connection: {
+                    secure: true,
+                    reconnect: true
+                }
             })
 
             // @ts-ignore
