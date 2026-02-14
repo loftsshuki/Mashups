@@ -25,7 +25,8 @@ import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
 
 import type { AttributionSource } from "@/lib/data/attribution"
-import type { GeneratedCaptions, GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
+import type { GeneratedCaptions } from "@/lib/data/auto-caption"
+import type { GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
 
 // Phase 3: Lazy load export components
 const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
