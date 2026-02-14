@@ -32,7 +32,7 @@ import {
 // Phase 2: AI Thumbnail Generator with templates and customization
 
 type AspectRatio = "1:1" | "9:16" | "16:9"
-type TemplateStyle = "minimal" | "bold" | "gradient" | " waveform" | "split"
+type TemplateStyle = "minimal" | "bold" | "gradient" | "waveform" | "split"
 
 interface ThumbnailTemplate {
   id: string
