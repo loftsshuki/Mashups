@@ -74,14 +74,6 @@ export function useRealtimeCollab({
           lastSeen: string
         }>
         const presence = presenceArray[0]
-          userId: string
-          displayName: string
-          avatarUrl: string
-          color: string
-          cursor: CursorPosition
-          isActive: boolean
-          lastSeen: string
-        } | undefined
         
         if (presence && presence.userId !== userId) {
           collaborators.push({
