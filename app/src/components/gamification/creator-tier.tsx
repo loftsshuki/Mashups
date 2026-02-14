@@ -154,7 +154,7 @@ export function TierProgression({ currentPoints }: { currentPoints: number }) {
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
                 isActive && "ring-2 ring-primary ring-offset-2",
-                isCompleted ? tier.bgColor : "bg-muted",
+                isCompleted ? "bg-primary/20" : "bg-muted",
                 isActive || isCompleted ? tier.color : "text-muted-foreground"
               )}>
                 {tier.badge}
