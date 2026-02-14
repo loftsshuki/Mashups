@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import * as Tone from "tone"
+// import * as Tone from "tone"
 import { Play, Pause, Wand2, Sparkles, Layers, RefreshCw, Volume2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -39,15 +39,18 @@ export function AutoMashupPlayer() {
     const [mashupMode, setMashupMode] = useState<"chop" | "blend" | "switch">("chop")
 
     // Audio refs
-    const player1 = useRef<Tone.Player | null>(null)
-    const player2 = useRef<Tone.Player | null>(null)
-    const loop = useRef<Tone.Loop | null>(null)
+    const toneRef = useRef<any>(null)
+    const player1 = useRef<any>(null)
+    const player2 = useRef<any>(null)
+    const loop = useRef<any>(null)
     const visualizerRef = useRef<HTMLCanvasElement>(null)
-    const analyzer = useRef<Tone.Waveform | null>(null)
+    const analyzer = useRef<any>(null)
 
     // Initialize Audio
     const initAudio = async () => {
         setIsLoading(true)
+        const Tone = await import("tone")
+        toneRef.current = Tone
         await Tone.start()
 
         // Create analyzer
@@ -105,7 +108,7 @@ export function AutoMashupPlayer() {
     const togglePlay = () => {
         if (!isReady) {
             initAudio().then(() => {
-                Tone.Transport.start()
+                toneRef.current?.Transport.start()
                 loop.current?.start(0)
                 setIsPlaying(true)
             })
@@ -113,11 +116,11 @@ export function AutoMashupPlayer() {
         }
 
         if (isPlaying) {
-            Tone.Transport.stop()
+            toneRef.current?.Transport.stop()
             setIsPlaying(false)
             setActiveSlice(null)
         } else {
-            Tone.Transport.start()
+            toneRef.current?.Transport.start()
             setIsPlaying(true)
         }
     }

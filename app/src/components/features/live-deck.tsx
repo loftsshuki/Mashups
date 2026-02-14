@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Play, Square, Circle, Mic2, Music2, Drum, Activity, Volume2 } from "lucide-react"
-import * as Tone from "tone"
+// import * as Tone from "tone"
 
 // Defines the 8x8 grid state
 interface ClipSlot {
@@ -30,10 +30,13 @@ export function LivePerformanceDeck() {
     const [grid, setGrid] = useState<ClipSlot[]>([])
     const [activeScene, setActiveScene] = useState<number | null>(null)
     const [audioReady, setAudioReady] = useState(false)
-    const [synths, setSynths] = useState<Tone.PolySynth[] | null>(null)
+    const [synths, setSynths] = useState<any[] | null>(null)
+    const toneRef = useRef<any>(null)
 
     // Initialize audio engine
     const startEngine = async () => {
+        const Tone = await import("tone")
+        toneRef.current = Tone
         await Tone.start()
 
         // simple poly synth for melodic elements
@@ -71,8 +74,8 @@ export function LivePerformanceDeck() {
 
     const triggerClip = (trackId: number, sceneId: number) => {
         // Trigger sound if engine is ready
-        if (audioReady && synths) {
-            const now = Tone.now()
+        if (audioReady && synths && toneRef.current) {
+            const now = toneRef.current.now()
             // Random note based on track ID to simulate different "clips"
             const notes = ["C4", "E4", "G4", "B4", "C3", "F3", "A3", "C5"]
             const note = notes[trackId % notes.length]
