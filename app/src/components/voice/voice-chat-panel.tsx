@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  Mic, 
-  MicOff, 
-  Headphones, 
-  HeadphoneOff, 
-  PhoneOff, 
+import {
+  Mic,
+  MicOff,
+  Headphones,
+  HeadphoneOff,
+  PhoneOff,
   Settings,
   Volume2,
   AlertCircle,
@@ -92,7 +92,7 @@ export function VoiceChatPanel({
   const [selectedInputDevice, setSelectedInputDevice] = useState<string>("")
   const [selectedOutputDevice, setSelectedOutputDevice] = useState<string>("")
   const [showSettings, setShowSettings] = useState(false)
-  
+
   const callRef = useRef<DailyCall | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -105,12 +105,11 @@ export function VoiceChatPanel({
     async function initCall() {
       // Check if Daily.co is available (package needs to be installed)
       if (typeof window === "undefined") return
-      
+
       try {
         // Dynamic import to avoid SSR issues
-        // @ts-expect-error Optional dependency - falls back to simulation mode if not installed
         const Daily = (await import("@daily-co/daily-js")).default
-        
+
         if (!isMounted) return
 
         // Create call object
@@ -170,7 +169,7 @@ export function VoiceChatPanel({
         console.error("Failed to initialize Daily.co:", err)
         setError("Daily.co not installed. Run: npm install @daily-co/daily-js")
         setIsConnecting(false)
-        
+
         // Fallback: simulate connection for demo
         simulateConnection()
       }
@@ -247,7 +246,7 @@ export function VoiceChatPanel({
         audioLevel: 0, // Would need analyser
         joinedAt: new Date().toISOString(),
       }))
-    
+
     setParticipants(mappedParticipants)
   }
 
@@ -265,10 +264,10 @@ export function VoiceChatPanel({
         const analyser = audioContext.createAnalyser()
         const source = audioContext.createMediaStreamSource(stream)
         source.connect(analyser)
-        
+
         analyser.fftSize = 256
         const dataArray = new Uint8Array(analyser.frequencyBinCount)
-        
+
         audioContextRef.current = audioContext
         analyserRef.current = analyser
 
@@ -357,9 +356,9 @@ export function VoiceChatPanel({
           <span className="font-medium">Voice Chat Error</span>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="mt-3"
           onClick={() => setError(null)}
         >
@@ -516,7 +515,7 @@ interface VoiceParticipantCardProps {
 
 function VoiceParticipantCard({ participant, isLocal }: VoiceParticipantCardProps) {
   const isSpeaking = participant.isSpeaking && !participant.isMuted
-  
+
   return (
     <div
       className={cn(
@@ -583,7 +582,7 @@ interface VoiceIndicatorProps {
 
 export function VoiceIndicator({ participants = [], isConnected, onClick }: VoiceIndicatorProps) {
   const speakingCount = participants.filter(p => p.isSpeaking && !p.isMuted).length
-  
+
   return (
     <Button
       variant={isConnected ? "default" : "outline"}
@@ -597,7 +596,7 @@ export function VoiceIndicator({ participants = [], isConnected, onClick }: Voic
           <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
         )}
       </div>
-      
+
       {isConnected ? (
         <span>{participants.length + 1} in voice</span>
       ) : (
