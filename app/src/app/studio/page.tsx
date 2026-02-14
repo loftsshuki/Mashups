@@ -19,6 +19,12 @@ import {
   Settings,
 } from "lucide-react"
 
+// Lazy load heavy components for performance
+const CursorPresence = lazy(() => import("@/components/collab/cursor-presence").then(m => ({ default: m.CursorPresence })))
+const VoiceChatPanel = lazy(() => import("@/components/voice/voice-chat-panel").then(m => ({ default: m.VoiceChatPanel })))
+const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
+const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel })))
+
 import {
   NeonGrid,
   NeonHero,
@@ -27,24 +33,21 @@ import {
 } from "@/components/marketing/neon-page"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
 import {
-  BookmarkPlus,
-  Clock3,
-  Copy,
-  Dot,
-  Eye,
-  MessageSquarePlus,
-  PauseCircle,
-  Radio,
-  Save,
-  UserPlus,
-  Users,
-  Mic,
-  MousePointer2,
-  Music,
-  Settings,
-} from "lucide-react"
-
+  type CollaborationSession,
+  getSessionCollabSummary,
+  mockCollaborationSessions,
+} from "@/lib/data/collaboration"
+import {
+  createSnapshotName,
+  generateStudioEntityId,
+  getOrCreateStudioAlias,
+  loadStudioSessionState,
+  saveStudioSessionState,
+  type StudioMarker,
   type StudioNote,
   type StudioSnapshot,
 } from "@/lib/data/studio-collab"
