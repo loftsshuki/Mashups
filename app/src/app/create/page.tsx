@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useTransition, useMemo, Suspense, useEffect } from "react"
+import { useState, useCallback, useTransition, Suspense, useEffect } from "react"
 import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -465,7 +465,7 @@ function CreatePageContent() {
               </div>
             )}
 
-            {tracks.length > 0 && tracks.length < 1 && (
+            {uploadedCount < 1 && (
               <p className="text-center text-sm text-muted-foreground">
                 Add at least {1 - uploadedCount} more track
                 {1 - uploadedCount > 1 ? "s" : ""} to continue

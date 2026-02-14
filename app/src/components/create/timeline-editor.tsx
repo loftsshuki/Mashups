@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
-import { TimelineClipEditor } from "./timeline-clip"
+import { TimelineClipReal } from "./timeline-clip-real"
 import type { TimelineTrack, TimelineClip } from "./waveform-timeline"
 
 interface TimelineEditorProps {
@@ -399,7 +399,7 @@ export function TimelineEditor({
                 {/* Clips Container */}
                 <div className="relative h-full" style={{ marginLeft: TRACK_LABEL_WIDTH }}>
                   {track.clips.map((clip) => (
-                    <TimelineClipEditor
+                    <TimelineClipReal
                       key={clip.id}
                       clip={clip}
                       isSelected={selectedClipId === clip.id}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { isAdminEmail } from "@/lib/auth/admin"
+import { isAdminUser } from "@/lib/auth/admin"
 import { writeAuditEvent } from "@/lib/data/audit-log"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -35,7 +35,7 @@ async function getAdminContext() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!isAdminEmail(user?.email)) {
+  if (!isAdminUser({ email: user?.email, id: user?.id })) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
 

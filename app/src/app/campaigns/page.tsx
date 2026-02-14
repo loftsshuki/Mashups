@@ -19,7 +19,6 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import {
-  type CampaignTemplate,
   getCampaignTemplates,
   type CreatorTier,
 } from "@/lib/campaigns/templates"

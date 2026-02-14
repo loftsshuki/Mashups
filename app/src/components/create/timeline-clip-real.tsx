@@ -1,13 +1,15 @@
 "use client"
 
-import { useRef, useState, useCallback, useEffect, useMemo } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { useWaveform } from "@/lib/hooks/use-waveform"
 import type { TimelineClip } from "./waveform-timeline"
 
-interface TimelineClipEditorProps {
+interface TimelineClipRealProps {
   clip: TimelineClip
   isSelected: boolean
   zoom: number
+  trackColor: string
   onSelect?: () => void
   onMove?: (newStartTime: number) => void
   onTrimStart?: (newStartTime: number, newOffset: number) => void
@@ -17,16 +19,17 @@ interface TimelineClipEditorProps {
 
 const PIXELS_PER_SECOND = 50
 
-export function TimelineClipEditor({
+export function TimelineClipReal({
   clip,
   isSelected,
   zoom,
+  trackColor,
   onSelect,
   onMove,
   onTrimStart,
   onTrimEnd,
   pixelsPerSecond = PIXELS_PER_SECOND,
-}: TimelineClipEditorProps) {
+}: TimelineClipRealProps) {
   const clipRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isTrimmingStart, setIsTrimmingStart] = useState(false)
@@ -37,27 +40,19 @@ export function TimelineClipEditor({
   const [visualDuration, setVisualDuration] = useState(clip.duration)
   const [visualOffset, setVisualOffset] = useState(clip.offset)
 
+  // Load real waveform data
+  const { data: waveformData, isLoading } = useWaveform(clip.audioUrl, {
+    barCount: Math.max(50, Math.min(200, Math.floor(clip.duration * 10))),
+    startTime: clip.offset,
+    duration: clip.duration,
+  })
+
   // Reset visual state when clip changes
   useEffect(() => {
     setVisualStartTime(clip.startTime)
     setVisualDuration(clip.duration)
     setVisualOffset(clip.offset)
   }, [clip.startTime, clip.duration, clip.offset])
-
-  // Generate waveform bars
-  const waveformBars = useCallback(() => {
-    const bars = 80
-    return Array.from({ length: bars }, (_, i) => {
-      // Create a pseudo-random but visually pleasing waveform
-      const position = i / bars
-      const envelope = Math.sin(position * Math.PI) // Envelope shape
-      const detail = Math.sin(i * 0.5) * 0.3 + Math.cos(i * 0.7) * 0.2
-      const noise = Math.sin(i * 2.3) * 0.1
-      return Math.max(0.1, Math.min(0.9, envelope * 0.6 + detail + noise))
-    })
-  }, [clip.audioUrl])
-
-  const bars = useMemo(() => waveformBars(), [waveformBars])
 
   // Mouse handlers for dragging
   const handleMouseDown = useCallback(
@@ -69,14 +64,12 @@ export function TimelineClipEditor({
       const isTrimHandle = target.dataset.trim === "start" || target.dataset.trim === "end"
 
       if (isTrimHandle) {
-        // Handle trim
         if (target.dataset.trim === "start") {
           setIsTrimmingStart(true)
         } else {
           setIsTrimmingEnd(true)
         }
       } else {
-        // Handle move
         setIsDragging(true)
         setDragStartX(e.clientX)
         setDragStartTime(clip.startTime)
@@ -96,15 +89,13 @@ export function TimelineClipEditor({
         const newStartTime = Math.max(0, dragStartTime + deltaTime)
         setVisualStartTime(newStartTime)
       } else if (isTrimmingStart) {
-        // Trim from start
-        const maxTrim = clip.duration - 0.1 // Minimum 0.1s clip
+        const maxTrim = clip.duration - 0.1
         const trimAmount = Math.max(0, Math.min(deltaTime, maxTrim))
         setVisualStartTime(clip.startTime + trimAmount)
         setVisualDuration(clip.duration - trimAmount)
         setVisualOffset(clip.offset + trimAmount)
       } else if (isTrimmingEnd) {
-        // Trim from end
-        const minDuration = 0.1 // Minimum 0.1s
+        const minDuration = 0.1
         const newDuration = Math.max(minDuration, clip.duration + deltaTime)
         setVisualDuration(newDuration)
       }
@@ -151,6 +142,9 @@ export function TimelineClipEditor({
   const clipWidth = visualDuration * pixelsPerSecond * zoom
   const leftPosition = visualStartTime * pixelsPerSecond * zoom
 
+  // Get waveform peaks (real or fallback)
+  const peaks = waveformData?.peaks || generateFallbackPeaks(100)
+
   return (
     <div
       ref={clipRef}
@@ -163,8 +157,8 @@ export function TimelineClipEditor({
       )}
       style={{
         left: leftPosition,
-        width: clipWidth,
-        minWidth: 20,
+        width: Math.max(clipWidth, 30),
+        minWidth: 30,
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -186,19 +180,37 @@ export function TimelineClipEditor({
         <span className="opacity-70">{visualDuration.toFixed(1)}s</span>
       </div>
 
-      {/* Waveform */}
-      <div className="relative h-[calc(100%-20px)] flex items-center gap-[2px] px-2 py-1">
-        {bars.map((height, i) => (
-          <div
-            key={i}
-            className="flex-1 rounded-full transition-all"
-            style={{
-              height: `${height * 80}%`,
-              backgroundColor: clip.color,
-              opacity: 0.6 + height * 0.4,
-            }}
-          />
-        ))}
+      {/* Real Waveform */}
+      <div className="relative h-[calc(100%-20px)] flex items-center gap-[1px] px-1 py-0.5">
+        {isLoading ? (
+          // Loading skeleton
+          <div className="flex w-full h-full items-center gap-[1px]">
+            {Array.from({ length: 50 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-full bg-current opacity-20 animate-pulse"
+                style={{
+                  height: `${30 + Math.random() * 40}%`,
+                  color: clip.color,
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          // Real waveform
+          peaks.map((height, i) => (
+            <div
+              key={i}
+              className="flex-1 rounded-full transition-all"
+              style={{
+                height: `${Math.max(4, height * 100)}%`,
+                backgroundColor: clip.color,
+                opacity: 0.5 + height * 0.5,
+                minHeight: 2,
+              }}
+            />
+          ))
+        )}
       </div>
 
       {/* Fade overlays */}
@@ -219,18 +231,15 @@ export function TimelineClipEditor({
         />
       )}
 
-      {/* Trim handles (visible on hover or selection) */}
+      {/* Trim handles */}
       {isSelected && (
         <>
-          {/* Left trim handle */}
           <div
             data-trim="start"
             className="absolute left-0 top-0 bottom-0 w-3 cursor-w-resize flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <div className="w-0.5 h-8 bg-white/70 rounded-full" />
           </div>
-
-          {/* Right trim handle */}
           <div
             data-trim="end"
             className="absolute right-0 top-0 bottom-0 w-3 cursor-e-resize flex items-center justify-center hover:bg-white/20 transition-colors"
@@ -253,6 +262,22 @@ export function TimelineClipEditor({
           <span className="text-xs font-bold text-white">MUTED</span>
         </div>
       )}
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute bottom-1 left-1 text-[8px] text-white/70 bg-black/30 px-1 rounded">
+          Analyzing...
+        </div>
+      )}
     </div>
   )
+}
+
+function generateFallbackPeaks(count: number): number[] {
+  return Array.from({ length: count }, (_, i) => {
+    const position = i / count
+    const envelope = Math.sin(position * Math.PI)
+    const detail = Math.sin(i * 0.5) * 0.3 + Math.cos(i * 0.7) * 0.2
+    return Math.max(0.1, Math.min(0.9, envelope * 0.6 + detail))
+  })
 }
