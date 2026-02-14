@@ -1,6 +1,4 @@
 
-import 'server-only';
-
 // @ts-expect-error No type definitions available for spotify-web-api-node
 import SpotifyWebApi from 'spotify-web-api-node';
 import { TrendingSound } from './trending-sounds';
