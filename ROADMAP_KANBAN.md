@@ -1,7 +1,7 @@
 # Mashups.com Product Roadmap — Kanban Board
 
 **Last Updated:** February 13, 2026  
-**Current Phase:** Phase 2 — Viral Distribution Engine  
+**Current Phase:** Phase 3 — Community & Social  
 **Sprint Cycle:** 2 weeks  
 **Last Deploy:** Commit `ada80c8` — Phase 1 Complete: Production Powerhouse ✅
 
@@ -12,7 +12,8 @@
 | Phase | Theme | Status | Progress |
 |-------|-------|--------|----------|
 | Phase 1 | Production Powerhouse | 🟢 Done | 100% |
-| Phase 2 | Viral Distribution Engine | ⚪ Planned | 0% |
+| Phase 2 | Viral Distribution Engine | 🟢 Done | 100% |
+| Phase 3 | Community & Social | ⚪ Planned | 0% |
 | Phase 3 | Community & Social | ⚪ Planned | 0% |
 | Phase 4 | Rights & Monetization 2.0 | ⚪ Planned | 0% |
 | Phase 5 | AI-Powered Features | ⚪ Planned | 0% |
@@ -64,9 +65,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Attribution Watermark System** | Invisible + visible tracking | Audio fingerprint (inaudible); visual watermark templates; chain-of-custody tracking | TBD | 4d | ⚪ Backlog |
-| **Auto-Caption Generator** | Platform-native captions | Generate captions from lyrics/transcription; platform-optimized formatting; hashtag suggestions | TBD | 2d | ⚪ Backlog |
-| **Thumbnail Generator** | Auto-create cover art from waveform | Multiple templates; customizable colors/text; export PNG/SVG | TBD | 2d | ⚪ Backlog |
+| **Attribution Watermark System** | Invisible + visible tracking | Audio fingerprint (inaudible); visual watermark templates; chain-of-custody tracking | TBD | 4d | 🟢 Done |
+| **Auto-Caption Generator** | Platform-native captions | Generate captions from lyrics/transcription; platform-optimized formatting; hashtag suggestions | TBD | 2d | 🟢 Done |
+| **Thumbnail Generator** | Auto-create cover art from waveform | Multiple templates; customizable colors/text; export PNG/SVG | TBD | 2d | 🟢 Done |
 | **Streamer "Crowd Control"** | Twitch/Kick Integration | Chat commands (!drop) trigger Live Deck; Overlay widget; Bits trigger FX | TBD | 8d | 🟢 Done |
 
 ---
