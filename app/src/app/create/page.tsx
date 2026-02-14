@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useCallback, useTransition, useMemo, Suspense } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight } from "lucide-react"
+import { useState, useCallback, useTransition, useMemo, Suspense, useEffect } from "react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -9,6 +9,8 @@ import { UploadZone } from "@/components/create/upload-zone"
 import { TrackList, type UploadedTrack } from "@/components/create/track-list"
 import { MixerControls } from "@/components/create/mixer-controls"
 import { PublishForm } from "@/components/create/publish-form"
+import { StemUploadZone, StemList, type StemUploadResult, type SeparatedStems } from "@/components/create/stem-upload-zone"
+import { StemMixer } from "@/components/create/stem-mixer"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
@@ -17,13 +19,13 @@ const steps = [
   {
     number: 1,
     title: "Upload Tracks",
-    description: "Add two or more tracks to blend",
+    description: "Add tracks and separate stems",
     icon: Upload,
   },
   {
     number: 2,
     title: "Mix & Arrange",
-    description: "Adjust timing, levels, and effects",
+    description: "Adjust levels and blend stems",
     icon: Sliders,
   },
   {
@@ -41,14 +43,21 @@ interface MixerTrackState {
   solo: boolean
 }
 
+interface TrackWithStems extends UploadedTrack {
+  stems?: SeparatedStems
+  isProcessingStems?: boolean
+  stemError?: string
+}
+
 function CreatePageContent() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(1)
-  const [tracks, setTracks] = useState<UploadedTrack[]>([])
+  const [tracks, setTracks] = useState<TrackWithStems[]>([])
   const [mixerTracks, setMixerTracks] = useState<MixerTrackState[]>([])
   const [previewMessage, setPreviewMessage] = useState("")
   const [forkedFrom, setForkedFrom] = useState<MockMashup | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [selectedStemTrack, setSelectedStemTrack] = useState<number | null>(null)
 
   const forkId = searchParams.get("fork")
   const challengeId = searchParams.get("challenge") ?? undefined
@@ -77,22 +86,45 @@ function CreatePageContent() {
   }, [forkId])
 
   // ---------------------------------------------------------------------------
-  // Step 1: Upload handlers
+  // Step 1: Upload handlers (with stem separation)
   // ---------------------------------------------------------------------------
+
+  const handleStemResults = useCallback((results: StemUploadResult[]) => {
+    setTracks((prev) => {
+      // Merge new results with existing tracks
+      const updated = [...prev]
+      
+      results.forEach((result) => {
+        const existingIndex = updated.findIndex(
+          (t) => t.file === result.file && t.name === result.name
+        )
+        
+        if (existingIndex >= 0) {
+          // Update existing track
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            ...result,
+          }
+        } else {
+          // Add new track
+          updated.push(result)
+        }
+      })
+      
+      return updated
+    })
+  }, [])
 
   const handleFilesAdded = useCallback(async (files: File[]) => {
     // Add each file to the track list with 0 progress
-    const newTracks: UploadedTrack[] = files.map((file) => ({
+    const newTracks: TrackWithStems[] = files.map((file) => ({
       file,
       name: file.name,
       size: file.size,
       uploadProgress: 0,
     }))
 
-    setTracks((prev) => {
-      const updated = [...prev, ...newTracks]
-      return updated
-    })
+    setTracks((prev) => [...prev, ...newTracks])
 
     // Upload each file
     for (let i = 0; i < files.length; i++) {
@@ -172,7 +204,10 @@ function CreatePageContent() {
 
   const handleRemoveTrack = useCallback((index: number) => {
     setTracks((prev) => prev.filter((_, i) => i !== index))
-  }, [])
+    if (selectedStemTrack === index) {
+      setSelectedStemTrack(null)
+    }
+  }, [selectedStemTrack])
 
   // ---------------------------------------------------------------------------
   // Step 2: Mixer handlers
@@ -232,7 +267,7 @@ function CreatePageContent() {
   // ---------------------------------------------------------------------------
 
   const uploadedCount = tracks.filter((t) => t.uploadProgress === 100).length
-  const canProceedStep1 = uploadedCount >= 2
+  const canProceedStep1 = uploadedCount >= 1 // Changed to 1 since we can remix stems
   const canProceedStep2 = true
 
   const goToStep = useCallback(
@@ -252,6 +287,10 @@ function CreatePageContent() {
     (sum, t) => sum + (t.duration ?? 0),
     0
   )
+
+  // Count tracks with stems
+  const tracksWithStems = tracks.filter((t) => t.stems && !t.isProcessingStems).length
+  const tracksProcessingStems = tracks.filter((t) => t.isProcessingStems).length
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
@@ -330,14 +369,47 @@ function CreatePageContent() {
         {/* ----------------------------------------------------------------- */}
         {currentStep === 1 && (
           <div className="space-y-6">
+            <StemUploadZone onFilesAdded={handleStemResults} />
+
+            {/* Legacy upload option */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or upload without stem separation
+                </span>
+              </div>
+            </div>
+
             <UploadZone onFilesAdded={handleFilesAdded} />
 
             <TrackList tracks={tracks} onRemove={handleRemoveTrack} />
 
-            {tracks.length > 0 && tracks.length < 2 && (
+            {/* Show stem status */}
+            {(tracksWithStems > 0 || tracksProcessingStems > 0) && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  <span className="font-medium">AI Stem Separation</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {tracksWithStems} track{tracksWithStems !== 1 ? "s" : ""} with separated stems
+                  {tracksProcessingStems > 0 && (
+                    <>, {tracksProcessingStems} processing...</>
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Go to Step 2 to remix individual stems (vocals, drums, bass, other)
+                </p>
+              </div>
+            )}
+
+            {tracks.length > 0 && tracks.length < 1 && (
               <p className="text-center text-sm text-muted-foreground">
-                Add at least {2 - uploadedCount} more track
-                {2 - uploadedCount > 1 ? "s" : ""} to continue
+                Add at least {1 - uploadedCount} more track
+                {1 - uploadedCount > 1 ? "s" : ""} to continue
               </p>
             )}
           </div>
@@ -348,9 +420,66 @@ function CreatePageContent() {
         {/* ----------------------------------------------------------------- */}
         {currentStep === 2 && (
           <div className="space-y-6">
+            {/* Stem Mixer for tracks with stems */}
+            {tracksWithStems > 0 && (
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Stem Mixer
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Select a track to remix its individual stems
+                  </p>
+                </div>
+
+                {/* Track selector */}
+                <div className="flex flex-wrap gap-2">
+                  {tracks.map((track, index) =>
+                    track.stems ? (
+                      <Button
+                        key={index}
+                        variant={selectedStemTrack === index ? "default" : "outline"}
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => setSelectedStemTrack(index)}
+                      >
+                        <Wand2 className="mr-2 h-3 w-3" />
+                        {track.name.replace(/\.[^.]+$/, "")}
+                      </Button>
+                    ) : null
+                  )}
+                </div>
+
+                {/* Stem mixer for selected track */}
+                {selectedStemTrack !== null && tracks[selectedStemTrack]?.stems && (
+                  <StemMixer
+                    stems={tracks[selectedStemTrack].stems!}
+                    trackName={tracks[selectedStemTrack].name}
+                  />
+                )}
+
+                {selectedStemTrack === null && tracksWithStems > 0 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Select a track above to open its stem mixer
+                  </p>
+                )}
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or mix full tracks
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <h2 className="text-lg font-semibold text-foreground">
-                Mixer Controls
+                Track Mixer
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Adjust volume levels and mute/solo individual tracks

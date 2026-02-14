@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 
 import { signAttributionLink } from "@/lib/attribution/signing"
+import { writeAuditEvent } from "@/lib/data/audit-log"
 import { clampReferralRevShareBps } from "@/lib/growth/referral-accounting"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 type CreatorTier = "large" | "medium" | "emerging"
@@ -41,6 +43,17 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "referrals", user?.id ?? null),
+      limit: 20,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
     }
 
     const code = `${body.creatorTier.slice(0, 3)}_${randomUUID().replace(/-/g, "").slice(0, 10)}`
@@ -97,6 +110,20 @@ export async function POST(request: Request) {
       }
     }
 
+    await writeAuditEvent({
+      actorId: user?.id ?? null,
+      action: "referral.invite.create",
+      resourceType: "referral_invite",
+      resourceId: code,
+      status: "success",
+      metadata: {
+        campaignId: body.campaignId,
+        creatorTier: body.creatorTier,
+        maxUses,
+        revShareBps,
+      },
+    })
+
     return NextResponse.json({
       code,
       inviteUrl,
@@ -106,6 +133,12 @@ export async function POST(request: Request) {
       revSharePercent: revShareBps / 100,
     })
   } catch {
+    await writeAuditEvent({
+      actorId: null,
+      action: "referral.invite.create",
+      resourceType: "referral_invite",
+      status: "error",
+    })
     return NextResponse.json({ error: "Invalid referral payload." }, { status: 400 })
   }
 }
