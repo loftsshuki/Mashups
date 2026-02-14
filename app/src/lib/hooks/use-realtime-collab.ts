@@ -111,18 +111,18 @@ export function useRealtimeCollab({
     })
 
     // Handle broadcast messages (cursor updates, operations)
-    channel.on("broadcast", { event: "cursor_update" }, ({ payload }) => {
+    channel.on("broadcast", { event: "cursor_update" }, ({ payload }: { payload: { userId?: string; cursor?: CursorPosition } | undefined }) => {
       if (payload?.userId === userId) return
       
       setState(prev => ({
         ...prev,
         collaborators: prev.collaborators.map(c =>
-          c.userId === payload.userId
+          c.userId === payload?.userId
             ? {
                 ...c,
                 cursor: {
-                  x: payload.cursor?.x ?? c.cursor.x,
-                  y: payload.cursor?.y ?? c.cursor.y,
+                  x: payload?.cursor?.x ?? c.cursor.x,
+                  y: payload?.cursor?.y ?? c.cursor.y,
                   timestamp: Date.now(),
                 },
                 lastSeen: new Date().toISOString(),
@@ -132,7 +132,7 @@ export function useRealtimeCollab({
       }))
     })
 
-    channel.on("broadcast", { event: "operation" }, ({ payload }) => {
+    channel.on("broadcast", { event: "operation" }, ({ payload }: { payload: { userId?: string } & CollabOperation | undefined }) => {
       if (payload?.userId !== userId && onOperation) {
         onOperation(payload as CollabOperation)
       }
