@@ -1,46 +1,34 @@
 "use client"
 
-import { useState, useCallback, useMemo, useRef, useEffect } from "react"
-import { GitBranch, Play, Share2, ZoomIn, ZoomOut, Move } from "lucide-react"
+import { useState, useCallback, useMemo, useRef } from "react"
+import Link from "next/link"
+import { GitBranch, Play, ZoomIn, ZoomOut, Move, Maximize2, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-export interface RemixNode {
-  id: string
-  title: string
-  creator: {
-    name: string
-    avatar: string
-  }
-  audioUrl: string
-  coverUrl: string
-  duration: number
-  playCount: number
-  createdAt: string
-  parentId?: string
-  childrenIds: string[]
-}
+import type { MockMashup } from "@/lib/mock-data"
 
 interface RemixFamilyTreeProps {
-  rootNode: RemixNode
-  allNodes: RemixNode[]
-  onPlayNode?: (node: RemixNode) => void
-  onViewNode?: (node: RemixNode) => void
+  lineage: MockMashup[]
+  forks: MockMashup[]
+  currentId: string
   className?: string
 }
 
-interface TreeNode extends RemixNode {
+interface TreeNode {
+  id: string
+  title: string
+  creatorName: string
+  coverUrl: string
   x: number
   y: number
-  level: number
+  type: "root" | "ancestor" | "current" | "fork"
 }
 
 export function RemixFamilyTree({
-  rootNode,
-  allNodes,
-  onPlayNode,
-  onViewNode,
+  lineage,
+  forks,
+  currentId,
   className,
 }: RemixFamilyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -48,72 +36,84 @@ export function RemixFamilyTree({
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
 
-  // Build tree layout
-  const treeData = useMemo(() => {
-    const nodeMap = new Map<string, TreeNode>()
-    const processed = new Set<string>()
-
-    // Calculate levels (distance from root)
-    const getLevel = (nodeId: string, level = 0): number => {
-      const node = allNodes.find((n) => n.id === nodeId)
-      if (!node || !node.parentId) return level
-      return getLevel(node.parentId, level + 1)
-    }
-
-    // Build tree structure
-    const buildTree = (nodeId: string, xOffset = 0): TreeNode[] => {
-      if (processed.has(nodeId)) return []
-      processed.add(nodeId)
-
-      const node = allNodes.find((n) => n.id === nodeId)
-      if (!node) return []
-
-      const level = getLevel(nodeId)
-      const y = level * 150
-      
-      // Calculate x position based on siblings
-      const siblings = allNodes.filter((n) => n.parentId === node.parentId)
-      const siblingIndex = siblings.findIndex((s) => s.id === nodeId)
-      const totalSiblings = siblings.length || 1
-      const x = xOffset + (siblingIndex - (totalSiblings - 1) / 2) * 200
-
-      const treeNode: TreeNode = { ...node, x, y, level }
-      nodeMap.set(nodeId, treeNode)
-
-      // Process children
-      const children: TreeNode[] = []
-      node.childrenIds.forEach((childId) => {
-        children.push(...buildTree(childId, x))
-      })
-
-      return [treeNode, ...children]
-    }
-
-    return buildTree(rootNode.id)
-  }, [rootNode, allNodes])
-
-  // Calculate connections
-  const connections = useMemo(() => {
-    const lines: { from: TreeNode; to: TreeNode }[] = []
+  // Build the tree data structure
+  const { nodes, connections } = useMemo(() => {
+    const treeNodes: TreeNode[] = []
+    const treeConnections: { from: string; to: string }[] = []
     
-    treeData.forEach((node) => {
-      if (node.parentId) {
-        const parent = treeData.find((n) => n.id === node.parentId)
-        if (parent) {
-          lines.push({ from: parent, to: node })
-        }
+    const centerX = 400
+    const levelHeight = 120
+    
+    // Add lineage nodes (ancestors going upward)
+    lineage.forEach((mashup, index) => {
+      const isRoot = index === 0
+      const y = (lineage.length - index - 1) * levelHeight + 50 // Start from top
+      const x = centerX
+      
+      treeNodes.push({
+        id: mashup.id,
+        title: mashup.title,
+        creatorName: mashup.creator.displayName,
+        coverUrl: mashup.coverUrl,
+        x,
+        y,
+        type: isRoot ? "root" : "ancestor",
+      })
+      
+      // Connect to next in lineage
+      if (index < lineage.length - 1) {
+        treeConnections.push({ from: mashup.id, to: lineage[index + 1].id })
       }
     })
-
-    return lines
-  }, [treeData])
+    
+    // Add current node (at the center)
+    const currentY = lineage.length * levelHeight + 50
+    const currentNode: TreeNode = {
+      id: currentId,
+      title: "Current",
+      creatorName: "",
+      coverUrl: "",
+      x: centerX,
+      y: currentY,
+      type: "current",
+    }
+    treeNodes.push(currentNode)
+    
+    // Connect last lineage to current
+    if (lineage.length > 0) {
+      treeConnections.push({ from: lineage[lineage.length - 1].id, to: currentId })
+    }
+    
+    // Add fork nodes (going downward, spread horizontally)
+    const forkWidth = Math.min(forks.length * 150, 600)
+    forks.forEach((fork, index) => {
+      const offsetX = forks.length === 1 
+        ? 0 
+        : (index - (forks.length - 1) / 2) * 150
+      const x = centerX + offsetX
+      const y = currentY + levelHeight
+      
+      treeNodes.push({
+        id: fork.id,
+        title: fork.title,
+        creatorName: fork.creator.displayName,
+        coverUrl: fork.coverUrl,
+        x,
+        y,
+        type: "fork",
+      })
+      
+      treeConnections.push({ from: currentId, to: fork.id })
+    })
+    
+    return { nodes: treeNodes, connections: treeConnections }
+  }, [lineage, forks, currentId])
 
   // Zoom controls
   const zoomIn = () => setZoom((z) => Math.min(z * 1.2, 3))
-  const zoomOut = () => setZoom((z) => Math.max(z / 1.2, 0.3))
+  const zoomOut = () => setZoom((z) => Math.max(z / 1.2, 0.5))
   const resetView = () => {
     setZoom(1)
     setPan({ x: 0, y: 0 })
@@ -137,41 +137,16 @@ export function RemixFamilyTree({
     setIsDragging(false)
   }, [])
 
-  // Time-lapse animation
-  const [showAnimation, setShowAnimation] = useState(false)
-  const [visibleNodes, setVisibleNodes] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    if (!showAnimation) {
-      setVisibleNodes(new Set(treeData.map((n) => n.id)))
-      return
-    }
-
-    // Sort by creation date
-    const sorted = [...treeData].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
-
-    setVisibleNodes(new Set())
-    sorted.forEach((node, index) => {
-      setTimeout(() => {
-        setVisibleNodes((prev) => new Set([...prev, node.id]))
-      }, index * 500)
-    })
-  }, [showAnimation, treeData])
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
+  const formatCount = (count: number) => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
+    return count.toString()
   }
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
-    if (num >= 1000) return (num / 1000).toFixed(1) + "K"
-    return num.toString()
-  }
+  // Find node by ID helper
+  const getNodeById = (id: string) => nodes.find((n) => n.id === id)
+
+  const totalVersions = lineage.length + 1 + forks.length
 
   return (
     <Card className={className}>
@@ -182,14 +157,6 @@ export function RemixFamilyTree({
             Remix Family Tree
           </span>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setShowAnimation(!showAnimation)}
-            >
-              <Play className="h-3 w-3" />
-            </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomOut}>
               <ZoomOut className="h-3 w-3" />
             </Button>
@@ -207,24 +174,28 @@ export function RemixFamilyTree({
         {/* Legend */}
         <div className="flex items-center gap-4 px-4 py-2 border-b text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-primary" />
+            <div className="w-3 h-3 rounded-full bg-orange-500" />
             <span>Root</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-muted" />
-            <span>Remix</span>
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <span>Current</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span>Forks</span>
           </div>
           <div className="flex items-center gap-1">
             <Move className="h-3 w-3" />
             <span>Drag to pan</span>
           </div>
-          <span className="ml-auto">{treeData.length} versions</span>
+          <span className="ml-auto">{totalVersions} versions</span>
         </div>
 
         {/* Tree Canvas */}
         <div
           ref={containerRef}
-          className="relative h-[400px] overflow-hidden cursor-grab active:cursor-grabbing bg-muted/20"
+          className="relative h-[400px] overflow-hidden cursor-grab active:cursor-grabbing bg-gradient-to-b from-muted/10 via-background to-muted/10"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -232,134 +203,156 @@ export function RemixFamilyTree({
         >
           <svg
             className="absolute inset-0 w-full h-full"
+            viewBox="0 0 800 400"
+            preserveAspectRatio="xMidYMid meet"
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: "center center",
             }}
           >
             {/* Connection lines */}
-            {connections.map((conn, i) => (
-              <g key={i}>
-                <line
-                  x1={conn.from.x}
-                  y1={conn.from.y}
-                  x2={conn.to.x}
-                  y2={conn.to.y}
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  className="text-border"
-                />
-                <circle
-                  cx={(conn.from.x + conn.to.x) / 2}
-                  cy={(conn.from.y + conn.to.y) / 2}
-                  r={3}
-                  className="fill-primary"
-                />
-              </g>
-            ))}
+            {connections.map((conn, i) => {
+              const fromNode = getNodeById(conn.from)
+              const toNode = getNodeById(conn.to)
+              if (!fromNode || !toNode) return null
+              
+              return (
+                <g key={i}>
+                  <line
+                    x1={fromNode.x}
+                    y1={fromNode.y + 25}
+                    x2={toNode.x}
+                    y2={toNode.y - 25}
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    className="text-border"
+                  />
+                  <circle
+                    cx={(fromNode.x + toNode.x) / 2}
+                    cy={(fromNode.y + toNode.y) / 2}
+                    r={3}
+                    className="fill-primary"
+                  />
+                </g>
+              )
+            })}
 
             {/* Nodes */}
-            {treeData.map((node) => {
-              const isVisible = visibleNodes.has(node.id)
-              const isSelected = selectedNodeId === node.id
+            {nodes.map((node) => {
               const isHovered = hoveredNodeId === node.id
-              const isRoot = node.id === rootNode.id
-
-              if (!isVisible && showAnimation) return null
-
+              const isCurrent = node.type === "current"
+              
               return (
                 <g
                   key={node.id}
                   transform={`translate(${node.x}, ${node.y})`}
-                  className={cn(
-                    "transition-opacity duration-300",
-                    showAnimation && isVisible ? "opacity-100" : showAnimation ? "opacity-0" : "opacity-100"
-                  )}
+                  className="transition-opacity duration-300"
                   onMouseEnter={() => setHoveredNodeId(node.id)}
                   onMouseLeave={() => setHoveredNodeId(null)}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedNodeId(node.id)
-                    onViewNode?.(node)
-                  }}
                 >
-                  {/* Node circle */}
+                  {/* Node circle background */}
                   <circle
-                    r={isSelected ? 35 : 30}
+                    r={isCurrent ? 35 : 28}
                     className={cn(
-                      "transition-all cursor-pointer",
-                      isRoot ? "fill-primary" : "fill-muted",
-                      isSelected && "stroke-primary stroke-2",
-                      isHovered && "opacity-80"
+                      "transition-all",
+                      node.type === "root" && "fill-orange-500",
+                      node.type === "ancestor" && "fill-muted stroke-border",
+                      node.type === "current" && "fill-blue-500",
+                      node.type === "fork" && "fill-green-500",
+                      isHovered && "opacity-90"
                     )}
                   />
-
-                  {/* Avatar */}
-                  <image
-                    href={node.coverUrl}
-                    x={-20}
-                    y={-20}
-                    width={40}
-                    height={40}
-                    clipPath="circle(20px at 20px 20px)"
-                    className="cursor-pointer"
-                  />
-
-                  {/* Play button on hover */}
-                  {(isHovered || isSelected) && (
-                    <g
-                      className="cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onPlayNode?.(node)
-                      }}
-                    >
-                      <circle r={15} className="fill-black/70" />
-                      <text
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-white text-xs"
-                      >
-                        ▶
-                      </text>
-                    </g>
+                  
+                  {/* Ring for current */}
+                  {isCurrent && (
+                    <circle
+                      r={40}
+                      className="fill-none stroke-blue-500 stroke-2 opacity-50"
+                    />
                   )}
 
-                  {/* Label */}
-                  <text
-                    y={45}
-                    textAnchor="middle"
-                    className="fill-foreground text-[10px] font-medium"
-                  >
-                    {node.title.slice(0, 15)}...
-                  </text>
-                  <text
-                    y={58}
-                    textAnchor="middle"
-                    className="fill-muted-foreground text-[8px]"
-                  >
-                    {node.creator.name} • {formatDate(node.createdAt)}
-                  </text>
-                  <text
-                    y={70}
-                    textAnchor="middle"
-                    className="fill-muted-foreground text-[8px]"
-                  >
-                    {formatNumber(node.playCount)} plays
-                  </text>
-
-                  {/* Generation badge */}
-                  <g transform="translate(25, -25)">
-                    <circle r={10} className={isRoot ? "fill-primary" : "fill-muted"} />
+                  {/* Avatar/image placeholder - show initials for current */}
+                  {isCurrent ? (
                     <text
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      className={cn(
-                        "text-[8px] font-bold",
-                        isRoot ? "fill-primary-foreground" : "fill-foreground"
-                      )}
+                      className="fill-white text-lg font-bold"
                     >
-                      {node.level}
+                      ★
+                    </text>
+                  ) : (
+                    <>
+                      <defs>
+                        <clipPath id={`clip-${node.id}`}>
+                          <circle r={22} />
+                        </clipPath>
+                      </defs>
+                      <image
+                        href={node.coverUrl}
+                        x={-22}
+                        y={-22}
+                        width={44}
+                        height={44}
+                        clipPath={`url(#clip-${node.id})`}
+                        className={cn("cursor-pointer", !isHovered && "opacity-90")}
+                      />
+                    </>
+                  )}
+
+                  {/* Play button on hover (not for current) */}
+                  {isHovered && !isCurrent && (
+                    <Link href={`/mashup/${node.id}`}>
+                      <g className="cursor-pointer">
+                        <circle r={12} className="fill-black/70" />
+                        <text
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="fill-white text-[10px]"
+                        >
+                          ▶
+                        </text>
+                      </g>
+                    </Link>
+                  )}
+
+                  {/* Label - current shows "YOU ARE HERE" */}
+                  <text
+                    y={isCurrent ? 50 : 42}
+                    textAnchor="middle"
+                    className={cn(
+                      "fill-foreground text-[10px] font-medium",
+                      isCurrent && "fill-blue-500 font-bold"
+                    )}
+                  >
+                    {isCurrent ? "YOU ARE HERE" : node.title.slice(0, 12) + "..."}
+                  </text>
+                  {!isCurrent && (
+                    <text
+                      y={54}
+                      textAnchor="middle"
+                      className="fill-muted-foreground text-[8px]"
+                    >
+                      by {node.creatorName}
+                    </text>
+                  )}
+
+                  {/* Generation badge */}
+                  <g transform="translate(20, -20)">
+                    <circle 
+                      r={9} 
+                      className={cn(
+                        node.type === "root" && "fill-orange-600",
+                        node.type === "ancestor" && "fill-muted-foreground",
+                        node.type === "current" && "fill-blue-600",
+                        node.type === "fork" && "fill-green-600"
+                      )} 
+                    />
+                    <text
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="fill-white text-[7px] font-bold"
+                    >
+                      {node.type === "root" ? "R" : node.type === "current" ? "★" : node.type === "fork" ? "F" : "A"}
                     </text>
                   </g>
                 </g>
@@ -368,48 +361,35 @@ export function RemixFamilyTree({
           </svg>
         </div>
 
-        {/* Selected Node Info */}
-        {selectedNodeId && (
+        {/* Fork list */}
+        {forks.length > 0 && (
           <div className="p-4 border-t">
-            {(() => {
-              const node = treeData.find((n) => n.id === selectedNodeId)
-              if (!node) return null
-              return (
-                <div className="flex items-center gap-3">
+            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <GitBranch className="h-3.5 w-3.5 text-green-500" />
+              Forks from this mashup
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {forks.map((fork) => (
+                <Link
+                  key={fork.id}
+                  href={`/mashup/${fork.id}`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors"
+                >
                   <img
-                    src={node.coverUrl}
-                    alt={node.title}
-                    className="w-12 h-12 rounded-lg object-cover"
+                    src={fork.coverUrl}
+                    alt={fork.title}
+                    className="w-8 h-8 rounded object-cover"
                   />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{node.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      by {node.creator.name} • {formatNumber(node.playCount)} plays
+                  <div className="text-left">
+                    <p className="text-xs font-medium line-clamp-1">{fork.title}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      by {fork.creator.displayName} • {formatCount(fork.playCount)} plays
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => onPlayNode?.(node)}
-                    >
-                      <Play className="h-3 w-3 mr-1" />
-                      Play
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => onViewNode?.(node)}
-                    >
-                      <Share2 className="h-3 w-3 mr-1" />
-                      View
-                    </Button>
-                  </div>
-                </div>
-              )
-            })()}
+                  <ArrowRight className="h-3 w-3 text-muted-foreground ml-1" />
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>
