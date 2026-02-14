@@ -3,6 +3,7 @@
 import type { ComponentProps } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -63,9 +64,18 @@ export function MashupCard({
   rightsScore,
   className,
 }: MashupCardProps) {
+  const router = useRouter()
   const { state, playTrack, pause } = useAudio()
   const isThisTrackPlaying = state.currentTrack?.id === id && state.isPlaying
   const canPlay = Boolean(audioUrl)
+
+  function handleCardClick(e: React.MouseEvent) {
+    // If user clicked a button or interactive element, don't navigate
+    if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("a")) {
+      return
+    }
+    router.push(`/mashup/${id}`)
+  }
 
   function handlePlayClick(e: React.MouseEvent) {
     e.preventDefault()
@@ -99,7 +109,10 @@ export function MashupCard({
   }
 
   return (
-    <Link href={`/mashup/${id}`} className={cn("group block", className)}>
+    <div
+      onClick={handleCardClick}
+      className={cn("group block cursor-pointer", className)}
+    >
       <Card className="neon-panel overflow-hidden border-primary/20 py-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-primary/25">
         {/* Cover image with play button overlay */}
         <div className="relative aspect-square overflow-hidden">
@@ -208,9 +221,13 @@ export function MashupCard({
                   .slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            <span className="truncate text-xs text-muted-foreground">
+            <Link
+              href={`/profile/${creator.username}`}
+              className="truncate text-xs text-muted-foreground hover:text-primary transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
               {creator.displayName}
-            </span>
+            </Link>
           </div>
 
           {/* Meta: genre badge + play count + tip */}
@@ -251,6 +268,6 @@ export function MashupCard({
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </div>
   )
 }

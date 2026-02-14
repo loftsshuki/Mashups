@@ -14,7 +14,7 @@
 | Phase 1 | Production Powerhouse | 🟢 Done | 100% |
 | Phase 2 | Viral Distribution Engine | 🟢 Done | 100% |
 | Phase 3 | Community & Social | 🟢 Done | 100% |
-| Phase 3 | Community & Social | ⚪ Planned | 0% |
+| Phase 3 | Community & Social | 🟢 Done | 100% |
 | Phase 4 | Rights & Monetization 2.0 | ⚪ Planned | 0% |
 | Phase 5 | AI-Powered Features | 🟢 Done | 100% |
 | Phase 6 | Technical Polish & Platform Expansion | ⚪ Planned | 0% |
@@ -89,9 +89,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Collaborative Playlists** | Community-curated collections | Anyone can add; playlist comments; "Journey mode" auto-crossfade; collaborative cursors | TBD | 3d | ⚪ Backlog |
-| **Follow Feed** | TikTok-style discovery | Infinite scroll; algorithmic sort; genre filters; "For You" vs "Following" tabs | TBD | 4d | ⚪ Backlog |
-| **Comment System 2.0** | Timestamped comments | Comments at specific timestamps; reply threads; emoji reactions; @mentions | TBD | 3d | ⚪ Backlog |
+| **Collaborative Playlists** | Community-curated collections | Anyone can add; playlist comments; "Journey mode" auto-crossfade; collaborative cursors | TBD | 3d | 🟢 Done |
+| **Follow Feed** | TikTok-style discovery | Infinite scroll; algorithmic sort; genre filters; "For You" vs "Following" tabs | TBD | 4d | 🟢 Done |
+| **Comment System 2.0** | Timestamped comments | Comments at specific timestamps; reply threads; emoji reactions; @mentions | TBD | 3d | 🟢 Done |
 
 ---
 
