@@ -9,8 +9,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { useAudio } from "@/lib/audio/audio-context"
 import type { Track } from "@/lib/audio/types"
-import { Pause } from "lucide-react"
+import { Pause, ListPlus } from "lucide-react"
 import { TipButton } from "@/components/monetization/tip-button"
+import { AddToPlaylistDialog } from "@/components/playlist/add-to-playlist-dialog"
 import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
 
 interface MashupCardProps {
@@ -166,6 +167,25 @@ export function MashupCard({
             <span className="rounded-md border border-white/20 bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
               {formatDuration(duration)}
             </span>
+          </div>
+
+          {/* Add to playlist button */}
+          <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <AddToPlaylistDialog
+              mashupId={id}
+              trigger={
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+                  aria-label="Add to playlist"
+                >
+                  <ListPlus className="h-4 w-4" />
+                </button>
+              }
+            />
           </div>
         </div>
 

@@ -12,12 +12,19 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`
 }
 
+export interface ProgressBarMarker {
+  position: number // 0-1 ratio
+  label: string
+}
+
 interface ProgressBarProps {
   className?: string
   showTime?: boolean
+  markers?: ProgressBarMarker[]
+  onMarkerClick?: (position: number) => void
 }
 
-export function ProgressBar({ className, showTime = true }: ProgressBarProps) {
+export function ProgressBar({ className, showTime = true, markers, onMarkerClick }: ProgressBarProps) {
   const { state, seek } = useAudio()
   const barRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -102,6 +109,20 @@ export function ProgressBar({ className, showTime = true }: ProgressBarProps) {
           className="absolute left-0 top-0 h-full rounded-full bg-primary transition-[width]"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         />
+
+        {/* Timestamp comment markers */}
+        {markers?.map((marker, i) => (
+          <button
+            key={i}
+            className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/70 ring-1 ring-primary-foreground/50 transition-transform hover:scale-150"
+            style={{ left: `${marker.position * 100}%` }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onMarkerClick?.(marker.position * (duration || 0))
+            }}
+            aria-label={marker.label}
+          />
+        ))}
       </div>
 
       {/* Time display */}

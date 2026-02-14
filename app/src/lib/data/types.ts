@@ -43,6 +43,28 @@ export interface Comment {
   user_id: string
   content: string
   created_at: string
+  // V2 fields (nullable for backward compat)
+  parent_id?: string | null
+  timestamp_sec?: number | null
+  edited_at?: string | null
+  user?: Profile
+  reactions?: CommentReactionGroup[]
+  replies?: Comment[]
+  reply_count?: number
+  mentions?: CommentMention[]
+}
+
+export interface CommentReactionGroup {
+  emoji: string
+  count: number
+  user_reacted: boolean
+}
+
+export interface CommentMention {
+  id: string
+  comment_id: string
+  mentioned_user_id: string
+  created_at: string
   user?: Profile
 }
 
@@ -117,4 +139,55 @@ export interface Payout {
   status: "pending" | "paid" | "failed"
   requested_at: string
   paid_at: string | null
+}
+
+// ---------------------------------------------------------------------------
+// Collaborative Playlists
+// ---------------------------------------------------------------------------
+
+export interface Playlist {
+  id: string
+  title: string
+  description: string | null
+  cover_image_url: string | null
+  creator_id: string
+  is_collaborative: boolean
+  is_public: boolean
+  track_count: number
+  created_at: string
+  updated_at: string
+  creator?: Profile
+  tracks?: PlaylistTrack[]
+}
+
+export interface PlaylistTrack {
+  id: string
+  playlist_id: string
+  mashup_id: string
+  added_by: string
+  position: number
+  added_at: string
+  mashup?: Mashup
+  added_by_user?: Profile
+}
+
+export interface PlaylistComment {
+  id: string
+  playlist_id: string
+  user_id: string
+  content: string
+  created_at: string
+  user?: Profile
+}
+
+// ---------------------------------------------------------------------------
+// Follow Feed
+// ---------------------------------------------------------------------------
+
+export interface FeedPreferences {
+  user_id: string
+  preferred_genres: string[]
+  preferred_bpm_min: number | null
+  preferred_bpm_max: number | null
+  updated_at: string
 }

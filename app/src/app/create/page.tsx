@@ -54,6 +54,9 @@ const steps = [
   },
 ]
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { AutoMashupGenerator } from "@/components/ai-mashup/auto-mashup"
+
 interface MixerTrackState {
   name: string
   volume: number
@@ -127,12 +130,12 @@ function CreatePageContent() {
     setTracks((prev) => {
       // Merge new results with existing tracks
       const updated = [...prev]
-      
+
       results.forEach((result) => {
         const existingIndex = updated.findIndex(
           (t) => t.file === result.file && t.name === result.name
         )
-        
+
         if (existingIndex >= 0) {
           // Update existing track
           updated[existingIndex] = {
@@ -147,7 +150,7 @@ function CreatePageContent() {
           })
         }
       })
-      
+
       return updated
     })
   }, [])
@@ -249,7 +252,7 @@ function CreatePageContent() {
   // Build timeline tracks from stems AND regular tracks
   useEffect(() => {
     const newTimelineTracks: TimelineTrack[] = []
-    
+
     tracks.forEach((track, trackIndex) => {
       if (track.stems) {
         // Create a track for each stem type
@@ -266,7 +269,7 @@ function CreatePageContent() {
           bass: "Bass",
           other: "Other",
         }
-        
+
         stemTypes.forEach((stemType) => {
           const clip: TimelineClip = {
             id: `clip-${trackIndex}-${stemType}`,
@@ -280,7 +283,7 @@ function CreatePageContent() {
             volume: 80,
             muted: false,
           }
-          
+
           newTimelineTracks.push({
             id: `track-${trackIndex}-${stemType}`,
             name: stemNames[stemType],
@@ -295,7 +298,7 @@ function CreatePageContent() {
         // Regular track without stems - add as single track
         const colors = ["#8b5cf6", "#ec4899", "#06b6d4", "#f59e0b", "#10b981"]
         const color = colors[trackIndex % colors.length]
-        
+
         const clip: TimelineClip = {
           id: `clip-${trackIndex}-full`,
           trackId: `track-${trackIndex}-full`,
@@ -308,7 +311,7 @@ function CreatePageContent() {
           volume: 80,
           muted: false,
         }
-        
+
         newTimelineTracks.push({
           id: `track-${trackIndex}-full`,
           name: track.name.replace(/\.[^.]+$/, ""),
@@ -319,7 +322,7 @@ function CreatePageContent() {
         })
       }
     })
-    
+
     setTimelineTracks(newTimelineTracks)
   }, [tracks])
 
@@ -406,6 +409,8 @@ function CreatePageContent() {
   const tracksWithStems = tracks.filter((t) => t.stems && !t.isProcessingStems).length
   const tracksProcessingStems = tracks.filter((t) => t.isProcessingStems).length
 
+  const mode = searchParams.get("mode") === "auto" ? "auto" : "manual"
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
       {/* Page header */}
@@ -476,321 +481,328 @@ function CreatePageContent() {
         </div>
       </div>
 
-      {/* AI Generator Promo */}
-      <div className="mx-auto max-w-2xl mb-8">
-        <Link href="/create/ai">
-          <div className="p-4 rounded-xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-purple-500/5 hover:border-primary/50 transition-all cursor-pointer">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">Try AI Mashup Generator</h3>
-                <p className="text-sm text-muted-foreground">
-                  Upload tracks and let AI create a complete mashup automatically
-                </p>
-              </div>
-              <Button variant="outline" size="sm">
-                Try Now
-              </Button>
-            </div>
+      {/* Mode Selection */}
+      <Tabs defaultValue={mode} className="mb-8">
+        <div className="flex justify-center mb-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="manual">Manual Studio</TabsTrigger>
+            <TabsTrigger value="auto">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Auto-Mashup AI
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="auto">
+          <div className="max-w-2xl mx-auto text-center mb-8">
+            <h2 className="text-xl font-bold">AI Magic Generator</h2>
+            <p className="text-muted-foreground text-sm">Upload tracks and let our AI engine analyze, beat-match, and mix them instantly.</p>
           </div>
-        </Link>
-      </div>
+          <AutoMashupGenerator
+            className="max-w-3xl mx-auto"
+            onComplete={(result) => {
+              // Handle result - maybe switch to manual mode with pre-filled tracks?
+              console.log("Auto mashup complete", result)
+            }}
+          />
+        </TabsContent>
 
-      {/* Step content */}
-      <div className="mx-auto max-w-2xl">
-        {/* ----------------------------------------------------------------- */}
-        {/* Step 1: Upload Tracks */}
-        {/* ----------------------------------------------------------------- */}
-        {currentStep === 1 && (
-          <div className="space-y-6">
-            <StemUploadZone onFilesAdded={handleStemResults} />
+        <TabsContent value="manual">
+          {/* Step content */}
+          <div className="mx-auto max-w-2xl">
+            {/* ----------------------------------------------------------------- */}
+            {/* Step 1: Upload Tracks */}
+            {/* ----------------------------------------------------------------- */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <StemUploadZone onFilesAdded={handleStemResults} />
 
-            {/* Legacy upload option */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or upload without stem separation
-                </span>
-              </div>
-            </div>
-
-            <UploadZone onFilesAdded={handleFilesAdded} />
-
-            <TrackList tracks={tracks} onRemove={handleRemoveTrack} />
-
-            {/* Show stem status */}
-            {(tracksWithStems > 0 || tracksProcessingStems > 0) && (
-              <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Wand2 className="h-4 w-4 text-primary" />
-                  <span className="font-medium">AI Stem Separation</span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {tracksWithStems} track{tracksWithStems !== 1 ? "s" : ""} with separated stems
-                  {tracksProcessingStems > 0 && (
-                    <>, {tracksProcessingStems} processing...</>
-                  )}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Go to Step 2 to remix individual stems (vocals, drums, bass, other)
-                </p>
-              </div>
-            )}
-
-            {uploadedCount < 1 && (
-              <p className="text-center text-sm text-muted-foreground">
-                Add at least {1 - uploadedCount} more track
-                {1 - uploadedCount > 1 ? "s" : ""} to continue
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ----------------------------------------------------------------- */}
-        {/* Step 2: Mix & Arrange */}
-        {/* ----------------------------------------------------------------- */}
-        {currentStep === 2 && (
-          <div className="space-y-6">
-            {/* Stem Mixer for tracks with stems */}
-            {tracksWithStems > 0 && (
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Stem Mixer
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Select a track to remix its individual stems
-                  </p>
-                </div>
-
-                {/* Track selector */}
-                <div className="flex flex-wrap gap-2">
-                  {tracks.map((track, index) =>
-                    track.stems ? (
-                      <Button
-                        key={index}
-                        variant={selectedStemTrack === index ? "default" : "outline"}
-                        size="sm"
-                        className="rounded-full"
-                        onClick={() => setSelectedStemTrack(index)}
-                      >
-                        <Wand2 className="mr-2 h-3 w-3" />
-                        {track.name.replace(/\.[^.]+$/, "")}
-                      </Button>
-                    ) : null
-                  )}
-                </div>
-
-                {/* Stem mixer for selected track */}
-                {selectedStemTrack !== null && tracks[selectedStemTrack]?.stems && (
-                  <StemMixer
-                    stems={tracks[selectedStemTrack].stems!}
-                    trackName={tracks[selectedStemTrack].name}
-                  />
-                )}
-
-                {selectedStemTrack === null && tracksWithStems > 0 && (
-                  <p className="text-center text-sm text-muted-foreground">
-                    Select a track above to open its stem mixer
-                  </p>
-                )}
-
-                {/* Smart Match Panel - Shows for ANY uploaded tracks */}
-                {tracks.length > 0 && (
-                  <SmartMatchPanel
-                    primaryTrackUrl={tracks[0]?.uploadedUrl || null}
-                    secondaryTrackUrls={tracks
-                      .filter((t) => t.uploadedUrl && t !== tracks[0])
-                      .map((t) => t.uploadedUrl!)}
-                  />
-                )}
-
-                {/* Timeline Editor - Shows for ALL tracks */}
-                {timelineTracks.length > 0 && (
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="text-base font-semibold">🎚️ Timeline Editor</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Drag, trim, and arrange audio on the timeline. Click clips to select, drag edges to trim.
-                      </p>
-                      {beatAnalysis && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Beat grid: {beatAnalysis.bpm.bpm} BPM
-                        </p>
-                      )}
-                    </div>
-                    <TimelineEditor
-                      tracks={timelineTracks}
-                      totalDuration={Math.max(
-                        ...tracks
-                          .filter((t) => t.duration)
-                          .map((t) => t.duration || 180),
-                        60
-                      )}
-                      bpm={beatAnalysis?.bpm.bpm || 120}
-                      beatOffset={beatAnalysis?.bpm.offset || 0}
-                      onTracksChange={setTimelineTracks}
-                      onPlayheadChange={setTimelinePlayhead}
-                      currentTime={timelinePlayhead}
-                      isPlaying={isTimelinePlaying}
-                      onPlayPause={() => setIsTimelinePlaying((p) => !p)}
-                    />
-                  </div>
-                )}
-
+                {/* Legacy upload option */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      Or mix full tracks
+                      Or upload without stem separation
                     </span>
                   </div>
                 </div>
+
+                <UploadZone onFilesAdded={handleFilesAdded} />
+
+                <TrackList tracks={tracks} onRemove={handleRemoveTrack} />
+
+                {/* Show stem status */}
+                {(tracksWithStems > 0 || tracksProcessingStems > 0) && (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Wand2 className="h-4 w-4 text-primary" />
+                      <span className="font-medium">AI Stem Separation</span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {tracksWithStems} track{tracksWithStems !== 1 ? "s" : ""} with separated stems
+                      {tracksProcessingStems > 0 && (
+                        <>, {tracksProcessingStems} processing...</>
+                      )}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Go to Step 2 to remix individual stems (vocals, drums, bass, other)
+                    </p>
+                  </div>
+                )}
+
+                {uploadedCount < 1 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Add at least {1 - uploadedCount} more track
+                    {1 - uploadedCount > 1 ? "s" : ""} to continue
+                  </p>
+                )}
               </div>
             )}
 
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Track Mixer
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Adjust volume levels and mute/solo individual tracks
-              </p>
-            </div>
+            {/* ----------------------------------------------------------------- */}
+            {/* Step 2: Mix & Arrange */}
+            {/* ----------------------------------------------------------------- */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                {/* Stem Mixer for tracks with stems */}
+                {tracksWithStems > 0 && (
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">
+                        Stem Mixer
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Select a track to remix its individual stems
+                      </p>
+                    </div>
 
-            <MixerControls
-              tracks={mixerTracks}
-              onVolumeChange={handleVolumeChange}
-              onMuteToggle={handleMuteToggle}
-              onSoloToggle={handleSoloToggle}
-            />
+                    {/* Track selector */}
+                    <div className="flex flex-wrap gap-2">
+                      {tracks.map((track, index) =>
+                        track.stems ? (
+                          <Button
+                            key={index}
+                            variant={selectedStemTrack === index ? "default" : "outline"}
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => setSelectedStemTrack(index)}
+                          >
+                            <Wand2 className="mr-2 h-3 w-3" />
+                            {track.name.replace(/\.[^.]+$/, "")}
+                          </Button>
+                        ) : null
+                      )}
+                    </div>
 
-            <div className="flex justify-center">
-              <Button variant="outline" onClick={handlePreview}>
-                <Music className="h-4 w-4" />
-                Preview Mix
-              </Button>
-            </div>
+                    {/* Stem mixer for selected track */}
+                    {selectedStemTrack !== null && tracks[selectedStemTrack]?.stems && (
+                      <StemMixer
+                        stems={tracks[selectedStemTrack].stems!}
+                        trackName={tracks[selectedStemTrack].name}
+                      />
+                    )}
 
-            {previewMessage && (
-              <div className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3 text-center text-sm text-muted-foreground">
-                {previewMessage}
-              </div>
-            )}
+                    {selectedStemTrack === null && tracksWithStems > 0 && (
+                      <p className="text-center text-sm text-muted-foreground">
+                        Select a track above to open its stem mixer
+                      </p>
+                    )}
 
-            {/* Volume Automation */}
-            <div className="pt-6 border-t border-border/50">
-              <h3 className="text-base font-semibold mb-1">Volume Automation</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Create fades and volume changes over time
-              </p>
-              <AutomationLane
-                nodes={automationNodes}
-                duration={totalDuration}
-                onNodesChange={setAutomationNodes}
-                color="#ec4899"
-              />
-            </div>
+                    {/* Smart Match Panel - Shows for ANY uploaded tracks */}
+                    {tracks.length > 0 && (
+                      <SmartMatchPanel
+                        primaryTrackUrl={tracks[0]?.uploadedUrl || null}
+                        secondaryTrackUrls={tracks
+                          .filter((t) => t.uploadedUrl && t !== tracks[0])
+                          .map((t) => t.uploadedUrl!)}
+                      />
+                    )}
 
-            {/* AI Hook Generator */}
-            <div className="pt-6 border-t border-border/50">
-              <HookGenerator
-                audioUrl={firstAudioUrl}
-                totalDuration={totalDuration}
-                onSelectHook={(start, duration) => {
-                  // Could use this to set export region
-                  console.log("Selected hook:", start, duration)
-                }}
-              />
-            </div>
+                    {/* Timeline Editor - Shows for ALL tracks */}
+                    {timelineTracks.length > 0 && (
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="text-base font-semibold">🎚️ Timeline Editor</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Drag, trim, and arrange audio on the timeline. Click clips to select, drag edges to trim.
+                          </p>
+                          {beatAnalysis && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Beat grid: {beatAnalysis.bpm.bpm} BPM
+                            </p>
+                          )}
+                        </div>
+                        <TimelineEditor
+                          tracks={timelineTracks}
+                          totalDuration={Math.max(
+                            ...tracks
+                              .filter((t) => t.duration)
+                              .map((t) => t.duration || 180),
+                            60
+                          )}
+                          bpm={beatAnalysis?.bpm.bpm || 120}
+                          beatOffset={beatAnalysis?.bpm.offset || 0}
+                          onTracksChange={setTimelineTracks}
+                          onPlayheadChange={setTimelinePlayhead}
+                          currentTime={timelinePlayhead}
+                          isPlaying={isTimelinePlaying}
+                          onPlayPause={() => setIsTimelinePlaying((p) => !p)}
+                        />
+                      </div>
+                    )}
 
-            {/* Platform Export */}
-            <div className="pt-6 border-t border-border/50">
-              <PlatformExport
-                audioUrl={firstAudioUrl}
-                totalDuration={totalDuration}
-                onExport={(settings) => {
-                  console.log("Export settings:", settings)
-                }}
-              />
-            </div>
-          </div>
-        )}
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Or mix full tracks
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-        {/* ----------------------------------------------------------------- */}
-        {/* Step 3: Publish */}
-        {/* ----------------------------------------------------------------- */}
-        {currentStep === 3 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Publish Your Mashup
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add details and share your creation with the community
-              </p>
-              {forkedFrom && (
-                <div className="mt-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
-                  Forking from: <span className="font-medium">{forkedFrom.title}</span>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Track Mixer
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Adjust volume levels and mute/solo individual tracks
+                  </p>
                 </div>
-              )}
-            </div>
 
-            <PublishForm
-              audioUrl={firstAudioUrl}
-              duration={Math.round(totalDuration)}
-              onPublish={handlePublish}
-              isPending={isPending}
-              initialTitle={forkedFrom ? `${forkedFrom.title} (Fork)` : ""}
-              initialDescription={
-                forkedFrom
-                  ? `Forked from "${forkedFrom.title}" by ${forkedFrom.creator.displayName}.`
-                  : ""
-              }
-              initialGenre={forkedFrom?.genre ?? ""}
-              initialBpm={forkedFrom ? String(forkedFrom.bpm) : ""}
-              initialSourceTracks={forkedFrom?.sourceTracks}
-              forkParentId={forkedFrom?.id}
-              challengeId={challengeId}
-            />
+                <MixerControls
+                  tracks={mixerTracks}
+                  onVolumeChange={handleVolumeChange}
+                  onMuteToggle={handleMuteToggle}
+                  onSoloToggle={handleSoloToggle}
+                />
+
+                <div className="flex justify-center">
+                  <Button variant="outline" onClick={handlePreview}>
+                    <Music className="h-4 w-4" />
+                    Preview Mix
+                  </Button>
+                </div>
+
+                {previewMessage && (
+                  <div className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3 text-center text-sm text-muted-foreground">
+                    {previewMessage}
+                  </div>
+                )}
+
+                {/* Volume Automation */}
+                <div className="pt-6 border-t border-border/50">
+                  <h3 className="text-base font-semibold mb-1">Volume Automation</h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Create fades and volume changes over time
+                  </p>
+                  <AutomationLane
+                    nodes={automationNodes}
+                    duration={totalDuration}
+                    onNodesChange={setAutomationNodes}
+                    color="#ec4899"
+                  />
+                </div>
+
+                {/* AI Hook Generator */}
+                <div className="pt-6 border-t border-border/50">
+                  <HookGenerator
+                    audioUrl={firstAudioUrl}
+                    totalDuration={totalDuration}
+                    onSelectHook={(start, duration) => {
+                      // Could use this to set export region
+                      console.log("Selected hook:", start, duration)
+                    }}
+                  />
+                </div>
+
+                {/* Platform Export */}
+                <div className="pt-6 border-t border-border/50">
+                  <PlatformExport
+                    audioUrl={firstAudioUrl}
+                    totalDuration={totalDuration}
+                    onExport={(settings) => {
+                      console.log("Export settings:", settings)
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ----------------------------------------------------------------- */}
+            {/* Step 3: Publish */}
+            {/* ----------------------------------------------------------------- */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Publish Your Mashup
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Add details and share your creation with the community
+                  </p>
+                  {forkedFrom && (
+                    <div className="mt-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+                      Forking from: <span className="font-medium">{forkedFrom.title}</span>
+                    </div>
+                  )}
+                </div>
+
+                <PublishForm
+                  audioUrl={firstAudioUrl}
+                  duration={Math.round(totalDuration)}
+                  onPublish={handlePublish}
+                  isPending={isPending}
+                  initialTitle={forkedFrom ? `${forkedFrom.title} (Fork)` : ""}
+                  initialDescription={
+                    forkedFrom
+                      ? `Forked from "${forkedFrom.title}" by ${forkedFrom.creator.displayName}.`
+                      : ""
+                  }
+                  initialGenre={forkedFrom?.genre ?? ""}
+                  initialBpm={forkedFrom ? String(forkedFrom.bpm) : ""}
+                  initialSourceTracks={forkedFrom?.sourceTracks}
+                  forkParentId={forkedFrom?.id}
+                  challengeId={challengeId}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Navigation buttons */}
-      <div className="mx-auto mt-8 flex max-w-2xl items-center justify-between">
-        {currentStep > 1 ? (
-          <Button
-            variant="outline"
-            onClick={() => goToStep(currentStep - 1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        ) : (
-          <div />
-        )}
+          {/* Navigation buttons */}
+          <div className="mx-auto mt-8 flex max-w-2xl items-center justify-between">
+            {currentStep > 1 ? (
+              <Button
+                variant="outline"
+                onClick={() => goToStep(currentStep - 1)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            ) : (
+              <div />
+            )}
 
-        {currentStep < 3 && (
-          <Button
-            onClick={() => goToStep(currentStep + 1)}
-            disabled={
-              (currentStep === 1 && !canProceedStep1) ||
-              (currentStep === 2 && !canProceedStep2)
-            }
-          >
-            Continue
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+            {currentStep < 3 && (
+              <Button
+                onClick={() => goToStep(currentStep + 1)}
+                disabled={
+                  (currentStep === 1 && !canProceedStep1) ||
+                  (currentStep === 2 && !canProceedStep2)
+                }
+              >
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
