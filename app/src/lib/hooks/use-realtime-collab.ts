@@ -97,12 +97,12 @@ export function useRealtimeCollab({
     })
 
     // Handle presence join
-    channel.on("presence", { event: "join" }, ({ key, newPresences }) => {
+    channel.on("presence", { event: "join" }, ({ key, newPresences }: { key: string; newPresences: unknown[] }) => {
       console.log("User joined:", key, newPresences)
     })
 
     // Handle presence leave
-    channel.on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+    channel.on("presence", { event: "leave" }, ({ key, leftPresences }: { key: string; leftPresences: unknown[] }) => {
       console.log("User left:", key, leftPresences)
       setState(prev => ({
         ...prev,
