@@ -1,12 +1,15 @@
 "use client"
 
-import { Users, Music, Headphones, Calendar } from "lucide-react"
+import { Users, Music, Headphones, Calendar, Award, Zap } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MashupCard } from "@/components/mashup-card"
 import { FollowButton } from "@/components/profile/follow-button"
 import type { ProfileDetailCreator } from "@/lib/data/profile-detail"
 import type { MockMashup } from "@/lib/mock-data"
+import { BadgeShowcase } from "@/components/gamification/badge-showcase"
+import { CreatorTierCard } from "@/components/gamification/creator-tier"
+import { getMockUserGamification } from "@/lib/data/gamification"
 
 function formatCount(count: number): string {
   if (count >= 1_000_000) {
@@ -87,11 +90,32 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
         </div>
       </div>
 
+      {/* Gamification Row */}
+      {(() => {
+        const gamification = getMockUserGamification(creator.id)
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+            <CreatorTierCard 
+              gamification={gamification} 
+              className="lg:col-span-1"
+            />
+            <BadgeShowcase 
+              unlockedBadges={gamification.badges}
+              className="lg:col-span-2"
+            />
+          </div>
+        )
+      })()}
+
       {/* Tabs */}
       <Tabs defaultValue="mashups">
         <TabsList className="mb-6">
           <TabsTrigger value="mashups">Mashups</TabsTrigger>
           <TabsTrigger value="liked">Liked</TabsTrigger>
+          <TabsTrigger value="achievements">
+            <Award className="h-4 w-4 mr-1" />
+            Achievements
+          </TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>
 
@@ -138,6 +162,50 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
               Liked mashups will appear here in a future update
             </p>
           </div>
+        </TabsContent>
+
+        {/* Achievements tab */}
+        <TabsContent value="achievements">
+          {(() => {
+            const gamification = getMockUserGamification(creator.id)
+            return (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <CreatorTierCard 
+                    gamification={gamification} 
+                    className="lg:col-span-1"
+                  />
+                  <div className="lg:col-span-2 space-y-6">
+                    <BadgeShowcase unlockedBadges={gamification.badges} />
+                    
+                    {/* Stats Summary */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="p-4 rounded-lg bg-muted text-center">
+                        <Zap className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-2xl font-bold">{gamification.currentPoints}</p>
+                        <p className="text-xs text-muted-foreground">XP Points</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted text-center">
+                        <Award className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-2xl font-bold">{gamification.badges.length}</p>
+                        <p className="text-xs text-muted-foreground">Badges</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted text-center">
+                        <Music className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-2xl font-bold">{gamification.stats.totalMashups}</p>
+                        <p className="text-xs text-muted-foreground">Mashups</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted text-center">
+                        <Users className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-2xl font-bold">{gamification.stats.followers}</p>
+                        <p className="text-xs text-muted-foreground">Followers</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </TabsContent>
 
         {/* About tab */}
