@@ -106,8 +106,11 @@ function CreatePageContent() {
             ...result,
           }
         } else {
-          // Add new track
-          updated.push(result)
+          // Add new track with default uploadProgress
+          updated.push({
+            ...result,
+            uploadProgress: result.uploadProgress ?? 100,
+          })
         }
       })
       

@@ -7,6 +7,8 @@ import {
   resolveStripePriceId,
   type CheckoutSessionType,
 } from "@/lib/billing/stripe"
+import { writeAuditEvent } from "@/lib/data/audit-log"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 interface CheckoutBody {
@@ -33,6 +35,17 @@ export async function POST(request: Request) {
 
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "billing.checkout", user?.id ?? null),
+      limit: 20,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
@@ -66,6 +79,13 @@ export async function POST(request: Request) {
       })
 
       if (!liveSession) {
+        await writeAuditEvent({
+          actorId: user?.id ?? null,
+          action: "billing.checkout.create",
+          resourceType: "checkout_session",
+          status: "error",
+          metadata: { sessionType: body.sessionType, targetId: body.targetId, mode: "live" },
+        })
         return NextResponse.json(
           { error: "Failed to create Stripe checkout session." },
           { status: 502 },
@@ -83,6 +103,15 @@ export async function POST(request: Request) {
           status: "pending",
         })
       }
+
+      await writeAuditEvent({
+        actorId: user?.id ?? null,
+        action: "billing.checkout.create",
+        resourceType: "checkout_session",
+        resourceId: liveSession.id,
+        status: "success",
+        metadata: { sessionType: body.sessionType, targetId: body.targetId, mode: "live" },
+      })
 
       return NextResponse.json({
         checkoutUrl: liveSession.url,
@@ -103,6 +132,15 @@ export async function POST(request: Request) {
         status: "pending",
       })
     }
+
+    await writeAuditEvent({
+      actorId: user?.id ?? null,
+      action: "billing.checkout.create",
+      resourceType: "checkout_session",
+      resourceId: fakeProviderSessionId,
+      status: "success",
+      metadata: { sessionType: body.sessionType, targetId: body.targetId, mode: "stub" },
+    })
 
     const checkoutUrl = `${appUrl}/dashboard/monetization?checkout=${fakeProviderSessionId}`
 

@@ -23,6 +23,7 @@ export interface StemUploadResult {
   stems?: SeparatedStems
   isProcessingStems?: boolean
   stemError?: string
+  uploadProgress?: number
 }
 
 interface StemUploadZoneProps {

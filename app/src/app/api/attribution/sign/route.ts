@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { signAttributionLink } from "@/lib/attribution/signing"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 
 interface SignBody {
   campaignId: string
@@ -10,6 +11,18 @@ interface SignBody {
 
 export async function POST(request: Request) {
   try {
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "attribution.sign"),
+      limit: 60,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
+    }
+
     const body = (await request.json()) as SignBody
     if (!body.campaignId || !body.creatorId || !body.destination) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })

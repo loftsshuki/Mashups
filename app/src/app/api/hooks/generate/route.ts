@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { generateHookCuts } from "@/lib/growth/hook-generator"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 interface HookRequestBody {
@@ -30,6 +31,17 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "hooks.generate", user?.id ?? null),
+      limit: 30,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
     }
 
     let mashup: { title?: string | null; bpm?: number | null; duration?: number | null } | undefined

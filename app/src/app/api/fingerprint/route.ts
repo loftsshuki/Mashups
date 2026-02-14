@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto"
 import { NextResponse } from "next/server"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 
 interface FingerprintRequestBody {
   trackId?: string
@@ -28,6 +29,18 @@ function toSegmentHash(bytes: Uint8Array): string {
 
 export async function POST(request: Request) {
   try {
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "fingerprint.generate"),
+      limit: 40,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
+    }
+
     const body = (await request.json()) as FingerprintRequestBody
     if (!body.trackId && !body.audioUrl) {
       return NextResponse.json({ error: "trackId or audioUrl is required" }, { status: 400 })
