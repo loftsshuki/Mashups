@@ -66,10 +66,10 @@ function CreatePageContent() {
   const [timelinePlayhead, setTimelinePlayhead] = useState(0)
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
 
-  // Beat analysis for first track with stems
-  const firstTrackWithStems = tracks.find((t) => t.stems)
+  // Beat analysis for first track
+  const firstTrack = tracks[0]
   const { analysis: beatAnalysis } = useBeatAnalysis(
-    firstTrackWithStems?.uploadedUrl || null
+    firstTrack?.uploadedUrl || null
   )
 
   const forkId = searchParams.get("fork")
@@ -225,52 +225,78 @@ function CreatePageContent() {
     }
   }, [selectedStemTrack])
 
-  // Build timeline tracks from stems
+  // Build timeline tracks from stems AND regular tracks
   useEffect(() => {
     const newTimelineTracks: TimelineTrack[] = []
     
     tracks.forEach((track, trackIndex) => {
-      if (!track.stems) return
-      
-      // Create a track for each stem type
-      const stemTypes: (keyof SeparatedStems)[] = ["vocals", "drums", "bass", "other"]
-      const stemColors = {
-        vocals: "#ec4899", // pink-500
-        drums: "#f59e0b",  // amber-500
-        bass: "#10b981",   // emerald-500
-        other: "#3b82f6",  // blue-500
-      }
-      const stemNames = {
-        vocals: "Vocals",
-        drums: "Drums",
-        bass: "Bass",
-        other: "Other",
-      }
-      
-      stemTypes.forEach((stemType) => {
+      if (track.stems) {
+        // Create a track for each stem type
+        const stemTypes: (keyof SeparatedStems)[] = ["vocals", "drums", "bass", "other"]
+        const stemColors = {
+          vocals: "#ec4899", // pink-500
+          drums: "#f59e0b",  // amber-500
+          bass: "#10b981",   // emerald-500
+          other: "#3b82f6",  // blue-500
+        }
+        const stemNames = {
+          vocals: "Vocals",
+          drums: "Drums",
+          bass: "Bass",
+          other: "Other",
+        }
+        
+        stemTypes.forEach((stemType) => {
+          const clip: TimelineClip = {
+            id: `clip-${trackIndex}-${stemType}`,
+            trackId: `track-${trackIndex}-${stemType}`,
+            name: `${track.name.replace(/\.[^.]+$/, "")} - ${stemNames[stemType]}`,
+            audioUrl: track.stems![stemType],
+            startTime: 0,
+            duration: track.duration || 180,
+            offset: 0,
+            color: stemColors[stemType],
+            volume: 80,
+            muted: false,
+          }
+          
+          newTimelineTracks.push({
+            id: `track-${trackIndex}-${stemType}`,
+            name: stemNames[stemType],
+            type: "stem",
+            stemType: stemType,
+            clips: [clip],
+            height: 80,
+            color: stemColors[stemType],
+          })
+        })
+      } else if (track.uploadedUrl) {
+        // Regular track without stems - add as single track
+        const colors = ["#8b5cf6", "#ec4899", "#06b6d4", "#f59e0b", "#10b981"]
+        const color = colors[trackIndex % colors.length]
+        
         const clip: TimelineClip = {
-          id: `clip-${trackIndex}-${stemType}`,
-          trackId: `track-${trackIndex}-${stemType}`,
-          name: `${track.name.replace(/\.[^.]+$/, "")} - ${stemNames[stemType]}`,
-          audioUrl: track.stems![stemType],
+          id: `clip-${trackIndex}-full`,
+          trackId: `track-${trackIndex}-full`,
+          name: track.name.replace(/\.[^.]+$/, ""),
+          audioUrl: track.uploadedUrl,
           startTime: 0,
           duration: track.duration || 180,
           offset: 0,
-          color: stemColors[stemType],
+          color: color,
           volume: 80,
           muted: false,
         }
         
         newTimelineTracks.push({
-          id: `track-${trackIndex}-${stemType}`,
-          name: stemNames[stemType],
-          type: "stem",
-          stemType: stemType,
+          id: `track-${trackIndex}-full`,
+          name: track.name.replace(/\.[^.]+$/, ""),
+          type: "audio",
           clips: [clip],
           height: 80,
-          color: stemColors[stemType],
+          color: color,
         })
-      })
+      }
     })
     
     setTimelineTracks(newTimelineTracks)
@@ -531,23 +557,23 @@ function CreatePageContent() {
                   </p>
                 )}
 
-                {/* Smart Match Panel */}
+                {/* Smart Match Panel - Shows for ANY uploaded tracks */}
                 {tracks.length > 0 && (
                   <SmartMatchPanel
-                    primaryTrackUrl={firstTrackWithStems?.uploadedUrl || null}
+                    primaryTrackUrl={tracks[0]?.uploadedUrl || null}
                     secondaryTrackUrls={tracks
-                      .filter((t) => t.uploadedUrl && t !== firstTrackWithStems)
+                      .filter((t) => t.uploadedUrl && t !== tracks[0])
                       .map((t) => t.uploadedUrl!)}
                   />
                 )}
 
-                {/* Timeline Editor for stems */}
+                {/* Timeline Editor - Shows for ALL tracks */}
                 {timelineTracks.length > 0 && (
                   <div className="space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold">Timeline Editor</h3>
+                      <h3 className="text-base font-semibold">🎚️ Timeline Editor</h3>
                       <p className="text-xs text-muted-foreground">
-                        Drag, trim, and arrange stems on the timeline. Click to select, drag edges to trim.
+                        Drag, trim, and arrange audio on the timeline. Click clips to select, drag edges to trim.
                       </p>
                       {beatAnalysis && (
                         <p className="text-xs text-muted-foreground mt-1">
@@ -559,7 +585,7 @@ function CreatePageContent() {
                       tracks={timelineTracks}
                       totalDuration={Math.max(
                         ...tracks
-                          .filter((t) => t.stems)
+                          .filter((t) => t.duration)
                           .map((t) => t.duration || 180),
                         60
                       )}

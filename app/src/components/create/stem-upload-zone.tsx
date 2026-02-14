@@ -61,7 +61,7 @@ export function StemUploadZone({
   acceptedTypes = [".mp3", ".wav", ".m4a", ".flac", ".ogg"],
 }: StemUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
-  const [enableStemSeparation, setEnableStemSeparation] = useState(false)
+  const [enableStemSeparation, setEnableStemSeparation] = useState(true)
   const [isCheckingConfig, setIsCheckingConfig] = useState(true)
   const [isConfigured, setIsConfigured] = useState(false)
 
