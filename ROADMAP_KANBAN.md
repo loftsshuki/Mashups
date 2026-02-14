@@ -119,7 +119,7 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | ⚪ Backlog |
+| **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | 🟢 Done |
 | **AI Vocal Features** | Voice transformation | Voice cloning (consent); auto-tune (scale-aware); vocal-to-MIDI; real-time effects | TBD | 6d | ⚪ Backlog |
 | **Intelligent Recommendations** | "What to remix next" | ML-based suggestions; skill progression awareness; trending awareness; daily feed | TBD | 4d | ⚪ Backlog |
 
