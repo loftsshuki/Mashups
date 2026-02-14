@@ -102,16 +102,16 @@ export function AttributionWatermark({
   }, [mashupId, creatorId, parentTrackIds])
 
   // Generate audio perceptual hash (simplified)
-  const generateAudioHash = async (id: string): Promise<string> {
+  const generateAudioHash = useCallback(async (id: string): Promise<string> => {
     // In production, this would analyze actual audio fingerprints
     return `audio_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
-  }
+  }, [])
 
   // Generate visual hash for cover art
-  const generateVisualHash = async (id: string): Promise<string> {
+  const generateVisualHash = useCallback(async (id: string): Promise<string> => {
     // In production, this would hash the actual image
     return `visual_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
-  }
+  }, [])
 
   // Update config and notify parent
   const updateConfig = useCallback((updates: Partial<WatermarkConfig>) => {
