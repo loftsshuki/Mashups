@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { isAdminEmail } from "@/lib/auth/admin"
+import { isAdminUser } from "@/lib/auth/admin"
 
 export async function GET() {
   const supabase = await createClient()
@@ -9,7 +9,7 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!isAdminEmail(user?.email)) {
+  if (!isAdminUser({ email: user?.email, id: user?.id })) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

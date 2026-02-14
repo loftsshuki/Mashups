@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { isAdminEmail } from "@/lib/auth/admin"
+import { writeAuditEvent } from "@/lib/data/audit-log"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -93,6 +95,17 @@ export async function POST(
 ) {
   const admin = await getAdminContext()
   if ("error" in admin) return admin.error
+  const rate = consumeRateLimit({
+    key: resolveRateLimitKey(request, "challenges.ops", admin.userId),
+    limit: 80,
+    windowMs: 60_000,
+  })
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Try again shortly." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+    )
+  }
 
   try {
     const { challengeId } = await params
@@ -177,6 +190,14 @@ export async function POST(
     }
 
     if (winnerResponse.error) {
+      await writeAuditEvent({
+        actorId: admin.userId,
+        action: "challenge.ops.execute",
+        resourceType: "challenge",
+        resourceId: challengeId,
+        status: "error",
+        metadata: { action: body.action, error: winnerResponse.error.message },
+      })
       return NextResponse.json({ error: winnerResponse.error.message }, { status: 400 })
     }
 
@@ -195,6 +216,18 @@ export async function POST(
       },
     })
 
+    await writeAuditEvent({
+      actorId: admin.userId,
+      action: "challenge.ops.execute",
+      resourceType: "challenge",
+      resourceId: challengeId,
+      status: "success",
+      metadata: {
+        action: body.action,
+        mashupId: body.mashupId,
+      },
+    })
+
     return NextResponse.json({
       ok: true,
       challengeId,
@@ -202,6 +235,12 @@ export async function POST(
       winner: winnerResponse.data,
     })
   } catch {
+    await writeAuditEvent({
+      actorId: admin.userId,
+      action: "challenge.ops.execute",
+      resourceType: "challenge",
+      status: "error",
+    })
     return NextResponse.json({ error: "Invalid challenge ops payload." }, { status: 400 })
   }
 }

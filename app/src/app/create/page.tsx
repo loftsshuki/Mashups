@@ -11,6 +11,8 @@ import { MixerControls } from "@/components/create/mixer-controls"
 import { PublishForm } from "@/components/create/publish-form"
 import { StemUploadZone, StemList, type StemUploadResult, type SeparatedStems } from "@/components/create/stem-upload-zone"
 import { StemMixer } from "@/components/create/stem-mixer"
+import { TimelineEditor } from "@/components/create/timeline-editor"
+import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
@@ -58,6 +60,9 @@ function CreatePageContent() {
   const [forkedFrom, setForkedFrom] = useState<MockMashup | null>(null)
   const [isPending, startTransition] = useTransition()
   const [selectedStemTrack, setSelectedStemTrack] = useState<number | null>(null)
+  const [timelineTracks, setTimelineTracks] = useState<TimelineTrack[]>([])
+  const [timelinePlayhead, setTimelinePlayhead] = useState(0)
+  const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
 
   const forkId = searchParams.get("fork")
   const challengeId = searchParams.get("challenge") ?? undefined
@@ -211,6 +216,57 @@ function CreatePageContent() {
       setSelectedStemTrack(null)
     }
   }, [selectedStemTrack])
+
+  // Build timeline tracks from stems
+  useEffect(() => {
+    const newTimelineTracks: TimelineTrack[] = []
+    
+    tracks.forEach((track, trackIndex) => {
+      if (!track.stems) return
+      
+      // Create a track for each stem type
+      const stemTypes: (keyof SeparatedStems)[] = ["vocals", "drums", "bass", "other"]
+      const stemColors = {
+        vocals: "#ec4899", // pink-500
+        drums: "#f59e0b",  // amber-500
+        bass: "#10b981",   // emerald-500
+        other: "#3b82f6",  // blue-500
+      }
+      const stemNames = {
+        vocals: "Vocals",
+        drums: "Drums",
+        bass: "Bass",
+        other: "Other",
+      }
+      
+      stemTypes.forEach((stemType) => {
+        const clip: TimelineClip = {
+          id: `clip-${trackIndex}-${stemType}`,
+          trackId: `track-${trackIndex}-${stemType}`,
+          name: `${track.name.replace(/\.[^.]+$/, "")} - ${stemNames[stemType]}`,
+          audioUrl: track.stems![stemType],
+          startTime: 0,
+          duration: track.duration || 180,
+          offset: 0,
+          color: stemColors[stemType],
+          volume: 80,
+          muted: false,
+        }
+        
+        newTimelineTracks.push({
+          id: `track-${trackIndex}-${stemType}`,
+          name: stemNames[stemType],
+          type: "stem",
+          stemType: stemType,
+          clips: [clip],
+          height: 80,
+          color: stemColors[stemType],
+        })
+      })
+    })
+    
+    setTimelineTracks(newTimelineTracks)
+  }, [tracks])
 
   // ---------------------------------------------------------------------------
   // Step 2: Mixer handlers
@@ -465,6 +521,32 @@ function CreatePageContent() {
                   <p className="text-center text-sm text-muted-foreground">
                     Select a track above to open its stem mixer
                   </p>
+                )}
+
+                {/* Timeline Editor for stems */}
+                {timelineTracks.length > 0 && (
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-base font-semibold">Timeline Editor</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Drag, trim, and arrange stems on the timeline. Click to select, drag edges to trim.
+                      </p>
+                    </div>
+                    <TimelineEditor
+                      tracks={timelineTracks}
+                      totalDuration={Math.max(
+                        ...tracks
+                          .filter((t) => t.stems)
+                          .map((t) => t.duration || 180),
+                        60
+                      )}
+                      onTracksChange={setTimelineTracks}
+                      onPlayheadChange={setTimelinePlayhead}
+                      currentTime={timelinePlayhead}
+                      isPlaying={isTimelinePlaying}
+                      onPlayPause={() => setIsTimelinePlaying((p) => !p)}
+                    />
+                  </div>
                 )}
 
                 <div className="relative">

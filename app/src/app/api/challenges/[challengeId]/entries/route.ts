@@ -4,6 +4,7 @@ import {
   enterChallengeFromBackend,
   getChallengeEntriesFromBackend,
 } from "@/lib/data/challenge-engine"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 const isSupabaseConfigured = () =>
@@ -42,6 +43,17 @@ export async function POST(
 
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "challenges.entries", user?.id ?? null),
+      limit: 20,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
     }
 
     const result = await enterChallengeFromBackend({

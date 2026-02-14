@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
 import { verifyStripeWebhookSignature } from "@/lib/billing/stripe"
+import { writeAuditEvent } from "@/lib/data/audit-log"
 import {
   clampReferralRevShareBps,
   computeReferralRevenueShareCents,
 } from "@/lib/growth/referral-accounting"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 type WebhookObject = Record<string, unknown>
@@ -65,6 +67,18 @@ async function recordReferralRevenueEvent(input: {
 }
 
 export async function POST(request: Request) {
+  const rate = consumeRateLimit({
+    key: resolveRateLimitKey(request, "billing.webhook"),
+    limit: 120,
+    windowMs: 60_000,
+  })
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Rate limit exceeded." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+    )
+  }
+
   const signature = request.headers.get("stripe-signature")
   const expectedSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -87,6 +101,13 @@ export async function POST(request: Request) {
   })
 
   if (!isValidSignature) {
+    await writeAuditEvent({
+      actorId: null,
+      action: "billing.webhook.process",
+      resourceType: "webhook",
+      status: "error",
+      metadata: { reason: "invalid_signature" },
+    })
     return NextResponse.json({ ok: false, message: "Invalid webhook signature." }, { status: 400 })
   }
 
@@ -219,8 +240,25 @@ export async function POST(request: Request) {
       }
     }
   } catch {
+    await writeAuditEvent({
+      actorId: null,
+      action: "billing.webhook.process",
+      resourceType: "webhook",
+      resourceId: event.id ?? null,
+      status: "error",
+      metadata: { eventType },
+    })
     return NextResponse.json({ ok: false, message: "Failed to process webhook." }, { status: 500 })
   }
+
+  await writeAuditEvent({
+    actorId: null,
+    action: "billing.webhook.process",
+    resourceType: "webhook",
+    resourceId: event.id ?? null,
+    status: "success",
+    metadata: { eventType, referralCode: referralResult?.referralCode ?? null },
+  })
 
   return NextResponse.json({
     ok: true,
