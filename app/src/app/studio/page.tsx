@@ -783,61 +783,63 @@ export default function StudioPage() {
               </p>
             </div>
           </section>
+        </>
+      )}
 
-          <section className="mt-6">
-            <NeonSectionHeader title="Sessions" />
-            <NeonGrid>
-              {sessions.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="neon-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
+      <section className="mt-6">
+        <NeonSectionHeader title="Sessions" />
+        <NeonGrid>
+          {sessions.map((entry) => (
+            <div
+              key={entry.id}
+              className="neon-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
+            >
+              <div>
+                <p className="text-base font-semibold text-foreground">{entry.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  Started {new Date(entry.startedAt).toLocaleString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={entry.status === "active" ? "default" : "secondary"}>
+                  {entry.status}
+                </Badge>
+                <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  {entry.id === session.id ? presenceCount : entry.participants}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {entry.id === session.id
+                    ? `${markers.length} markers | ${notes.length} notes | ${snapshots.length} versions`
+                    : `${fallbackSessionMeta[entry.id]?.markerCount ?? 0} markers | ${fallbackSessionMeta[entry.id]?.noteCount ?? 0
+                    } notes | ${fallbackSessionMeta[entry.id]?.snapshotCount ?? 0} versions`}
+                </span>
+                <Button variant="outline" size="sm" className="rounded-full">
+                  {entry.status === "active" ? (
+                    <>
+                      <PauseCircle className="h-4 w-4" />
+                      {entry.id === session.id ? "Live" : "Pause"}
+                    </>
+                  ) : (
+                    <>
+                      <Radio className="h-4 w-4" />
+                      {entry.id === session.id ? "Resume" : "Open"}
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setActiveSessionId(entry.id)}
                 >
-                  <div>
-                    <p className="text-base font-semibold text-foreground">{entry.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Started {new Date(entry.startedAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={entry.status === "active" ? "default" : "secondary"}>
-                      {entry.status}
-                    </Badge>
-                    <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      {entry.id === session.id ? presenceCount : entry.participants}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {entry.id === session.id
-                        ? `${markers.length} markers | ${notes.length} notes | ${snapshots.length} versions`
-                        : `${fallbackSessionMeta[entry.id]?.markerCount ?? 0} markers | ${fallbackSessionMeta[entry.id]?.noteCount ?? 0
-                        } notes | ${fallbackSessionMeta[entry.id]?.snapshotCount ?? 0} versions`}
-                    </span>
-                    <Button variant="outline" size="sm" className="rounded-full">
-                      {entry.status === "active" ? (
-                        <>
-                          <PauseCircle className="h-4 w-4" />
-                          {entry.id === session.id ? "Live" : "Pause"}
-                        </>
-                      ) : (
-                        <>
-                          <Radio className="h-4 w-4" />
-                          {entry.id === session.id ? "Resume" : "Open"}
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => setActiveSessionId(entry.id)}
-                    >
-                      Open
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </NeonGrid>
-          </section>
-        </NeonPage>
-      )
+                  Open
+                </Button>
+              </div>
+            </div>
+          ))}
+        </NeonGrid>
+      </section>
+    </NeonPage>
+  )
 }
