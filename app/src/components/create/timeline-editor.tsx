@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { TimelineClipReal } from "./timeline-clip-real"
+import { BeatGrid } from "./beat-grid"
 import type { TimelineTrack, TimelineClip } from "./waveform-timeline"
 
 interface TimelineEditorProps {
   tracks: TimelineTrack[]
   totalDuration: number
+  bpm?: number
+  beatOffset?: number
   onTracksChange?: (tracks: TimelineTrack[]) => void
   onPlayheadChange?: (time: number) => void
   isPlaying?: boolean
@@ -28,6 +31,8 @@ const TRACK_LABEL_WIDTH = 128
 export function TimelineEditor({
   tracks,
   totalDuration,
+  bpm = 120,
+  beatOffset = 0,
   onTracksChange,
   onPlayheadChange,
   isPlaying = false,
@@ -398,6 +403,15 @@ export function TimelineEditor({
 
                 {/* Clips Container */}
                 <div className="relative h-full" style={{ marginLeft: TRACK_LABEL_WIDTH }}>
+                  {/* Beat Grid Overlay */}
+                  <BeatGrid
+                    bpm={bpm}
+                    duration={totalDuration}
+                    zoom={zoom}
+                    offset={beatOffset}
+                    pixelsPerSecond={PIXELS_PER_SECOND}
+                  />
+                  
                   {track.clips.map((clip) => (
                     <TimelineClipReal
                       key={clip.id}

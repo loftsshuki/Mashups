@@ -12,7 +12,9 @@ import { PublishForm } from "@/components/create/publish-form"
 import { StemUploadZone, StemList, type StemUploadResult, type SeparatedStems } from "@/components/create/stem-upload-zone"
 import { StemMixer } from "@/components/create/stem-mixer"
 import { TimelineEditor } from "@/components/create/timeline-editor"
+import { SmartMatchPanel } from "@/components/create/smart-match-panel"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
+import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
@@ -63,6 +65,12 @@ function CreatePageContent() {
   const [timelineTracks, setTimelineTracks] = useState<TimelineTrack[]>([])
   const [timelinePlayhead, setTimelinePlayhead] = useState(0)
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
+
+  // Beat analysis for first track with stems
+  const firstTrackWithStems = tracks.find((t) => t.stems)
+  const { analysis: beatAnalysis } = useBeatAnalysis(
+    firstTrackWithStems?.uploadedUrl || null
+  )
 
   const forkId = searchParams.get("fork")
   const challengeId = searchParams.get("challenge") ?? undefined
@@ -523,6 +531,16 @@ function CreatePageContent() {
                   </p>
                 )}
 
+                {/* Smart Match Panel */}
+                {tracks.length > 0 && (
+                  <SmartMatchPanel
+                    primaryTrackUrl={firstTrackWithStems?.uploadedUrl || null}
+                    secondaryTrackUrls={tracks
+                      .filter((t) => t.uploadedUrl && t !== firstTrackWithStems)
+                      .map((t) => t.uploadedUrl!)}
+                  />
+                )}
+
                 {/* Timeline Editor for stems */}
                 {timelineTracks.length > 0 && (
                   <div className="space-y-3">
@@ -531,6 +549,11 @@ function CreatePageContent() {
                       <p className="text-xs text-muted-foreground">
                         Drag, trim, and arrange stems on the timeline. Click to select, drag edges to trim.
                       </p>
+                      {beatAnalysis && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Beat grid: {beatAnalysis.bpm.bpm} BPM
+                        </p>
+                      )}
                     </div>
                     <TimelineEditor
                       tracks={timelineTracks}
@@ -540,6 +563,8 @@ function CreatePageContent() {
                           .map((t) => t.duration || 180),
                         60
                       )}
+                      bpm={beatAnalysis?.bpm.bpm || 120}
+                      beatOffset={beatAnalysis?.bpm.offset || 0}
                       onTracksChange={setTimelineTracks}
                       onPlayheadChange={setTimelinePlayhead}
                       currentTime={timelinePlayhead}
