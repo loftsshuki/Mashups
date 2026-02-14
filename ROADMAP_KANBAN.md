@@ -78,8 +78,8 @@
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
 | **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
-| **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | ⚪ Backlog |
-| **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | ⚪ Backlog |
+| **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
+| **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -98,9 +98,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Content ID Pre-Check** | Pre-publish claim risk assessment | YouTube Content ID API; risk heatmap on timeline; suggestions to fix; pass/fail score | TBD | 5d | ⚪ Backlog |
-| **Smart Contract Revenue Splits** | Blockchain auto-distribution | On-chain splits; automatic payout; transparent ledger; wallet abstraction (no crypto UX) | TBD | 6d | ⚪ Backlog |
-| **Fan Subscriptions (Patreon-style)** | Creator membership tiers | 3 tiers ($3/$10/$25); subscriber-only content; integrated paywall; Discord integration | TBD | 4d | ⚪ Backlog |
+| **Content ID Pre-Check** | Pre-publish claim risk assessment | YouTube Content ID API; risk heatmap on timeline; suggestions to fix; pass/fail score | TBD | 5d | 🟢 Done |
+| **Smart Contract Revenue Splits** | Blockchain auto-distribution | On-chain splits; automatic payout; transparent ledger; wallet abstraction (no crypto UX) | TBD | 6d | 🟢 Done |
+| **Fan Subscriptions (Patreon-style)** | Creator membership tiers | 3 tiers ($3/$10/$25); subscriber-only content; integrated paywall; Discord integration | TBD | 4d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -119,9 +119,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | ⚪ Backlog |
-| **AI Vocal Features** | Voice transformation | Voice cloning (consent); auto-tune (scale-aware); vocal-to-MIDI; real-time effects | TBD | 6d | ⚪ Backlog |
-| **Intelligent Recommendations** | "What to remix next" | ML-based suggestions; skill progression awareness; trending awareness; daily feed | TBD | 4d | ⚪ Backlog |
+| **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | 🟢 Done |
+| **AI Vocal Features** | Voice transformation | Voice cloning (consent); auto-tune (scale-aware); vocal-to-MIDI; real-time effects | TBD | 6d | 🟢 Done |
+| **Intelligent Recommendations** | "What to remix next" | ML-based suggestions; skill progression awareness; trending awareness; daily feed | TBD | 4d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY
 

@@ -21,8 +21,11 @@ import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
+  { href: "/feed", label: "For You" },
   { href: "/launchpad", label: "Product" },
   { href: "/packs", label: "Viral Pack" },
+  { href: "/battles", label: "Battles" },
+  { href: "/tools", label: "AI Tools" },
   { href: "/scoreboard", label: "Scoreboard" },
   { href: "/studio", label: "Studio" },
   { href: "/pricing", label: "Pricing" },

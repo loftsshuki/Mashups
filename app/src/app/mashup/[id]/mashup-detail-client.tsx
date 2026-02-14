@@ -12,6 +12,8 @@ import { LikeButton } from "@/components/mashup/like-button"
 import { ShareButton } from "@/components/mashup/share-button"
 import { CommentSection } from "@/components/mashup/comment-section"
 import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
+import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
+import { SplitManager } from "@/components/revenue/split-manager"
 import { useAudio } from "@/lib/audio/audio-context"
 import { exportHookClipAsWav } from "@/lib/audio/hook-export"
 import type { Track } from "@/lib/audio/types"
@@ -23,8 +25,7 @@ import type { MockMashup } from "@/lib/mock-data"
 import type { RightsSafetyAssessment } from "@/lib/data/rights-safety"
 import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
 import { withMashupsSignature } from "@/lib/growth/signature"
-import { useEffect } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface HookGeneratorResult {
   mashupId: string
@@ -594,7 +595,19 @@ export function MashupDetailClient({
             )}
           </div>
 
+          <RiskAssessmentPanel
+            mashupId={mashup.id}
+            duration={mashup.duration}
+            className="mt-6"
+          />
+
           <RemixFamilyTree lineage={lineage} forks={forkedMashups} currentId={mashup.id} />
+
+          <SplitManager
+            mashupId={mashup.id}
+            mashupTitle={mashup.title}
+            className="mt-6"
+          />
 
           {forkContests.length > 0 ? (
             <div className="rounded-lg border border-border/70 bg-card/70 p-4">

@@ -13,6 +13,7 @@ import {
   Trophy,
   PackageOpen,
   Flame,
+  Wand2,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,8 +27,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const navLinks = [
+  { href: "/feed", label: "For You", icon: Flame },
   { href: "/launchpad", label: "Product", icon: LayoutGrid },
   { href: "/packs", label: "Viral Pack", icon: PackageOpen },
+  { href: "/battles", label: "Battles", icon: Trophy },
+  { href: "/tools", label: "AI Tools", icon: Wand2 },
   { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
   { href: "/momentum", label: "Momentum", icon: Flame },
   { href: "/studio", label: "Studio", icon: Radio },

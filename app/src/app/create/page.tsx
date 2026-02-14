@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback, useTransition, Suspense, useEffect } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2 } from "lucide-react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles } from "lucide-react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -458,6 +459,28 @@ function CreatePageContent() {
             )
           })}
         </div>
+      </div>
+
+      {/* AI Generator Promo */}
+      <div className="mx-auto max-w-2xl mb-8">
+        <Link href="/create/ai">
+          <div className="p-4 rounded-xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-purple-500/5 hover:border-primary/50 transition-all cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">Try AI Mashup Generator</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload tracks and let AI create a complete mashup automatically
+                </p>
+              </div>
+              <Button variant="outline" size="sm">
+                Try Now
+              </Button>
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* Step content */}
