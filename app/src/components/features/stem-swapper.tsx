@@ -157,7 +157,7 @@ export function StemSwapper() {
                                     )}
                                 </div>
 
-                                {activeKit === kit.id && !isProcessing && (
+                                {activeKit === kit.id && processState !== "idle" && (
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: processState === "done" ? "100%" : processState === "transferring" ? "60%" : "30%" }}
