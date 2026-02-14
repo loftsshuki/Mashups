@@ -32,7 +32,7 @@ export function TierCard({
   const isUpgrade = currentTier && getTierValue(plan.tier) > getTierValue(currentTier)
   const isDowngrade = currentTier && getTierValue(plan.tier) < getTierValue(currentTier)
   
-  const atCapacity = plan.maxSubscribers && plan.subscriberCount >= plan.maxSubscribers
+  const atCapacity = !!(plan.maxSubscribers && plan.subscriberCount >= plan.maxSubscribers)
   
   return (
     <Card
