@@ -3,6 +3,25 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import { TrendingSound } from './trending-sounds';
 
+// Type definitions for Spotify API response
+interface SpotifyArtist {
+    name: string;
+}
+
+interface SpotifyAlbum {
+    images: { url: string }[];
+}
+
+interface SpotifyTrack {
+    id: string;
+    name: string;
+    artists: SpotifyArtist[];
+    album: SpotifyAlbum;
+    preview_url: string | null;
+    popularity: number;
+    duration_ms: number;
+}
+
 // Spotify API credentials
 // In a real app, these should be in .env.local
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || '';
@@ -44,7 +63,7 @@ export async function fetchSpotifyTrending(): Promise<TrendingSound[]> {
         const playlistId = '37i9dQZEVXbLiRSafKK9cZ';
         const data = await spotifyApi.getPlaylist(playlistId);
 
-        const tracks = data.body.tracks.items.slice(0, 10).map((item, index) => {
+        const tracks = data.body.tracks.items.slice(0, 10).map((item: { track: SpotifyTrack | null }, index: number) => {
             const track = item.track;
             if (!track) return null;
 
