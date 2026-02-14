@@ -30,7 +30,7 @@
 |------|-------------|---------------------|----------|------|--------|
 | **Stem Separation Engine** | Integrate AI stem splitting (Demucs/Replicate API) | Upload track → 4 stems (vox/drums/bass/other) auto-extracted; draggable to mixer; <30s processing | TBD | 5d | 🟢 Done |
 | **Visual Waveform Editor** | Figma-style multi-track timeline | Multi-track view; zoom 0.1-10x; clip drag/trim; crossfade handles; cut/copy/paste/split | TBD | 8d | 🟢 Done |
-| **Smart Beat Matching** | Auto BPM/key detection + suggestions | Detect BPM/key on upload; suggest compatible tracks; auto-pitch-shift to match; beat-grid overlay | TBD | 4d | 🔴 Not Started |
+| **Smart Beat Matching** | Auto BPM/key detection + suggestions | Detect BPM/key on upload; suggest compatible tracks; auto-pitch-shift to match; beat-grid overlay | TBD | 4d | 🟢 Done |
 
 ### 🟡 MEDIUM PRIORITY (Do Next)
 
