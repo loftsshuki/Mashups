@@ -10,6 +10,7 @@ import { Waveform } from "@/components/player/waveform"
 import { ProgressBar } from "@/components/player/progress-bar"
 import { LikeButton } from "@/components/mashup/like-button"
 import { ShareButton } from "@/components/mashup/share-button"
+import { TipButton } from "@/components/tips/tip-button"
 import { CommentSection } from "@/components/mashup/comment-section"
 import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
@@ -397,6 +398,11 @@ export function MashupDetailClient({
             <ShareButton
               mashupId={mashup.id}
               title={mashup.title}
+            />
+            <TipButton
+              creatorId={mashup.creator.username}
+              creatorName={mashup.creator.displayName}
+              mashupId={mashup.id}
             />
             <Link
               href={`/create?fork=${mashup.id}`}

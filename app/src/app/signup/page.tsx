@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { useActionState } from "react"
+import { Suspense, useActionState, useEffect } from "react"
 import { Loader2, Music } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 import { NeonHero, NeonPage } from "@/components/marketing/neon-page"
 import { Button } from "@/components/ui/button"
@@ -16,9 +17,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { signup } from "@/lib/auth/auth-actions"
+import {
+  persistReferralCode,
+  readReferralCodeFromSearchParams,
+} from "@/lib/growth/referral-client"
 
-export default function SignupPage() {
+function SignupContent() {
   const [state, formAction, pending] = useActionState(signup, null)
+  const searchParams = useSearchParams()
+  const referralCode = readReferralCodeFromSearchParams(searchParams)
+
+  useEffect(() => {
+    persistReferralCode(referralCode)
+  }, [referralCode])
 
   return (
     <NeonPage className="max-w-5xl">
@@ -35,6 +46,11 @@ export default function SignupPage() {
             </div>
             <CardTitle className="text-2xl">Sign up</CardTitle>
             <CardDescription>Create your Mashups workspace.</CardDescription>
+            {referralCode ? (
+              <p className="mt-2 text-xs text-primary">
+                Referral invite applied: {referralCode}
+              </p>
+            ) : null}
           </CardHeader>
 
           <CardContent>
@@ -165,3 +181,10 @@ export default function SignupPage() {
   )
 }
 
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupContent />
+    </Suspense>
+  )
+}

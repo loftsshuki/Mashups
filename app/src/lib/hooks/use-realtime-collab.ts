@@ -64,7 +64,7 @@ export function useRealtimeCollab({
       const collaborators: Collaborator[] = []
       
       Object.entries(presenceState).forEach(([key, presences]) => {
-        const presence = presences[0] as {
+        const presence = (presences as Record<string, unknown>[])[0] as {
           userId: string
           displayName: string
           avatarUrl: string
@@ -96,12 +96,12 @@ export function useRealtimeCollab({
     })
 
     // Handle presence join
-    channel.on("presence", { event: "join" }, ({ key, newPresences }) => {
+    channel.on("presence", { event: "join" }, ({ key, newPresences }: { key: string; newPresences: unknown }) => {
       console.log("User joined:", key, newPresences)
     })
 
     // Handle presence leave
-    channel.on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+    channel.on("presence", { event: "leave" }, ({ key, leftPresences }: { key: string; leftPresences: unknown }) => {
       console.log("User left:", key, leftPresences)
       setState(prev => ({
         ...prev,
@@ -110,18 +110,19 @@ export function useRealtimeCollab({
     })
 
     // Handle broadcast messages (cursor updates, operations)
-    channel.on("broadcast", { event: "cursor_update" }, ({ payload }) => {
+    channel.on("broadcast", { event: "cursor_update" }, ({ payload }: { payload: Record<string, unknown> }) => {
       if (payload?.userId === userId) return
-      
+      const cursorPayload = payload as { userId: string; cursor?: { x: number; y: number } }
+
       setState(prev => ({
         ...prev,
         collaborators: prev.collaborators.map(c =>
-          c.userId === payload.userId
+          c.userId === cursorPayload.userId
             ? {
                 ...c,
                 cursor: {
-                  x: payload.cursor?.x ?? c.cursor.x,
-                  y: payload.cursor?.y ?? c.cursor.y,
+                  x: cursorPayload.cursor?.x ?? c.cursor.x,
+                  y: cursorPayload.cursor?.y ?? c.cursor.y,
                   timestamp: Date.now(),
                 },
                 lastSeen: new Date().toISOString(),
@@ -131,14 +132,14 @@ export function useRealtimeCollab({
       }))
     })
 
-    channel.on("broadcast", { event: "operation" }, ({ payload }) => {
+    channel.on("broadcast", { event: "operation" }, ({ payload }: { payload: Record<string, unknown> }) => {
       if (payload?.userId !== userId && onOperation) {
-        onOperation(payload as CollabOperation)
+        onOperation(payload as unknown as CollabOperation)
       }
     })
 
     // Subscribe to channel
-    channel.subscribe(async (status) => {
+    channel.subscribe(async (status: string) => {
       if (status === "SUBSCRIBED") {
         setState(prev => ({ ...prev, isConnected: true }))
         

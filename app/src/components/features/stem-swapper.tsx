@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 import { Wand2, Music, Drum, Speaker, Mic2, Guitar, ArrowRight, Play, RefreshCw, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ export function StemSwapper() {
     const [selectedStem, setSelectedStem] = useState<keyof typeof STEM_TYPES>("drums")
     const [activeKit, setActiveKit] = useState<string | null>(null)
     const [processState, setProcessState] = useState<"idle" | "analyzing" | "transferring" | "done">("idle")
+    const isProcessing = processState === "analyzing" || processState === "transferring"
     const [isPlaying, setIsPlaying] = useState(false)
     const [isOriginal, setIsOriginal] = useState(false)
 
@@ -155,7 +157,7 @@ export function StemSwapper() {
                                     )}
                                 </div>
 
-                                {activeKit === kit.id && !isProcessing && (
+                                {activeKit === kit.id && processState !== "idle" && (
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: processState === "done" ? "100%" : processState === "transferring" ? "60%" : "30%" }}

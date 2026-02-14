@@ -27,9 +27,10 @@ import type { MockMashup } from "@/lib/mock-data"
 // Phase 3: Lazy load export components
 const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
 const CaptionEditor = lazy(() => import("@/components/captions/caption-editor").then(m => ({ default: m.CaptionEditor })))
-const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator }))
+const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator })))
 import type { AttributionSource } from "@/lib/data/attribution"
-import type { GeneratedCaptions, GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
+import type { GeneratedCaptions } from "@/lib/data/auto-caption"
+import type { GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
 
 const steps = [
   {

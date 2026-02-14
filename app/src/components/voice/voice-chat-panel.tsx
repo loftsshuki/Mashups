@@ -124,7 +124,7 @@ export function VoiceChatPanel({
           },
         })
 
-        callRef.current = call
+        callRef.current = call as unknown as DailyCall
 
         // Set up event handlers
         call.on("joined-meeting", () => {
@@ -231,7 +231,7 @@ export function VoiceChatPanel({
   }
 
   // Update participants from Daily.co
-  const updateParticipants = (call: DailyCall) => {
+  const updateParticipants = (call: Pick<DailyCall, "participants">) => {
     const dailyParticipants = call.participants()
     const mappedParticipants: VoiceParticipant[] = Object.values(dailyParticipants)
       .filter((p): p is DailyParticipant => p !== null && p.user_id !== "local")

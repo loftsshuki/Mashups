@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { Check, ArrowRight } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { startCheckout } from "@/lib/data/billing"
+import {
+  getPersistedReferralCode,
+  persistReferralCode,
+  readReferralCodeFromSearchParams,
+} from "@/lib/growth/referral-client"
 import {
   NeonGrid,
   NeonHero,
@@ -39,13 +44,29 @@ const tiers = [
   },
 ] as const
 
-export default function PricingPage() {
+function PricingContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [pendingPlan, setPendingPlan] = useState<string | null>(null)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fromSearch = readReferralCodeFromSearchParams(searchParams)
+    if (fromSearch) {
+      persistReferralCode(fromSearch)
+      setReferralCode(fromSearch)
+      return
+    }
+
+    const persisted = getPersistedReferralCode()
+    if (persisted) {
+      setReferralCode(persisted)
+    }
+  }, [searchParams])
 
   async function handleCheckout(plan: string) {
     setPendingPlan(plan)
-    const result = await startCheckout("subscription", plan)
+    const result = await startCheckout("subscription", plan, referralCode ?? undefined)
     setPendingPlan(null)
     if (result.checkoutUrl) {
       router.push(result.checkoutUrl)
@@ -92,6 +113,11 @@ export default function PricingPage() {
         title="Plan Matrix"
         description="Tier cards keep the same section rhythm as home."
       />
+      {referralCode ? (
+        <div className="mb-4 rounded-xl border border-primary/35 bg-primary/10 px-3 py-2 text-xs text-foreground">
+          Referral credit active: <span className="font-semibold">{referralCode}</span>
+        </div>
+      ) : null}
       <NeonGrid className="md:grid-cols-3">
         {tiers.map((tier) => (
           <div key={tier.name} className="neon-panel rounded-2xl p-5">
@@ -127,3 +153,10 @@ export default function PricingPage() {
   )
 }
 
+export default function PricingPage() {
+  return (
+    <Suspense>
+      <PricingContent />
+    </Suspense>
+  )
+}

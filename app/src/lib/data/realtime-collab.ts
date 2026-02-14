@@ -10,6 +10,12 @@ export interface Collaborator {
     x: number
     y: number
     timestamp: number
+    viewport?: {
+      scrollX: number
+      scrollY: number
+      width: number
+      height: number
+    }
   }
   isActive: boolean
   lastSeen: string

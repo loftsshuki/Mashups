@@ -107,9 +107,9 @@
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Sample Clearance Marketplace** | One-click sample licensing | Browse/preview samples; "Clear this sample" pricing; bulk discounts; AI alternatives | TBD | 5d | ⚪ Backlog |
-| **Creator Tip Jar** | Direct fan support | One-time tips; message with tip; public thank-you wall; minimum $1 | TBD | 2d | ⚪ Backlog |
-| **Royalty Dashboard 2.0** | Real-time earnings tracking | Stream-by-stream breakdown; source attribution; projected monthly; tax document export | TBD | 3d | ⚪ Backlog |
+| **Sample Clearance Marketplace** | One-click sample licensing | Browse/preview samples; "Clear this sample" pricing; bulk discounts; AI alternatives | TBD | 5d | 🟢 Done |
+| **Creator Tip Jar** | Direct fan support | One-time tips; message with tip; public thank-you wall; minimum $1 | TBD | 2d | 🟢 Done |
+| **Royalty Dashboard 2.0** | Real-time earnings tracking | Stream-by-stream breakdown; source attribution; projected monthly; tax document export | TBD | 3d | 🟢 Done |
 
 ---
 

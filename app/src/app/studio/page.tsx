@@ -23,7 +23,7 @@ import {
 const CursorPresence = lazy(() => import("@/components/collab/cursor-presence").then(m => ({ default: m.CursorPresence })))
 const VoiceChatPanel = lazy(() => import("@/components/voice/voice-chat-panel").then(m => ({ default: m.VoiceChatPanel })))
 const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
-const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel }))
+const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel })))
 
 import {
   NeonGrid,

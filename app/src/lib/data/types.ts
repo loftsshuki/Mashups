@@ -118,3 +118,130 @@ export interface Payout {
   requested_at: string
   paid_at: string | null
 }
+
+// ── Phase 4: Monetization 2.0 ──
+
+export type SampleType = "loop" | "one_shot" | "stem" | "vocal" | "full_track"
+export type MarketplaceLicenseType = "standard" | "exclusive" | "creative_commons"
+
+export interface MarketplaceListing {
+  id: string
+  seller_id: string
+  title: string
+  description: string | null
+  sample_type: SampleType
+  genre: string | null
+  bpm: number | null
+  key: string | null
+  duration_seconds: number | null
+  preview_url: string | null
+  download_url: string | null
+  price_cents: number
+  bulk_price_cents: number | null
+  license_type: MarketplaceLicenseType
+  is_ai_alternative: boolean
+  tags: string[]
+  download_count: number
+  rating_avg: number
+  rating_count: number
+  is_published: boolean
+  created_at: string
+  updated_at: string
+  // Joined
+  seller?: Profile
+}
+
+export interface SampleClearance {
+  id: string
+  listing_id: string
+  buyer_id: string
+  mashup_id: string | null
+  price_cents: number
+  license_type: string
+  cleared_at: string
+  license_document_url: string | null
+  // Joined
+  listing?: MarketplaceListing
+}
+
+export interface SampleRating {
+  id: string
+  listing_id: string
+  user_id: string
+  rating: number
+  review: string | null
+  created_at: string
+  user?: Profile
+}
+
+export interface MarketplacePack {
+  id: string
+  seller_id: string
+  title: string
+  description: string | null
+  cover_image_url: string | null
+  price_cents: number
+  discount_percent: number
+  created_at: string
+  // Joined
+  seller?: Profile
+  items?: MarketplaceListing[]
+  item_count?: number
+}
+
+export interface Tip {
+  id: string
+  tipper_id: string
+  creator_id: string
+  mashup_id: string | null
+  amount_cents: number
+  currency: string
+  message: string | null
+  is_public: boolean
+  created_at: string
+  // Joined
+  tipper?: Profile
+  creator?: Profile
+}
+
+export interface TipThankYou {
+  id: string
+  tip_id: string
+  creator_id: string
+  message: string
+  created_at: string
+}
+
+export interface RoyaltyStream {
+  id: string
+  user_id: string
+  mashup_id: string | null
+  source: string
+  platform: string | null
+  amount_cents: number
+  currency: string
+  metadata: Record<string, unknown>
+  streamed_at: string
+  // Joined
+  mashup?: Mashup
+}
+
+export interface RoyaltyProjection {
+  id: string
+  user_id: string
+  month: string
+  projected_cents: number
+  actual_cents: number
+  source_breakdown: Record<string, number>
+  computed_at: string
+}
+
+export interface TaxDocument {
+  id: string
+  user_id: string
+  tax_year: number
+  document_type: string
+  total_earnings_cents: number
+  document_url: string | null
+  generated_at: string
+}
