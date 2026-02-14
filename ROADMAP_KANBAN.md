@@ -1,9 +1,9 @@
 # Mashups.com Product Roadmap — Kanban Board
 
 **Last Updated:** February 13, 2026  
-**Current Phase:** Phase 1 — Production Powerhouse  
+**Current Phase:** Phase 2 — Viral Distribution Engine  
 **Sprint Cycle:** 2 weeks  
-**Last Deploy:** Commit `ada80c8` — Stem Separation Engine LIVE ✅
+**Last Deploy:** Commit `ada80c8` — Phase 1 Complete: Production Powerhouse ✅
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Phase | Theme | Status | Progress |
 |-------|-------|--------|----------|
-| Phase 1 | Production Powerhouse | 🟡 In Progress | 30% |
+| Phase 1 | Production Powerhouse | 🟢 Done | 100% |
 | Phase 2 | Viral Distribution Engine | ⚪ Planned | 0% |
 | Phase 3 | Community & Social | ⚪ Planned | 0% |
 | Phase 4 | Rights & Monetization 2.0 | ⚪ Planned | 0% |
@@ -37,15 +37,15 @@
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
 | **Volume Automation Curves** | Node-based volume changes over time | Add/edit/delete automation nodes; curves render in real-time; export with automation | TBD | 3d | 🟢 Done |
-| **Realtime Collab 2.0** | Cursor presence + follow mode | See collaborator cursors; "Follow [Name]" button; live audio cursor positions; conflict resolution | TBD | 4d | ⚪ Backlog |
-| **Voice Chat Integration** | Built-in studio communication | Daily.co WebRTC integration; push-to-talk; mute/unmute; speaker indicator per user | TBD | 3d | ⚪ Backlog |
+| **Realtime Collab 2.0** | Cursor presence + follow mode | See collaborator cursors; "Follow [Name]" button; live audio cursor positions; conflict resolution | TBD | 4d | 🟢 Done |
+| **Voice Chat Integration** | Built-in studio communication | Daily.co WebRTC integration; push-to-talk; mute/unmute; speaker indicator per user | TBD | 3d | 🟢 Done |
 
 ### 🟢 LOW PRIORITY (Nice to Have)
 
 | Card | Description | Acceptance Criteria | Assignee | Est. | Status |
 |------|-------------|---------------------|----------|------|--------|
-| **Spectral Waveform View** | Frequency-colored waveform display | Toggle waveform/spectral view; FFT analysis; color by frequency band | TBD | 2d | ⚪ Backlog |
-| **MIDI Controller Support** | Basic MIDI mapping | Detect Launchpad/midi controllers; map faders to volume; transport controls work | TBD | 3d | ⚪ Backlog |
+| **Spectral Waveform View** | Frequency-colored waveform display | Toggle waveform/spectral view; FFT analysis; color by frequency band | TBD | 2d | 🟢 Done |
+| **MIDI Controller Support** | Basic MIDI mapping | Detect Launchpad/midi controllers; map faders to volume; transport controls work | TBD | 3d | 🟢 Done |
 
 ---
 
@@ -80,6 +80,7 @@
 | **Remix Family Tree Visualization** | Interactive D3.js lineage graph | Tree/force-directed views; clickable nodes; time-lapse animation; embeddable widget | TBD | 5d | 🟢 Done |
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | 🟢 Done |
+| **The Daily Flip** | Daily mashup challenge | Daily 3-stem drop; 24hr leaderboard; streak tracking; auto-generated social share | TBD | 10d | ⚪ Backlog |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -130,6 +131,7 @@
 | **Lyrics & Transcription** | Auto-transcribe + karaoke | Whisper API; synced lyrics display; search by lyric; karaoke mode (vocal mute) | TBD | 4d | ⚪ Backlog |
 | **AI Mastering** | Auto-finalize tracks | Loudness normalization (LUFS); EQ balancing; stereo widening; genre presets | TBD | 3d | ⚪ Backlog |
 | **Style Transfer** | Apply artist style to track | "Make this sound like Daft Punk"; style embeddings; transferable via examples | TBD | 5d | ⚪ Backlog |
+| **Smart Stem Swapping** | Genre-bending workflow | Right-click "Swap Kit"; preserve rhythm/midi; replace timbre (e.g. Rock drums -> Techno) | TBD | 12d | ⚪ Backlog |
 
 ---
 
@@ -143,6 +145,7 @@
 | **Desktop App (Electron/Tauri)** | Native desktop experience | Offline mode; local VST support; file system access; Apple Silicon optimized | TBD | 8d | ⚪ Backlog |
 | **Mobile Apps (iOS/Android)** | Full mobile creation | Quick capture (hum-to-find); social feed; remote studio control; widgets | TBD | 10d | ⚪ Backlog |
 | **Keyboard Shortcuts & Power User Mode** | Vim-style efficiency | Every action <2 keystrokes; customizable keymaps; command palette (Cmd+K); shortcut trainer | TBD | 4d | ⚪ Backlog |
+| **Live Performance Deck** | Launchpad-style grid view | 8x8 clip grid; quantized launching; global macro FX controls; record to timeline | TBD | 15d | ⚪ Backlog |
 
 ### 🟡 MEDIUM PRIORITY
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react"
 import {
   BookmarkPlus,
   Clock3,
@@ -13,7 +13,17 @@ import {
   Save,
   UserPlus,
   Users,
+  Mic,
+  MousePointer2,
+  Music,
+  Settings,
 } from "lucide-react"
+
+// Lazy load heavy components for performance
+const CursorPresence = lazy(() => import("@/components/collab/cursor-presence").then(m => ({ default: m.CursorPresence })))
+const VoiceChatPanel = lazy(() => import("@/components/voice/voice-chat-panel").then(m => ({ default: m.VoiceChatPanel })))
+const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
+const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel }))
 
 import {
   NeonGrid,
@@ -183,6 +193,10 @@ export default function StudioPage() {
   const [audienceViewers, setAudienceViewers] = useState(0)
   const [audienceFollowers, setAudienceFollowers] = useState(0)
   const [copiedAudienceLink, setCopiedAudienceLink] = useState(false)
+
+  // Phase 3: New collaboration features
+  const [showVoicePanel, setShowVoicePanel] = useState(false)
+  const [showMIDISettings, setShowMIDISettings] = useState(false)
 
   const channelRef = useRef<StudioRealtimeChannel | null>(null)
   const fallbackSessionMeta = useMemo(
@@ -425,15 +439,95 @@ export default function StudioPage() {
           </Button>
         }
         aside={
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Dot className={`h-4 w-4 ${connected ? "text-green-500" : "text-amber-500"}`} />
               {connected ? "Realtime connected" : "Fallback mode"}
             </p>
             <p className="text-xs text-muted-foreground">Alias: {producerAlias}</p>
+            
+            {/* Phase 3: Collaboration toolbar */}
+            <div className="flex flex-wrap gap-1 pt-2">
+              <Button
+                size="sm"
+                variant={showVoicePanel ? "default" : "outline"}
+                className="h-7 gap-1 text-xs rounded-full"
+                onClick={() => setShowVoicePanel(!showVoicePanel)}
+              >
+                <Mic className="h-3 w-3" />
+                Voice
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1 text-xs rounded-full"
+                onClick={() => setShowMIDISettings(!showMIDISettings)}
+              >
+                <Settings className="h-3 w-3" />
+                MIDI
+              </Button>
+            </div>
           </div>
         }
       />
+
+      {/* Phase 3: Real-time Cursor Presence */}
+      <Suspense fallback={<div className="h-12 bg-muted rounded-xl animate-pulse" />}>
+        <CursorPresence
+          sessionId={session.id}
+          userId={producerAlias}
+          displayName={producerAlias}
+          className="mb-4"
+        />
+      </Suspense>
+
+      {/* Phase 3: Voice Chat Panel */}
+      {showVoicePanel && (
+        <Suspense fallback={<div className="h-32 bg-muted rounded-xl animate-pulse" />}>
+          <section className="neon-panel rounded-2xl p-4 mb-6">
+            <NeonSectionHeader
+              title="Voice Chat"
+              description="Real-time voice communication with collaborators via Daily.co."
+            />
+            <VoiceChatPanel
+              roomName={`mashups-studio-${session.id}`}
+              userId={producerAlias}
+              displayName={producerAlias}
+              onLeave={() => setShowVoicePanel(false)}
+            />
+          </section>
+        </Suspense>
+      )}
+
+      {/* Phase 3: MIDI Controller Panel */}
+      {showMIDISettings && (
+        <Suspense fallback={<div className="h-32 bg-muted rounded-xl animate-pulse" />}>
+          <section className="neon-panel rounded-2xl p-4 mb-6">
+            <MIDIControllerPanel
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onStop={() => setIsPlaying(false)}
+              onSeek={(pos) => setPlayhead(pos)}
+            />
+          </section>
+        </Suspense>
+      )}
+
+      {/* Phase 3: Spectral Waveform */}
+      <section className="neon-panel rounded-2xl p-4 mb-6">
+        <NeonSectionHeader
+          title="Spectral Analysis"
+          description="Frequency visualization of your mix."
+        />
+        <Suspense fallback={<div className="h-48 bg-muted rounded-xl animate-pulse" />}>
+          <SpectralWaveform
+            width={800}
+            height={200}
+            colorScheme="aurora"
+            className="w-full"
+          />
+        </Suspense>
+      </section>
 
       <section className="neon-panel rounded-2xl p-4">
         <NeonSectionHeader

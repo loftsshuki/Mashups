@@ -1,7 +1,7 @@
 "use client"
 
-import { useRef, useState, useCallback, useMemo, useEffect } from "react"
-import { ZoomIn, ZoomOut, Scissors, Copy, ClipboardPaste, Trash2, Play, Pause, SkipBack, SkipForward } from "lucide-react"
+import { useRef, useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react"
+import { ZoomIn, ZoomOut, Scissors, Copy, ClipboardPaste, Trash2, Play, Pause, SkipBack, SkipForward, Activity, Waves } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
@@ -9,6 +9,9 @@ import { Separator } from "@/components/ui/separator"
 import { TimelineClipReal } from "./timeline-clip-real"
 import { BeatGrid } from "./beat-grid"
 import type { TimelineTrack, TimelineClip } from "./waveform-timeline"
+
+// Lazy load spectral waveform
+const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
 
 interface TimelineEditorProps {
   tracks: TimelineTrack[]
@@ -46,6 +49,8 @@ export function TimelineEditor({
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const [clipboard, setClipboard] = useState<TimelineClip | null>(null)
   const [localTracks, setLocalTracks] = useState<TimelineTrack[]>(tracks)
+  const [showSpectral, setShowSpectral] = useState(false)
+  const [spectralTrackUrl, setSpectralTrackUrl] = useState<string | null>(null)
 
   // Sync with props
   useEffect(() => {
@@ -276,6 +281,22 @@ export function TimelineEditor({
   const zoomIn = () => setZoom((z) => Math.min(z * 1.5, MAX_ZOOM))
   const zoomOut = () => setZoom((z) => Math.max(z / 1.5, MIN_ZOOM))
 
+  // Toggle spectral view for selected track
+  const toggleSpectralView = () => {
+    if (!showSpectral && selectedClipId) {
+      // Find the audio URL for the selected clip
+      for (const track of localTracks) {
+        const clip = track.clips.find(c => c.id === selectedClipId)
+        if (clip?.audioUrl) {
+          setSpectralTrackUrl(clip.audioUrl)
+          setShowSpectral(true)
+          return
+        }
+      }
+    }
+    setShowSpectral(!showSpectral)
+  }
+
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {/* Toolbar */}
@@ -339,6 +360,19 @@ export function TimelineEditor({
           </Button>
         </div>
 
+        <Separator orientation="vertical" className="h-6" />
+
+        {/* View toggle */}
+        <Button
+          variant={showSpectral ? "default" : "ghost"}
+          size="sm"
+          className="h-8 gap-1"
+          onClick={toggleSpectralView}
+        >
+          {showSpectral ? <Activity className="h-4 w-4" /> : <Waves className="h-4 w-4" />}
+          {showSpectral ? "Spectral" : "Waveform"}
+        </Button>
+
         {/* Time display */}
         <div className="ml-auto flex items-center gap-2 text-sm font-mono">
           <span className="text-primary">{formatTime(currentTime)}</span>
@@ -346,6 +380,30 @@ export function TimelineEditor({
           <span className="text-muted-foreground">{formatTime(totalDuration)}</span>
         </div>
       </div>
+
+      {/* Spectral Waveform View */}
+      {showSpectral && spectralTrackUrl && (
+        <Suspense fallback={<div className="h-48 bg-muted rounded-xl animate-pulse" />}>
+          <div className="rounded-xl border border-border/50 bg-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium">Spectral Analysis</h4>
+              <Button variant="ghost" size="sm" onClick={() => setShowSpectral(false)}>
+                Close
+              </Button>
+            </div>
+            <SpectralWaveform
+              url={spectralTrackUrl}
+              width={800}
+              height={200}
+              colorScheme="aurora"
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Frequency analysis showing energy distribution across the spectrum. Red = high frequencies, Blue = low frequencies.
+            </p>
+          </div>
+        </Suspense>
+      )}
 
       {/* Timeline */}
       <div

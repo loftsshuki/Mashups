@@ -14,6 +14,7 @@ import {
   PackageOpen,
   Flame,
   Wand2,
+  Sparkles,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const navLinks = [
   { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
   { href: "/momentum", label: "Momentum", icon: Flame },
   { href: "/studio", label: "Studio", icon: Radio },
+  { href: "/features", label: "New Features", icon: Sparkles },
   { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
   { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },
   { href: "/legal", label: "Docs", icon: Search },

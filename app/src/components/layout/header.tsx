@@ -28,6 +28,7 @@ const navLinks = [
   { href: "/tools", label: "AI Tools" },
   { href: "/scoreboard", label: "Scoreboard" },
   { href: "/studio", label: "Studio" },
+  { href: "/features", label: "New Features" },
   { href: "/pricing", label: "Pricing" },
   { href: "/enterprise", label: "Enterprise" },
   { href: "/legal", label: "Docs" },
