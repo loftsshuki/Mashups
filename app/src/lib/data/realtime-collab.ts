@@ -10,6 +10,12 @@ export interface Collaborator {
     x: number
     y: number
     timestamp: number
+    viewport?: {
+      scrollX: number
+      scrollY: number
+      width: number
+      height: number
+    }
   }
   isActive: boolean
   lastSeen: string
@@ -78,7 +84,7 @@ export async function createCollabSession(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
-  
+
   activeSessions.set(session.id, session)
   return session
 }
@@ -89,9 +95,9 @@ export async function joinCollabSession(
 ): Promise<CollabSession | null> {
   const session = activeSessions.get(sessionId)
   if (!session) return null
-  
+
   const existingIndex = session.collaborators.findIndex(c => c.userId === user.id)
-  
+
   if (existingIndex >= 0) {
     // Reconnect
     session.collaborators[existingIndex].isActive = true
@@ -109,7 +115,7 @@ export async function joinCollabSession(
       lastSeen: new Date().toISOString(),
     })
   }
-  
+
   session.updatedAt = new Date().toISOString()
   return session
 }
@@ -121,7 +127,7 @@ export async function updateCursor(
 ): Promise<void> {
   const session = activeSessions.get(sessionId)
   if (!session) return
-  
+
   const collaborator = session.collaborators.find(c => c.userId === userId)
   if (collaborator) {
     collaborator.cursor = { ...position, timestamp: Date.now() }
@@ -135,17 +141,17 @@ export async function sendOperation(
 ): Promise<CollabOperation> {
   const session = activeSessions.get(sessionId)
   if (!session) throw new Error("Session not found")
-  
+
   const op: CollabOperation = {
     ...operation,
     id: `op_${Date.now()}`,
     timestamp: new Date().toISOString(),
     acknowledged: false,
   }
-  
+
   session.operations.push(op)
   session.updatedAt = new Date().toISOString()
-  
+
   return op
 }
 
@@ -155,7 +161,7 @@ export async function toggleFollowMode(
 ): Promise<void> {
   const session = activeSessions.get(sessionId)
   if (!session) return
-  
+
   session.followMode = {
     enabled: !!leaderId,
     leaderId,
@@ -168,7 +174,7 @@ export async function leaveCollabSession(
 ): Promise<void> {
   const session = activeSessions.get(sessionId)
   if (!session) return
-  
+
   const collaborator = session.collaborators.find(c => c.userId === userId)
   if (collaborator) {
     collaborator.isActive = false
@@ -187,7 +193,7 @@ export async function getSessionUpdates(
   if (!session) {
     return { collaborators: [], operations: [] }
   }
-  
+
   return {
     collaborators: session.collaborators.filter(c => c.isActive),
     operations: session.operations.filter(o => o.timestamp > since),
