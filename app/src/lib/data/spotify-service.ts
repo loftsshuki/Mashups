@@ -86,7 +86,7 @@ export async function fetchSpotifyTrending(): Promise<TrendingSound[]> {
                 tags: ['pop', 'viral'],
                 isRemixable: true
             } as TrendingSound;
-        }).filter(t => t !== null) as TrendingSound[];
+        }).filter((t: TrendingSound | null) => t !== null) as TrendingSound[];
 
         return tracks;
     } catch (error) {
