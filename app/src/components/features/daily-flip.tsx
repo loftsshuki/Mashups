@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Play, Pause, Flame, Trophy, Clock, Share2, Upload } from "lucide-react"
 import { cn } from "@/lib/utils"
