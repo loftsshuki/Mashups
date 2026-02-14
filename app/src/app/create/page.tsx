@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useCallback, useTransition, Suspense, useEffect } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles } from "lucide-react"
+import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,13 @@ import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
+
+// Phase 3: Lazy load export components
+const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
+const CaptionEditor = lazy(() => import("@/components/captions/caption-editor").then(m => ({ default: m.CaptionEditor })))
+const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator }))
+import type { AttributionSource } from "@/lib/data/attribution"
+import type { GeneratedCaptions, GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
 
 const steps = [
   {
@@ -71,6 +78,12 @@ function CreatePageContent() {
   const [timelinePlayhead, setTimelinePlayhead] = useState(0)
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
   const [automationNodes, setAutomationNodes] = useState<AutomationNode[]>([])
+
+  // Phase 3: Export flow state
+  const [attributionSources, setAttributionSources] = useState<AttributionSource[]>([])
+  const [generatedCaptions, setGeneratedCaptions] = useState<GeneratedCaptions | null>(null)
+  const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail | null>(null)
+  const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
