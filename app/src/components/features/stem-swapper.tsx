@@ -28,6 +28,7 @@ export function StemSwapper() {
     const [processState, setProcessState] = useState<"idle" | "analyzing" | "transferring" | "done">("idle")
     const [isPlaying, setIsPlaying] = useState(false)
     const [isOriginal, setIsOriginal] = useState(false)
+    const isProcessing = processState === "analyzing" || processState === "transferring"
 
     const handleSwap = (kitId: string) => {
         if (processState !== "idle" && activeKit !== kitId) return
