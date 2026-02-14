@@ -31,6 +31,7 @@ const navLinks = [
   { href: "/feed", label: "For You", icon: Flame },
   { href: "/launchpad", label: "Product", icon: LayoutGrid },
   { href: "/packs", label: "Viral Pack", icon: PackageOpen },
+  { href: "/battles", label: "Battles", icon: Trophy },
   { href: "/thunderdome", label: "Thunderdome", icon: Trophy },
   { href: "/tools", label: "AI Tools", icon: Wand2 },
   { href: "/scoreboard", label: "Scoreboard", icon: Trophy },

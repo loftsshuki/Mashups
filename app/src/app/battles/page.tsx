@@ -24,7 +24,7 @@ export default function BattlesPage() {
   const [completedBattles, setCompletedBattles] = useState<Battle[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("active")
-  
+
   useEffect(() => {
     async function loadBattles() {
       setIsLoading(true)
@@ -41,10 +41,10 @@ export default function BattlesPage() {
         setIsLoading(false)
       }
     }
-    
+
     loadBattles()
   }, [])
-  
+
   return (
     <NeonPage>
       <NeonHero
@@ -52,7 +52,30 @@ export default function BattlesPage() {
         title="Mashup Battles"
         description="Enter competitions, vote for your favorites, and win prizes. Show the community what you've got!"
       />
-      
+
+      {/* Live Thunderdome Banner */}
+      <section className="mb-8 rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-950/40 to-background p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold uppercase italic tracking-wider text-white">
+                Thunderdome is Live
+              </h2>
+              <p className="text-sm text-zinc-400">
+                Want real-time 1v1 action? Challenge producers in the live arena.
+              </p>
+            </div>
+          </div>
+          <Button variant="destructive" className="whitespace-nowrap rounded-full" asChild>
+            <a href="/thunderdome">Enter Arena</a>
+          </Button>
+        </div>
+      </section>
+
       {/* Create Battle CTA */}
       <section className="neon-panel mb-8 rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -68,7 +91,7 @@ export default function BattlesPage() {
           </Button>
         </div>
       </section>
-      
+
       {/* Battles Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
@@ -90,14 +113,14 @@ export default function BattlesPage() {
             <span className="hidden sm:inline">Completed</span>
           </TabsTrigger>
         </TabsList>
-        
+
         {/* Active Battles */}
         <TabsContent value="active" className="space-y-6">
           <NeonSectionHeader
             title="Active Battles"
             description="Join now or vote on submissions"
           />
-          
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -112,8 +135,8 @@ export default function BattlesPage() {
           ) : activeBattles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {activeBattles.map((battle) => (
-                <BattleCard 
-                  key={battle.id} 
+                <BattleCard
+                  key={battle.id}
                   battle={battle}
                   featured={battle.status === "voting"}
                 />
@@ -129,14 +152,14 @@ export default function BattlesPage() {
             </div>
           )}
         </TabsContent>
-        
+
         {/* Upcoming Battles */}
         <TabsContent value="upcoming" className="space-y-6">
           <NeonSectionHeader
             title="Upcoming Battles"
             description="Get ready for these upcoming competitions"
           />
-          
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 2 }).map((_, i) => (
@@ -164,14 +187,14 @@ export default function BattlesPage() {
             </div>
           )}
         </TabsContent>
-        
+
         {/* Completed Battles */}
         <TabsContent value="completed" className="space-y-6">
           <NeonSectionHeader
             title="Battle History"
             description="Past competitions and winners"
           />
-          
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -200,7 +223,7 @@ export default function BattlesPage() {
           )}
         </TabsContent>
       </Tabs>
-      
+
       {/* How It Works */}
       <section className="mt-16">
         <NeonSectionHeader
