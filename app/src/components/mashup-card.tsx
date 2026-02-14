@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { useAudio } from "@/lib/audio/audio-context"
 import type { Track } from "@/lib/audio/types"
 import { Pause } from "lucide-react"
+import { TipButton } from "@/components/monetization/tip-button"
 import { trackRecommendationEvent } from "@/lib/data/recommendation-events"
 
 interface MashupCardProps {
@@ -192,7 +193,7 @@ export function MashupCard({
             </span>
           </div>
 
-          {/* Meta: genre badge + play count */}
+          {/* Meta: genre badge + play count + tip */}
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-1">
               <Badge variant="secondary" className="text-[10px]">
@@ -205,7 +206,15 @@ export function MashupCard({
                 </Badge>
               ) : null}
             </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <TipButton
+                recipientId={creator.username}
+                recipientName={creator.displayName}
+                recipientAvatar={creator.avatarUrl}
+                variant="compact"
+                showLabel={false}
+              />
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
