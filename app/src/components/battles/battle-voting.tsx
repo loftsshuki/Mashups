@@ -40,6 +40,7 @@ export function BattleVoting({
   
   const totalVotes = entries.reduce((sum, e) => sum + e.votes, 0)
   const maxVotes = Math.max(...entries.map(e => e.votes), 1)
+  const showResults = hasVoted || battle.status === "completed"
   
   const handleVote = async (entryId: string) => {
     if (userVotesRemaining <= 0 || hasVoted) return
