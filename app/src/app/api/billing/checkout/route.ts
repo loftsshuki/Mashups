@@ -8,6 +8,11 @@ import {
   type CheckoutSessionType,
 } from "@/lib/billing/stripe"
 import { writeAuditEvent } from "@/lib/data/audit-log"
+import {
+  isReferralInviteRedeemable,
+  normalizeReferralCode,
+  summarizeReferralInviteRow,
+} from "@/lib/growth/referral-invites"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -53,6 +58,33 @@ export async function POST(request: Request) {
     const cancelUrl = `${appUrl}/pricing?checkout=cancelled`
     const sessionId = randomUUID()
     const stripeSecret = process.env.STRIPE_SECRET_KEY
+    let referralCode: string | undefined
+
+    const requestedReferralCode = normalizeReferralCode(body.referralCode)
+    if (requestedReferralCode) {
+      if (isSupabaseConfigured()) {
+        const { data, error } = await supabase
+          .from("referral_invites")
+          .select(
+            "code,campaign_id,creator_tier,destination,max_uses,uses_count,rev_share_bps,expires_at,created_at",
+          )
+          .eq("code", requestedReferralCode)
+          .limit(1)
+
+        if (!error) {
+          const row =
+            Array.isArray(data) && data.length > 0
+              ? (data[0] as Record<string, unknown>)
+              : null
+          const invite = row ? summarizeReferralInviteRow(row) : null
+          if (invite && isReferralInviteRedeemable(invite.state)) {
+            referralCode = invite.code
+          }
+        }
+      } else {
+        referralCode = requestedReferralCode
+      }
+    }
 
     if (isStripeConfigured() && stripeSecret) {
       const priceId = resolveStripePriceId(body.sessionType, body.targetId)
@@ -73,7 +105,7 @@ export async function POST(request: Request) {
           session_type: body.sessionType,
           target_id: body.targetId,
           user_id: user?.id ?? "anonymous",
-          referral_code: body.referralCode ?? "",
+          referral_code: referralCode ?? "",
         },
         customerEmail: user?.email ?? undefined,
       })

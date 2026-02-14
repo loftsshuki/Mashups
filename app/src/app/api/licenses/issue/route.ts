@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       verificationCode: code,
       verificationUrl: `${appUrl}/licenses/${code}`,
+      verificationApiUrl: `${appUrl}/api/licenses/verify/${code}`,
       certificateUrl: `${appUrl}/api/licenses/certificate/${code}`,
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),

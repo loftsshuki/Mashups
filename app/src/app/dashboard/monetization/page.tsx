@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { BadgeDollarSign, FileText, Wallet } from "lucide-react"
+import { BadgeDollarSign, Download, FileText, Wallet } from "lucide-react"
 
 import { AuthGuard } from "@/components/auth/auth-guard"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,12 @@ import {
   getPayoutsForUser,
   summarizeEarnings,
 } from "@/lib/data/earnings"
+import {
+  buildMonetizationStatementCsv,
+  filterInvoicesByDateRange,
+  filterLedgerByDateRange,
+  filterPayoutsByDateRange,
+} from "@/lib/data/statement-export"
 import {
   DEFAULT_PAYOUT_THRESHOLD_CENTS,
   getPayoutEligibility,
@@ -52,6 +58,8 @@ function MonetizationContent() {
   const [thresholdDollars, setThresholdDollars] = useState<string>(
     (DEFAULT_PAYOUT_THRESHOLD_CENTS / 100).toString(),
   )
+  const [statementStartDate, setStatementStartDate] = useState("")
+  const [statementEndDate, setStatementEndDate] = useState("")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

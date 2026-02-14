@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { CalendarDays, Copy, Link2, Users } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { Ban, CalendarDays, Copy, Link2, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +23,15 @@ import {
   type CreatorTier,
 } from "@/lib/campaigns/templates"
 import type { CampaignSlot } from "@/lib/campaigns/planner"
+import type { ReferralInviteSummary } from "@/lib/growth/referral-invites"
 import { withMashupsSignature } from "@/lib/growth/signature"
+
+const inviteStateLabels: Record<ReferralInviteSummary["state"], string> = {
+  active: "Active",
+  expiring_soon: "Expiring Soon",
+  exhausted: "Exhausted",
+  expired: "Expired",
+}
 
 export default function CampaignsPage() {
   const templates = getCampaignTemplates()
@@ -51,6 +59,28 @@ export default function CampaignsPage() {
   const [inviteRevSharePercent, setInviteRevSharePercent] = useState<number | null>(null)
   const [generatingInvite, setGeneratingInvite] = useState(false)
   const [copiedInvite, setCopiedInvite] = useState(false)
+  const [copiedInviteCode, setCopiedInviteCode] = useState<string | null>(null)
+  const [invites, setInvites] = useState<ReferralInviteSummary[]>([])
+  const [loadingInvites, setLoadingInvites] = useState(true)
+  const [revokeCode, setRevokeCode] = useState<string | null>(null)
+
+  const refreshInvites = useCallback(async () => {
+    setLoadingInvites(true)
+    try {
+      const response = await fetch("/api/growth/referrals?limit=30", {
+        method: "GET",
+        cache: "no-store",
+      })
+      if (!response.ok) {
+        setInvites([])
+        return
+      }
+      const data = (await response.json()) as { invites?: ReferralInviteSummary[] }
+      setInvites(Array.isArray(data.invites) ? data.invites : [])
+    } finally {
+      setLoadingInvites(false)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -78,6 +108,10 @@ export default function CampaignsPage() {
     }
   }, [selectedTemplateId])
 
+  useEffect(() => {
+    void refreshInvites()
+  }, [refreshInvites])
+
   async function generateInvite() {
     if (!selectedTemplate) return
 
@@ -97,13 +131,15 @@ export default function CampaignsPage() {
         inviteUrl?: string
         expiresAt?: string
         revSharePercent?: number
+        destination?: string
       }
 
       if (response.ok) {
         setInviteCode(data.code ?? null)
-        setInviteLink(data.inviteUrl ?? null)
+        setInviteLink(data.inviteUrl ?? data.destination ?? null)
         setInviteExpiresAt(data.expiresAt ?? null)
         setInviteRevSharePercent(data.revSharePercent ?? null)
+        await refreshInvites()
       }
     } finally {
       setGeneratingInvite(false)
@@ -115,6 +151,35 @@ export default function CampaignsPage() {
     await navigator.clipboard.writeText(inviteLink)
     setCopiedInvite(true)
     setTimeout(() => setCopiedInvite(false), 1600)
+  }
+
+  async function copyInviteCodeToClipboard(code: string) {
+    await navigator.clipboard.writeText(code)
+    setCopiedInviteCode(code)
+    setTimeout(() => {
+      setCopiedInviteCode((prev) => (prev === code ? null : prev))
+    }, 1600)
+  }
+
+  async function revokeInvite(code: string) {
+    setRevokeCode(code)
+    try {
+      const response = await fetch(`/api/growth/referrals/${encodeURIComponent(code)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "revoke" }),
+      })
+      if (!response.ok) return
+
+      const payload = (await response.json()) as { invite?: ReferralInviteSummary | null }
+      if (payload.invite) {
+        setInvites((prev) => prev.map((entry) => (entry.code === code ? payload.invite! : entry)))
+      } else {
+        await refreshInvites()
+      }
+    } finally {
+      setRevokeCode(null)
+    }
   }
 
   async function generateLink(slotKey: string, day: string) {
@@ -250,6 +315,105 @@ export default function CampaignsPage() {
             ) : null}
           </div>
         ) : null}
+
+        <div className="mt-4 rounded-xl border border-border/60 bg-background/40 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground">Recent Invites</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-full"
+              onClick={() => void refreshInvites()}
+              disabled={loadingInvites}
+            >
+              {loadingInvites ? "Refreshing..." : "Refresh"}
+            </Button>
+          </div>
+
+          {loadingInvites ? (
+            <p className="text-xs text-muted-foreground">Loading invite lifecycle data...</p>
+          ) : null}
+
+          {!loadingInvites && invites.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No invites generated yet for this account.
+            </p>
+          ) : null}
+
+          {!loadingInvites && invites.length > 0 ? (
+            <div className="space-y-2">
+              {invites.map((invite) => (
+                <div
+                  key={invite.code}
+                  className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-semibold text-foreground">{invite.code}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Campaign: {invite.campaignId} | Tier: {invite.creatorTier}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        invite.state === "active"
+                          ? "default"
+                          : invite.state === "expiring_soon"
+                            ? "secondary"
+                            : "destructive"
+                      }
+                    >
+                      {inviteStateLabels[invite.state]}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Uses {invite.usesCount}/{invite.maxUses} | Remaining {invite.usesRemaining} | Rev
+                    share {invite.revSharePercent.toFixed(1)}%
+                  </p>
+                  {invite.expiresAt ? (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Expires {new Date(invite.expiresAt).toLocaleString()}
+                    </p>
+                  ) : null}
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-full"
+                      onClick={() => copyInviteCodeToClipboard(invite.code)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      {copiedInviteCode === invite.code ? "Copied Code" : "Copy Code"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-full"
+                      onClick={() => void navigator.clipboard.writeText(invite.destination)}
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                      Copy Destination
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-full"
+                      onClick={() => revokeInvite(invite.code)}
+                      disabled={
+                        revokeCode === invite.code ||
+                        invite.state === "expired" ||
+                        invite.state === "exhausted"
+                      }
+                    >
+                      <Ban className="h-3.5 w-3.5" />
+                      {revokeCode === invite.code ? "Revoking..." : "Revoke"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </section>
 
       <NeonSectionHeader
@@ -265,38 +429,38 @@ export default function CampaignsPage() {
           const slotKey = `${slot.day}-${slot.platform}-${slot.mashupId}-${index}`
           return (
             <div key={slotKey} className="neon-panel rounded-2xl p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {slot.day} | {slot.platform} | {slot.clipLengthSec}s
-                </p>
-                <p className="text-xs text-muted-foreground">Mashup: {slot.mashupId}</p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {slot.day} | {slot.platform} | {slot.clipLengthSec}s
+                  </p>
+                  <p className="text-xs text-muted-foreground">Mashup: {slot.mashupId}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => copyCaption(slotKey, slot.caption)}
+                  >
+                    <Copy className="h-4 w-4" />
+                    {copiedSlotKey === slotKey ? "Copied" : "Copy"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => generateLink(slotKey, slot.day)}
+                    disabled={loadingSlotKey === slotKey}
+                  >
+                    <Link2 className="h-4 w-4" />
+                    {loadingSlotKey === slotKey ? "Generating..." : "Sign Link"}
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => copyCaption(slotKey, slot.caption)}
-                >
-                  <Copy className="h-4 w-4" />
-                  {copiedSlotKey === slotKey ? "Copied" : "Copy"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => generateLink(slotKey, slot.day)}
-                  disabled={loadingSlotKey === slotKey}
-                >
-                  <Link2 className="h-4 w-4" />
-                  {loadingSlotKey === slotKey ? "Generating..." : "Sign Link"}
-                </Button>
-              </div>
+              <p className="mt-3 text-sm text-foreground">{slot.hook}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{slot.caption}</p>
             </div>
-            <p className="mt-3 text-sm text-foreground">{slot.hook}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{slot.caption}</p>
-          </div>
           )
         })}
       </NeonGrid>

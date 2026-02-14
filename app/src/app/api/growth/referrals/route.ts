@@ -4,6 +4,10 @@ import { NextResponse } from "next/server"
 import { signAttributionLink } from "@/lib/attribution/signing"
 import { writeAuditEvent } from "@/lib/data/audit-log"
 import { clampReferralRevShareBps } from "@/lib/growth/referral-accounting"
+import {
+  summarizeReferralInviteRow,
+  type ReferralInviteSummary,
+} from "@/lib/growth/referral-invites"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -26,6 +30,58 @@ const defaultMaxUses: Record<CreatorTier, number> = {
 const isSupabaseConfigured = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const campaignIdFilter = searchParams.get("campaignId")?.trim() ?? null
+    const requestedLimit = Number.parseInt(searchParams.get("limit") ?? "25", 10)
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.min(100, Math.max(1, requestedLimit))
+      : 25
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ invites: [] as ReferralInviteSummary[] })
+    }
+
+    if (!user?.id) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
+    }
+
+    const baseQuery = supabase
+      .from("referral_invites")
+      .select(
+        "code,campaign_id,creator_tier,destination,max_uses,uses_count,rev_share_bps,expires_at,created_at,user_id",
+      )
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    const { data, error } = await baseQuery.eq("user_id", user.id)
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    const now = new Date()
+    const invites = ((data as Record<string, unknown>[] | null) ?? [])
+      .map((row) => summarizeReferralInviteRow(row, now))
+      .filter((invite): invite is ReferralInviteSummary => Boolean(invite))
+      .filter((invite) =>
+        campaignIdFilter ? invite.campaignId === campaignIdFilter : true,
+      )
+
+    return NextResponse.json({ invites })
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to load referral invites." },
+      { status: 500 },
+    )
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -131,6 +187,8 @@ export async function POST(request: Request) {
       maxUses,
       tier: body.creatorTier,
       revSharePercent: revShareBps / 100,
+      campaignId: body.campaignId,
+      destination,
     })
   } catch {
     await writeAuditEvent({

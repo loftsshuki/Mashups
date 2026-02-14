@@ -85,12 +85,13 @@ function resolveInvoiceAmount(sessionType: InvoiceSummary["sessionType"], target
 export async function startCheckout(
   sessionType: "subscription" | "license",
   targetId: string,
+  referralCode?: string,
 ): Promise<{ checkoutUrl?: string; error?: string }> {
   try {
     const response = await fetch("/api/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionType, targetId }),
+      body: JSON.stringify({ sessionType, targetId, referralCode }),
     })
 
     const data = (await response.json()) as { checkoutUrl?: string; error?: string }
