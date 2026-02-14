@@ -47,7 +47,7 @@ export default function ToolsPage() {
         {/* Tools Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Link href="/create/ai">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full bg-zinc-900/50">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -64,17 +64,89 @@ export default function ToolsPage() {
             </Card>
           </Link>
 
-          <Link href="/tools/vocal">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-primary">
+          <Link href="/tools/stem-swapper">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-indigo-500/20 bg-indigo-900/10">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Mic className="h-6 w-6 text-primary" />
+                  <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                    <Wand2 className="h-6 w-6 text-indigo-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">AI Vocal Studio</h3>
+                    <h3 className="font-semibold text-lg">Smart Stem Swapper</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Auto-tune, harmonize, and transform vocals with AI
+                      Change the sound (timbre) of a loop while keeping the rhythm.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/tools/harmony">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-purple-500/20 bg-purple-900/10">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                    <Wand2 className="h-6 w-6 text-purple-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">AI Harmony Engine</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Generate 4-part vocal harmonies instantly.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/tools/lyrics">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-blue-500/20 bg-blue-900/10">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <Wand2 className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Lyrics Studio</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Auto-transcription and translation.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/tools/mastering">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-green-500/20 bg-green-900/10">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                    <Wand2 className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">AI Mastering</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Finalize your track with AI-driven compression.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/tools/style">
+            <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full border-pink-500/20 bg-pink-900/10">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center">
+                    <Wand2 className="h-6 w-6 text-pink-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Style Transfer</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Apply artist styles (Daft Punk, Skrillex) to your stems.
                     </p>
                   </div>
                 </div>
@@ -86,7 +158,7 @@ export default function ToolsPage() {
         {/* Quick Access to Vocal Studio */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold">AI Vocal Studio</h2>
-          
+
           {!uploadedFile ? (
             <Card>
               <CardContent className="p-8">

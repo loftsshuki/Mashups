@@ -16,7 +16,7 @@
 | Phase 3 | Community & Social | 🟢 Done | 100% |
 | Phase 3 | Community & Social | ⚪ Planned | 0% |
 | Phase 4 | Rights & Monetization 2.0 | ⚪ Planned | 0% |
-| Phase 5 | AI-Powered Features | 🟡 In Progress | 40% |
+| Phase 5 | AI-Powered Features | 🟢 Done | 100% |
 | Phase 6 | Technical Polish & Platform Expansion | ⚪ Planned | 0% |
 | Phase 7 | Enterprise & B2B | ⚪ Planned | 0% |
 
@@ -126,16 +126,11 @@
 | **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | 🟢 Done |
 | **AI Vocal Features** | Voice transformation | Voice cloning (consent); auto-tune (scale-aware); vocal-to-MIDI; real-time effects | TBD | 6d | 🟢 Done |
 | **Intelligent Recommendations** | "What to remix next" | ML-based suggestions; skill progression awareness; trending awareness; daily feed | TBD | 4d | 🟢 Done |
-| **AI Harmony Engine** | Generative Vocal Harmonies | Generate 3-part harmonies from lead vocal; MIDI export; Scale-aware | TBD | 10d | ⚪ Planned |
-
-### 🟡 MEDIUM PRIORITY
-
-| Card | Description | Acceptance Criteria | Assignee | Est. | Status |
-|------|-------------|---------------------|----------|------|--------|
-| **Lyrics & Transcription** | Auto-transcribe + karaoke | Whisper API; synced lyrics display; search by lyric; karaoke mode (vocal mute) | TBD | 4d | ⚪ Backlog |
-| **AI Mastering** | Auto-finalize tracks | Loudness normalization (LUFS); EQ balancing; stereo widening; genre presets | TBD | 3d | ⚪ Backlog |
-| **Style Transfer** | Apply artist style to track | "Make this sound like Daft Punk"; style embeddings; transferable via examples | TBD | 5d | ⚪ Backlog |
-| **Smart Stem Swapping** | Genre-bending workflow | Right-click "Swap Kit"; preserve rhythm/midi; replace timbre (e.g. Rock drums -> Techno) | TBD | 12d | 🟡 In Progress |
+| **AI Harmony Engine** | Generative Vocal Harmonies | Generate 3-part harmonies from lead vocal; MIDI export; Scale-aware | TBD | 10d | 🟢 Done |
+| **Lyrics & Transcription** | Auto-transcribe + karaoke | Whisper API; synced lyrics display; search by lyric; karaoke mode (vocal mute) | TBD | 4d | 🟢 Done |
+| **AI Mastering** | Auto-finalize tracks | Loudness normalization (LUFS); EQ balancing; stereo widening; genre presets | TBD | 3d | 🟢 Done |
+| **Style Transfer** | Apply artist style to track | "Make this sound like Daft Punk"; style embeddings; transferable via examples | TBD | 5d | 🟢 Done |
+| **Smart Stem Swapping** | Genre-bending workflow | Right-click "Swap Kit"; preserve rhythm/midi; replace timbre (e.g. Rock drums -> Techno) | TBD | 12d | 🟢 Done |
 
 ---
 
