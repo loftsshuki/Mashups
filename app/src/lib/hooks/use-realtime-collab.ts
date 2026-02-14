@@ -64,7 +64,16 @@ export function useRealtimeCollab({
       const collaborators: Collaborator[] = []
       
       Object.entries(presenceState).forEach(([key, presences]) => {
-        const presence = presences[0] as {
+        const presenceArray = presences as Array<{
+          userId: string
+          displayName: string
+          avatarUrl: string
+          color: string
+          cursor: CursorPosition
+          isActive: boolean
+          lastSeen: string
+        }>
+        const presence = presenceArray[0]
           userId: string
           displayName: string
           avatarUrl: string

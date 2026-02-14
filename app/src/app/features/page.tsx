@@ -1,6 +1,7 @@
 import { DailyFlip } from "@/components/features/daily-flip"
 import { LivePerformanceDeck } from "@/components/features/live-deck"
 import { StemSwapper } from "@/components/features/stem-swapper"
+import { AutoMashupPlayer } from "@/components/features/auto-mashup-player"
 
 export default function FeaturesPage() {
     return (
@@ -89,9 +90,44 @@ export default function FeaturesPage() {
                 </div>
             </section>
 
-            <div className="h-24 flex items-center justify-center text-zinc-600 text-sm">
-                Mashups.com Internal Preview
-            </div>
+            {/* Feature 4: AI Hook Generator */}
+            <section className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div className="order-2 md:order-1 flex justify-center">
+                    <AutoMashupPlayer />
+                </div>
+                <div className="space-y-6 order-1 md:order-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        </span>
+                        Phase 2: Viral Distribution
+                    </div>
+                    <h2 className="text-4xl font-bold">Auto-Mashup Engine</h2>
+                    <p className="text-xl text-zinc-400">
+                        Generate viral hooks in seconds. Our algorithmic engine analyzes tracks for key & bpm, then perfects the chop.
+                    </p>
+                    <ul className="space-y-3 text-zinc-300">
+                        <li className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                            Smart Chopping (Transient Detection)
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                            3 Mixing Modes: Chop, Blend, Switch
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                            Instant BPM Sync
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="text-center text-zinc-600 pb-12">
+                <p>© 2026 Mashups.com - Confidential Internal Preview</p>
+            </footer>
         </div>
     )
 }
