@@ -67,6 +67,7 @@
 | **Attribution Watermark System** | Invisible + visible tracking | Audio fingerprint (inaudible); visual watermark templates; chain-of-custody tracking | TBD | 4d | ⚪ Backlog |
 | **Auto-Caption Generator** | Platform-native captions | Generate captions from lyrics/transcription; platform-optimized formatting; hashtag suggestions | TBD | 2d | ⚪ Backlog |
 | **Thumbnail Generator** | Auto-create cover art from waveform | Multiple templates; customizable colors/text; export PNG/SVG | TBD | 2d | ⚪ Backlog |
+| **Streamer "Crowd Control"** | Twitch/Kick Integration | Chat commands (!drop) trigger Live Deck; Overlay widget; Bits trigger FX | TBD | 8d | 🟢 Done |
 
 ---
 
@@ -81,6 +82,7 @@
 | **Mashup Battles** | 1v1/tournament competitions | Challenge flow; blind voting; countdown timer; winner badges; prize distribution | TBD | 6d | 🟢 Done |
 | **Creator Tiers & Badges** | Gamification system | 10+ badge types; animated badges; profile showcase; achievement notifications | TBD | 3d | 🟢 Done |
 | **The Daily Flip** | Daily mashup challenge | Daily 3-stem drop; 24hr leaderboard; streak tracking; auto-generated social share | TBD | 10d | ⚪ Backlog |
+| **Real-Time "Thunderdome"** | Synchronous Multiplayer Battles | WebSocket sync (<50ms); Split-screen view; Spectator voting | TBD | 14d | ⚪ Planned |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -123,6 +125,7 @@
 | **Auto-Mashup AI** | "Surprise me" full auto-mashup | Upload 2+ tracks; AI creates complete mashup; multiple "vibe" presets; editable result | TBD | 7d | 🟢 Done |
 | **AI Vocal Features** | Voice transformation | Voice cloning (consent); auto-tune (scale-aware); vocal-to-MIDI; real-time effects | TBD | 6d | 🟢 Done |
 | **Intelligent Recommendations** | "What to remix next" | ML-based suggestions; skill progression awareness; trending awareness; daily feed | TBD | 4d | 🟢 Done |
+| **AI Harmony Engine** | Generative Vocal Harmonies | Generate 3-part harmonies from lead vocal; MIDI export; Scale-aware | TBD | 10d | ⚪ Planned |
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -154,6 +157,7 @@
 | **Offline Mode** | Work without internet | Create/edit offline; sync on reconnect; conflict resolution; offline indicator | TBD | 5d | ⚪ Backlog |
 | **Branching Undo History** | Photoshop-style history | Branching timeline; jump to any point; named snapshots; compare versions | TBD | 3d | ⚪ Backlog |
 | **Adaptive UI (Beginner/Pro)** | Contextual interface | Simple mode (limited options); Pro mode (full power); progressive disclosure; tooltips | TBD | 3d | ⚪ Backlog |
+| **"Ghostwriter" Assistant** | Natural Language Action Agent | LLM parses "Make it punchier" -> Adds Compressor/EQ; "Clear mud" -> Cuts low-mids | TBD | 12d | ⚪ Planned |
 
 ---
 

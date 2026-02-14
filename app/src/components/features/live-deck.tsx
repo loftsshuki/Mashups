@@ -5,7 +5,8 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
-import { Play, Square, Circle, Mic2, Music2, Drum, Activity, Volume2 } from "lucide-react"
+import { Play, Square, Circle, Mic2, Music2, Drum, Activity, Volume2, Twitch, Globe } from "lucide-react"
+import { useTwitchChat } from "@/lib/hooks/use-twitch-chat"
 // import * as Tone from "tone"
 
 // Defines the 8x8 grid state
@@ -32,6 +33,44 @@ export function LivePerformanceDeck() {
     const [audioReady, setAudioReady] = useState(false)
     const [synths, setSynths] = useState<any[] | null>(null)
     const toneRef = useRef<any>(null)
+
+    // Streamer Mode State
+    const [streamerMode, setStreamerMode] = useState(false)
+    const [witchChannel, setTwitchChannel] = useState("")
+
+    // Handle Twitch Commands
+    const handleCommand = (command: string, username: string) => {
+        if (!audioReady || !toneRef.current) return
+
+        console.log(`Received command: ${command} from ${username}`)
+
+        if (command === "!drop") {
+            // Trigger Scene 3 (index 2)
+            triggerScene(2)
+        } else if (command === "!glitch") {
+            // Randomly trigger stutter macro
+            // This would set macro value temporarily
+            const originalVal = MACROS[2].value
+            // Simulate knob turn
+            const interval = setInterval(() => {
+                MACROS[2].value = Math.random() * 100
+            }, 100)
+            setTimeout(() => {
+                clearInterval(interval)
+                MACROS[2].value = 0
+            }, 2000)
+        } else if (command === "!chaos") {
+            // Randomly trigger clips
+            const randomTrack = Math.floor(Math.random() * 8)
+            const randomScene = Math.floor(Math.random() * 8)
+            triggerClip(randomTrack, randomScene)
+        }
+    }
+
+    const { isConnected, connect, disconnect, messages } = useTwitchChat({
+        channel: witchChannel,
+        onCommand: handleCommand
+    })
 
     // Initialize audio engine
     const startEngine = async () => {
@@ -147,6 +186,16 @@ export function LivePerformanceDeck() {
                     ) : (
                         <Button variant="default" size="icon" className="bg-green-500 hover:bg-green-600"><Play className="w-4 h-4 fill-current" /></Button>
                     )}
+                    {/* Streamer Toggle */}
+                    <Button
+                        variant={streamerMode ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn("gap-2", streamerMode && "bg-purple-500/10 text-purple-400 border border-purple-500/50")}
+                        onClick={() => setStreamerMode(!streamerMode)}
+                    >
+                        <Globe className="w-4 h-4" />
+                        {streamerMode ? "Streamer Mode ON" : "Streamer Mode"}
+                    </Button>
                 </div>
             </div>
 
@@ -228,6 +277,55 @@ export function LivePerformanceDeck() {
                     </div>
                 </div>
             </div>
+
+            {/* Streamer Mode Overlay */}
+            {streamerMode && (
+                <div className="absolute right-4 top-20 w-64 bg-zinc-900/90 backdrop-blur-md rounded-lg border border-purple-500/50 p-4 shadow-xl z-50">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-purple-400 font-bold">
+                            <Twitch className="w-4 h-4" /> Stream Chat
+                        </div>
+                        <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-green-500" : "bg-red-500")} />
+                    </div>
+
+                    {!isConnected ? (
+                        <div className="flex gap-2">
+                            <input
+                                className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs w-full text-white"
+                                placeholder="Channel Name"
+                                value={witchChannel}
+                                onChange={(e) => setTwitchChannel(e.target.value)}
+                            />
+                            <Button size="sm" onClick={connect} disabled={!witchChannel} className="bg-purple-600 hover:bg-purple-700 text-xs h-7">
+                                Connect
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <div className="h-32 overflow-y-auto space-y-1 text-xs font-mono scrollbar-hide">
+                                {messages.map((msg, i) => (
+                                    <div key={i} className="animate-in fade-in slide-in-from-right-2 duration-300">
+                                        <span style={{ color: msg.color }} className="font-bold">{msg.username}:</span>
+                                        <span className="text-zinc-300 ml-1">{msg.message}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <Button size="sm" variant="outline" onClick={disconnect} className="w-full text-xs h-6 border-zinc-700 text-zinc-400 hover:text-white">
+                                Disconnect
+                            </Button>
+                        </div>
+                    )}
+
+                    <div className="mt-4 pt-4 border-t border-zinc-800">
+                        <h4 className="text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Active Commands</h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <code className="bg-zinc-800 px-1 py-0.5 rounded text-purple-400 text-center">!drop</code>
+                            <code className="bg-zinc-800 px-1 py-0.5 rounded text-indigo-400 text-center">!glitch</code>
+                            <code className="bg-zinc-800 px-1 py-0.5 rounded text-pink-400 text-center">!chaos</code>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

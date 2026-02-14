@@ -13,6 +13,7 @@
     "@daily-co/daily-js": "^0.68.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@types/tmi.js": "^1.8.6",
     "@vercel/blob": "^2.2.0",
     "@wavesurfer/react": "^1.0.12",
     "class-variance-authority": "^0.7.1",
@@ -28,6 +29,7 @@
     "replicate": "^1.0.1",
     "spotify-web-api-node": "^5.0.2",
     "tailwind-merge": "^3.4.0",
+    "tmi.js": "^1.8.5",
     "tone": "^15.1.22",
     "wavesurfer.js": "^7.12.1"
   },
