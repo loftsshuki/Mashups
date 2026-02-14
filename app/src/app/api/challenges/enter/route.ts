@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { enterChallengeFromBackend } from "@/lib/data/challenge-engine"
+import { writeAuditEvent } from "@/lib/data/audit-log"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 interface EnterChallengeBody {
@@ -26,6 +28,17 @@ export async function POST(request: Request) {
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
+    const rate = consumeRateLimit({
+      key: resolveRateLimitKey(request, "challenges.enter", user?.id ?? null),
+      limit: 15,
+      windowMs: 60_000,
+    })
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again shortly." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      )
+    }
 
     const result = await enterChallengeFromBackend({
       challengeId: body.challengeId,
@@ -34,8 +47,25 @@ export async function POST(request: Request) {
     })
 
     if (!result.ok) {
+      await writeAuditEvent({
+        actorId: user?.id ?? null,
+        action: "challenge.entry.submit",
+        resourceType: "challenge",
+        resourceId: body.challengeId,
+        status: "error",
+        metadata: { error: result.error },
+      })
       return NextResponse.json({ error: result.error }, { status: result.status })
     }
+
+    await writeAuditEvent({
+      actorId: user?.id ?? null,
+      action: "challenge.entry.submit",
+      resourceType: "challenge",
+      resourceId: body.challengeId,
+      status: "success",
+      metadata: { entryId: result.entryId, mashupId: result.mashupId },
+    })
 
     return NextResponse.json({
       ok: true,
