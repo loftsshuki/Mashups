@@ -7,27 +7,12 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
-import { scorePublishReadiness } from "@/lib/audio/quality-score"
-import { computeMomentum } from "@/lib/growth/momentum"
-import { mockMashups } from "@/lib/mock-data"
+import { getMomentumFeed } from "@/lib/data/momentum-feed"
 
-function canFeatureTrack(title: string, bpm: number, description: string, sourceTrackCount: number) {
-  const score = scorePublishReadiness({
-    bpm,
-    titleLength: title.length,
-    descriptionLength: description.length,
-    sourceTrackCount,
-    hasCover: true,
-  })
-  return score.viralReadiness >= 65
-}
-
-export default function MomentumPage() {
-  const ranked = computeMomentum(mockMashups)
+export default async function MomentumPage() {
+  const ranked = await getMomentumFeed(16)
   const rising = ranked.slice(0, 8)
-  const sponsoredEligible = ranked.filter((mashup) =>
-    canFeatureTrack(mashup.title, mashup.bpm, mashup.description, mashup.sourceTracks.length),
-  )
+  const sponsoredEligible = ranked.filter((mashup) => mashup.sponsoredEligible)
 
   return (
     <NeonPage>
@@ -107,4 +92,3 @@ export default function MomentumPage() {
     </NeonPage>
   )
 }
-

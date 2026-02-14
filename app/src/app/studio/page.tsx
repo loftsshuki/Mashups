@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  type CollaborationSession,
   getSessionCollabSummary,
   mockCollaborationSessions,
 } from "@/lib/data/collaboration"
@@ -46,6 +47,10 @@ import {
   saveStudioNoteToDb,
   saveStudioSnapshotToDb,
 } from "@/lib/data/studio-persistence"
+import {
+  createStudioSession,
+  fetchStudioSessions,
+} from "@/lib/data/studio-sessions"
 import { createClient } from "@/lib/supabase/client"
 
 type StudioBroadcastEvent =
@@ -135,10 +140,28 @@ function upsertSnapshot(prev: StudioSnapshot[], snapshot: StudioSnapshot): Studi
   )
 }
 
+const defaultSession: CollaborationSession =
+  mockCollaborationSessions[0] ?? {
+    id: "sess-default",
+    title: "Studio Session",
+    status: "active",
+    participants: 1,
+    startedAt: new Date().toISOString(),
+  }
+
 export default function StudioPage() {
-  const session = mockCollaborationSessions[0]
+  const [sessions, setSessions] = useState<CollaborationSession[]>(mockCollaborationSessions)
+  const [activeSessionId, setActiveSessionId] = useState(() => defaultSession.id)
+  const session = useMemo(
+    () =>
+      sessions.find((entry) => entry.id === activeSessionId) ??
+      sessions[0] ??
+      defaultSession,
+    [activeSessionId, sessions],
+  )
   const [presenceCount, setPresenceCount] = useState(1)
   const [connected, setConnected] = useState(false)
+  const [creatingSession, setCreatingSession] = useState(false)
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [bpm, setBpm] = useState(120)
@@ -147,13 +170,13 @@ export default function StudioPage() {
   const [markerLabel, setMarkerLabel] = useState("")
   const [noteText, setNoteText] = useState("")
   const [markers, setMarkers] = useState<StudioMarker[]>(
-    () => loadStudioSessionState(session.id).markers,
+    () => loadStudioSessionState(activeSessionId).markers,
   )
   const [notes, setNotes] = useState<StudioNote[]>(
-    () => loadStudioSessionState(session.id).notes,
+    () => loadStudioSessionState(activeSessionId).notes,
   )
   const [snapshots, setSnapshots] = useState<StudioSnapshot[]>(
-    () => loadStudioSessionState(session.id).snapshots,
+    () => loadStudioSessionState(activeSessionId).snapshots,
   )
   const [producerAlias] = useState(() => getOrCreateStudioAlias())
   const [audienceMode, setAudienceMode] = useState(false)
@@ -165,12 +188,12 @@ export default function StudioPage() {
   const fallbackSessionMeta = useMemo(
     () =>
       Object.fromEntries(
-        mockCollaborationSessions.map((entry) => [
+        sessions.map((entry) => [
           entry.id,
           getSessionCollabSummary(entry.id),
         ]),
       ),
-    [],
+    [sessions],
   )
 
   const sendStudioBroadcast = useCallback(
@@ -184,6 +207,30 @@ export default function StudioPage() {
     },
     [],
   )
+
+  useEffect(() => {
+    let cancelled = false
+    void fetchStudioSessions().then((nextSessions) => {
+      if (cancelled || nextSessions.length === 0) return
+      setSessions(nextSessions)
+      setActiveSessionId((prev) =>
+        nextSessions.some((entry) => entry.id === prev)
+          ? prev
+          : (nextSessions[0]?.id ?? prev),
+      )
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    const state = loadStudioSessionState(session.id)
+    setMarkers(state.markers)
+    setNotes(state.notes)
+    setSnapshots(state.snapshots)
+  }, [session.id])
 
   useEffect(() => {
     saveStudioSessionState(session.id, { markers, notes, snapshots })
@@ -340,6 +387,20 @@ export default function StudioPage() {
     snapshots.length,
   ])
 
+  async function handleCreateSession() {
+    setCreatingSession(true)
+    try {
+      const nextSession = await createStudioSession(
+        `Session ${new Date().toLocaleDateString()}`,
+      )
+      if (!nextSession) return
+      setSessions((prev) => [nextSession, ...prev])
+      setActiveSessionId(nextSession.id)
+    } finally {
+      setCreatingSession(false)
+    }
+  }
+
   async function copyAudienceInvite() {
     if (typeof window === "undefined") return
     const invite = `${window.location.origin}/studio?session=${session.id}&mode=audience`
@@ -354,7 +415,15 @@ export default function StudioPage() {
         eyebrow="Realtime Studio"
         title="Collaborative session control, timeline notes, and version snapshots."
         description="Studio now supports shared markers, notes, and snapshot checkpoints for faster collab iteration."
-        actions={<Button className="rounded-full">New Session</Button>}
+        actions={
+          <Button
+            className="rounded-full"
+            onClick={handleCreateSession}
+            disabled={creatingSession}
+          >
+            {creatingSession ? "Creating..." : "New Session"}
+          </Button>
+        }
         aside={
           <div className="space-y-1">
             <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -594,7 +663,7 @@ export default function StudioPage() {
       <section className="mt-6">
         <NeonSectionHeader title="Sessions" />
         <NeonGrid>
-          {mockCollaborationSessions.map((entry) => (
+          {sessions.map((entry) => (
             <div
               key={entry.id}
               className="neon-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
@@ -611,9 +680,7 @@ export default function StudioPage() {
                 </Badge>
                 <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  {entry.id === mockCollaborationSessions[0].id
-                    ? presenceCount
-                    : entry.participants}
+                  {entry.id === session.id ? presenceCount : entry.participants}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {entry.id === session.id
@@ -626,14 +693,22 @@ export default function StudioPage() {
                   {entry.status === "active" ? (
                     <>
                       <PauseCircle className="h-4 w-4" />
-                      Pause
+                      {entry.id === session.id ? "Live" : "Pause"}
                     </>
                   ) : (
                     <>
                       <Radio className="h-4 w-4" />
-                      Resume
+                      {entry.id === session.id ? "Resume" : "Open"}
                     </>
                   )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setActiveSessionId(entry.id)}
+                >
+                  Open
                 </Button>
               </div>
             </div>

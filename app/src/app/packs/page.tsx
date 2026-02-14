@@ -12,7 +12,6 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import { withMashupsSignature } from "@/lib/growth/signature"
-import { getWeeklyViralPack } from "@/lib/data/viral-packs"
 import type { WeeklyViralPack } from "@/lib/growth/viral-pack"
 
 export default function ViralPacksPage() {
@@ -28,9 +27,11 @@ export default function ViralPacksPage() {
     async function loadPack() {
       setLoadingPack(true)
       try {
-        const nextPack = await getWeeklyViralPack()
-        if (!cancelled) {
-          setPack(nextPack)
+        const response = await fetch("/api/packs/weekly", { cache: "no-store" })
+        if (!response.ok) return
+        const payload = (await response.json()) as { pack?: WeeklyViralPack }
+        if (!cancelled && payload.pack) {
+          setPack(payload.pack)
         }
       } finally {
         if (!cancelled) setLoadingPack(false)

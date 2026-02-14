@@ -1,34 +1,51 @@
 import { NextResponse } from "next/server"
 
-import { enterChallengeFromBackend } from "@/lib/data/challenge-engine"
+import {
+  enterChallengeFromBackend,
+  getChallengeEntriesFromBackend,
+} from "@/lib/data/challenge-engine"
 import { createClient } from "@/lib/supabase/server"
-
-interface EnterChallengeBody {
-  challengeId?: string
-  mashupId?: string
-}
 
 const isSupabaseConfigured = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-export async function POST(request: Request) {
+interface EnterBody {
+  mashupId?: string
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ challengeId: string }> },
+) {
   try {
-    const body = (await request.json()) as EnterChallengeBody
-    if (!body.challengeId) {
-      return NextResponse.json({ error: "challengeId is required." }, { status: 400 })
-    }
+    const { challengeId } = await params
+    const entries = await getChallengeEntriesFromBackend(challengeId)
+    return NextResponse.json({ entries })
+  } catch {
+    return NextResponse.json({ error: "Failed to load challenge entries." }, { status: 500 })
+  }
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ challengeId: string }> },
+) {
+  try {
+    const body = (await request.json().catch(() => ({}))) as EnterBody
+    const { challengeId } = await params
 
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
+
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
 
     const result = await enterChallengeFromBackend({
-      challengeId: body.challengeId,
+      challengeId,
       mashupId: body.mashupId,
       userId: user?.id ?? "mock-user",
     })

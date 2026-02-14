@@ -16,8 +16,10 @@ import { Button } from "@/components/ui/button"
 import { MashupCard } from "@/components/mashup-card"
 import { CreatorAvatar } from "@/components/creator-avatar"
 import { SmartMashupLab } from "@/components/discovery/smart-mashup-lab"
-import { mockCreators, mockMashups } from "@/lib/mock-data"
-import { computeMomentum } from "@/lib/growth/momentum"
+import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
+import { getMomentumFeed } from "@/lib/data/momentum-feed"
+import { getTrendingMashups } from "@/lib/data/mashups"
+import { mockCreators } from "@/lib/mock-data"
 
 const creatorChannels = [
   "YouTube Shorts",
@@ -109,9 +111,14 @@ const platformPillars = [
   },
 ] as const
 
-export default function Home() {
-  const trendingMashups = mockMashups.slice(0, 6)
-  const momentumMashups = computeMomentum(mockMashups).slice(0, 4)
+export default async function Home() {
+  const [trendingRows, momentumMashups] = await Promise.all([
+    getTrendingMashups(6),
+    getMomentumFeed(4),
+  ])
+  const trendingMashups = trendingRows.map((row) =>
+    mapRowToMockMashup(row as unknown as Record<string, unknown>),
+  )
 
   return (
     <div className="pb-24">

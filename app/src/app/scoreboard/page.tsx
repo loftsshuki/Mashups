@@ -12,9 +12,6 @@ import {
   NeonPage,
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
-import {
-  getCreatorScoreboardRows,
-} from "@/lib/data/scoreboard"
 import type { CreatorScoreboardRow } from "@/lib/growth/scoreboard"
 
 function formatCount(value: number): string {
@@ -31,8 +28,10 @@ export default function ScoreboardPage() {
     async function loadRows() {
       setLoading(true)
       try {
-        const nextRows = await getCreatorScoreboardRows()
-        if (!cancelled) setRows(nextRows)
+        const response = await fetch("/api/scoreboard/weekly", { cache: "no-store" })
+        if (!response.ok) return
+        const payload = (await response.json()) as { rows?: CreatorScoreboardRow[] }
+        if (!cancelled && Array.isArray(payload.rows)) setRows(payload.rows)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -101,4 +100,3 @@ export default function ScoreboardPage() {
     </NeonPage>
   )
 }
-
