@@ -19,6 +19,7 @@ import {
   NeonSectionHeader,
 } from "@/components/marketing/neon-page"
 import { TrendingSidebar } from "@/components/create/trending-sidebar"
+import { EmergingCreators } from "@/components/discovery/emerging-creators"
 import { getLocalRecommendationEvents } from "@/lib/data/recommendation-events"
 import {
   getRightsSafetyAssessment,
@@ -316,7 +317,8 @@ function ExploreContent() {
           )}
         </div>
 
-        <aside className="shrink-0 lg:w-80">
+        <aside className="shrink-0 lg:w-80 space-y-6">
+          <EmergingCreators />
           <TrendingSidebar />
         </aside>
       </div>
