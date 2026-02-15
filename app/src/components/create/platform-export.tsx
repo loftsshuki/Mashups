@@ -13,6 +13,7 @@ import {
   Smartphone,
   Monitor,
   Square,
+  SplitSquareVertical,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { BeforeAfterGenerator } from "@/components/export/before-after-generator"
 
 type Platform = "tiktok" | "instagram" | "youtube" | "twitter"
 type AspectRatio = "9:16" | "1:1" | "16:9"
@@ -90,6 +92,9 @@ interface PlatformExportProps {
   audioUrl: string
   totalDuration: number
   coverImage?: string
+  mashupTitle?: string
+  creatorName?: string
+  sourceTracks?: Array<{ title: string; artist: string }>
   onExport?: (settings: ExportSettings) => void
   className?: string
 }
@@ -108,9 +113,13 @@ export function PlatformExport({
   audioUrl,
   totalDuration,
   coverImage,
+  mashupTitle,
+  creatorName,
+  sourceTracks,
   onExport,
   className,
 }: PlatformExportProps) {
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("tiktok")
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16")
   const [duration, setDuration] = useState(15)
@@ -319,6 +328,32 @@ export function PlatformExport({
             <span>{duration}s clip</span>
           </div>
         </div>
+
+        {/* Before/After Story */}
+        {sourceTracks && sourceTracks.length > 0 && (
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-auto py-2"
+              onClick={() => setShowBeforeAfter(!showBeforeAfter)}
+            >
+              <SplitSquareVertical className="mr-2 h-4 w-4" />
+              <div className="text-left">
+                <div className="text-xs font-medium">Before/After Story</div>
+                <div className="text-[10px] text-muted-foreground">Auto-generated visual for social sharing</div>
+              </div>
+            </Button>
+            {showBeforeAfter && (
+              <BeforeAfterGenerator
+                mashupTitle={mashupTitle ?? "Mashup"}
+                creatorName={creatorName ?? "Creator"}
+                sourceTracks={sourceTracks}
+                coverUrl={coverImage}
+              />
+            )}
+          </div>
+        )}
 
         {/* Export Button */}
         <Button
