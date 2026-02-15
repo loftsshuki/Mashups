@@ -40,6 +40,7 @@ const navLinks = [
 const communityLinks = [
   { href: "/battles", label: "Battles" },
   { href: "/daily-flip", label: "Daily Flip" },
+  { href: "/roulette", label: "Stem Roulette" },
   { href: "/challenges", label: "Challenges" },
   { href: "/scoreboard", label: "Scoreboard" },
 ] as const;
