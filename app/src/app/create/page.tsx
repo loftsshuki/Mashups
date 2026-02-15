@@ -18,6 +18,7 @@ import { AutomationLane } from "@/components/create/automation-lane"
 import { PlatformExport } from "@/components/create/platform-export"
 import { HookGenerator } from "@/components/create/hook-generator"
 import { CopilotPanel } from "@/components/ai/copilot-panel"
+import { StemGenerator } from "@/components/ai/stem-generator"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
 import type { AutomationNode } from "@/lib/audio/automation"
 import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
@@ -593,6 +594,31 @@ function CreatePageContent() {
                 <UploadZone onFilesAdded={handleFilesAdded} />
 
                 <TrackList tracks={tracks} onRemove={handleRemoveTrack} />
+
+                {/* AI Stem Generator */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or generate with AI
+                    </span>
+                  </div>
+                </div>
+
+                <StemGenerator
+                  onAddToTimeline={(stem) => {
+                    setTracks((prev) => [...prev, {
+                      file: new File([], stem.title),
+                      name: stem.title,
+                      size: 0,
+                      uploadProgress: 100,
+                      uploadedUrl: stem.audio_url,
+                      duration: stem.duration_seconds,
+                    }])
+                  }}
+                />
 
                 {/* Show stem status */}
                 {(tracksWithStems > 0 || tracksProcessingStems > 0) && (
