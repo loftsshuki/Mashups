@@ -14,6 +14,7 @@ import { CommentSectionV2 } from "@/components/mashup/comment-section-v2"
 import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
 import { SplitManager } from "@/components/revenue/split-manager"
+import { DeconstructionView } from "@/components/mashup/deconstruction-view"
 import { useAudio } from "@/lib/audio/audio-context"
 import { exportHookClipAsWav } from "@/lib/audio/hook-export"
 import type { Track } from "@/lib/audio/types"
@@ -104,6 +105,7 @@ export function MashupDetailClient({
   const [forkContests, setForkContests] = useState<ForkContest[]>(() =>
     getForkContestsForMashup(mashup.id),
   )
+  const [showDeconstruct, setShowDeconstruct] = useState(false)
 
   const creatorInitials = mashup.creator.displayName
     .split(" ")
@@ -412,6 +414,17 @@ export function MashupDetailClient({
               Fork This Mashup
             </Link>
             <button
+              onClick={() => setShowDeconstruct(!showDeconstruct)}
+              className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors ${
+                showDeconstruct
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-foreground hover:bg-muted"
+              }`}
+            >
+              <Layers className="h-4 w-4" />
+              Deconstruct
+            </button>
+            <button
               onClick={handleIssueLicense}
               disabled={issuingLicense}
               className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-60"
@@ -601,6 +614,19 @@ export function MashupDetailClient({
               </p>
             )}
           </div>
+
+          {/* Deconstruction View */}
+          {showDeconstruct && (
+            <DeconstructionView
+              stems={mashup.sourceTracks.map((track, i) => ({
+                id: `stem-${i}`,
+                label: track.title,
+                audioUrl: mashup.audioUrl,
+                color: ["#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"][i % 5],
+                instrument: i === 0 ? "vocal" : i === 1 ? "drums" : i === 2 ? "bass" : "other",
+              }))}
+            />
+          )}
 
           <RiskAssessmentPanel
             mashupId={mashup.id}
