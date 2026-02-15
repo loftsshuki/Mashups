@@ -1,7 +1,11 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAudio } from "@/lib/audio/audio-context";
 import type { Track } from "@/lib/audio/types";
@@ -22,7 +26,7 @@ interface MashupCardProps {
     avatarUrl: string;
   };
   rightsBadge?: string;
-  rightsBadgeVariant?: string;
+  rightsBadgeVariant?: ComponentProps<typeof Badge>["variant"];
   rightsScore?: number;
   className?: string;
 }
@@ -52,6 +56,9 @@ export function MashupCard({
   playCount,
   audioUrl,
   creator,
+  rightsBadge,
+  rightsBadgeVariant = "outline",
+  rightsScore,
   className,
 }: MashupCardProps) {
   const { state, playTrack, pause } = useAudio();
@@ -91,15 +98,15 @@ export function MashupCard({
 
   return (
     <Link href={`/mashup/${id}`} className={cn("group block", className)}>
-      <div className="overflow-hidden rounded-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">
+      <Card className="overflow-hidden bg-card border border-border/50 rounded-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 hover:border-primary/20">
         {/* Cover Image */}
-        <div className="relative aspect-square overflow-hidden rounded-lg">
+        <div className="relative aspect-square overflow-hidden">
           <Image
             src={coverUrl}
             alt={title}
             fill
             unoptimized
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
           {/* Play Button Overlay */}
@@ -108,14 +115,14 @@ export function MashupCard({
               "absolute inset-0 flex items-center justify-center transition-all duration-300",
               isThisTrackPlaying
                 ? "bg-black/40"
-                : "bg-black/0 group-hover:bg-black/30"
+                : "bg-black/0 group-hover:bg-black/40"
             )}
           >
             <button
               onClick={handlePlayClick}
               disabled={!canPlay}
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-black shadow-lg transition-all duration-300",
+                "flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300",
                 isThisTrackPlaying
                   ? "scale-100 opacity-100"
                   : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100",
@@ -130,9 +137,9 @@ export function MashupCard({
               }
             >
               {isThisTrackPlaying ? (
-                <Pause className="h-5 w-5" fill="currentColor" />
+                <Pause className="h-6 w-6" fill="currentColor" />
               ) : (
-                <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+                <Play className="h-6 w-6 ml-0.5" fill="currentColor" />
               )}
             </button>
           </div>
@@ -156,34 +163,64 @@ export function MashupCard({
 
           {/* Duration Badge */}
           <div className="absolute right-3 bottom-3">
-            <span className="px-2 py-1 rounded bg-black/70 text-xs font-mono text-white/90 backdrop-blur-sm font-[family-name:var(--font-mono)]">
+            <span className="px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white backdrop-blur-sm">
               {formatDuration(duration)}
             </span>
           </div>
         </div>
 
         {/* Content */}
-        <div className="pt-3">
+        <CardContent className="p-4">
           {/* Title */}
-          <h3 className="font-semibold text-foreground line-clamp-2 leading-tight text-sm">
+          <h3 className="font-semibold text-foreground line-clamp-2 leading-tight mb-3">
             {title}
           </h3>
 
-          {/* Creator — editorial italic */}
-          <p className="mt-1 font-[family-name:var(--font-editorial)] italic text-sm text-muted-foreground truncate">
-            {creator.displayName}
-          </p>
-
-          {/* Meta */}
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="uppercase tracking-wider text-[10px]">{genre}</span>
-            <span className="opacity-30">·</span>
-            <span className="font-[family-name:var(--font-mono)]">
-              {formatPlayCount(playCount)} plays
+          {/* Creator */}
+          <div className="flex items-center gap-2 mb-3">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={creator.avatarUrl} alt={creator.displayName} />
+              <AvatarFallback className="text-[10px] bg-muted">
+                {creator.displayName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-muted-foreground truncate">
+              {creator.displayName}
             </span>
           </div>
-        </div>
-      </div>
+
+          {/* Meta */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-[10px] font-medium">
+                {genre}
+              </Badge>
+              {rightsBadge && (
+                <Badge variant={rightsBadgeVariant} className="text-[10px]">
+                  {rightsBadge}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="h-3.5 w-3.5"
+              >
+                <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{formatPlayCount(playCount)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 }

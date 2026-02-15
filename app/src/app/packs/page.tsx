@@ -122,7 +122,7 @@ export default function ViralPacksPage() {
       />
       <NeonGrid>
         {(pack?.clips ?? []).map((clip) => (
-          <div key={clip.id} className="rounded-2xl p-4">
+          <div key={clip.id} className="neon-panel rounded-2xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-foreground">{clip.title}</p>
               <div className="flex flex-wrap gap-1.5">

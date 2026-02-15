@@ -29,7 +29,7 @@ export function PlaylistCard({ playlist, className }: PlaylistCardProps) {
       href={`/playlist/${playlist.id}`}
       className={cn("group block", className)}
     >
-      <Card className="overflow-hidden border-primary/20 py-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-primary/25">
+      <Card className="neon-panel overflow-hidden border-primary/20 py-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-primary/25">
         {/* Cover image or gradient placeholder */}
         <div className="relative aspect-square overflow-hidden">
           {playlist.cover_image_url ? (

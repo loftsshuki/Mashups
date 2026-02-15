@@ -109,7 +109,7 @@ export default function PlaylistsPage() {
           ))}
         </div>
       ) : playlists.length === 0 ? (
-        <div className="rounded-2xl px-6 py-16 text-center">
+        <div className="neon-panel rounded-2xl px-6 py-16 text-center">
           <ListMusic className="mx-auto h-10 w-10 text-muted-foreground/50" />
           <p className="mt-4 text-lg font-medium text-foreground">
             {filter === "mine"

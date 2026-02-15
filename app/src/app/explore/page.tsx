@@ -202,7 +202,7 @@ function ExploreContent() {
 
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="flex-1">
-          <section className="mb-8 rounded-2xl p-4">
+          <section className="neon-panel mb-8 rounded-2xl p-4">
             <NeonSectionHeader
               title="Filters"
               description="Tune feed results by genre, tempo, playability, and rank logic."
@@ -307,7 +307,7 @@ function ExploreContent() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl px-6 py-16 text-center">
+            <div className="neon-panel rounded-2xl px-6 py-16 text-center">
               <p className="text-lg font-medium text-foreground">No mashups found</p>
               <p className="mt-2 text-sm text-muted-foreground">
                 Try a different genre, tempo, or sort option.

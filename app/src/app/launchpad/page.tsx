@@ -172,7 +172,7 @@ export default function LaunchpadPage() {
           <Link
             key={`${module.href}-${module.title}`}
             href={module.href}
-            className="rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/45"
+            className="neon-panel rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-primary/45"
           >
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-foreground">{module.title}</h2>

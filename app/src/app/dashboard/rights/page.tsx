@@ -89,7 +89,7 @@ function RightsContent() {
 
       <NeonSectionHeader title="Rights Queue" />
       <NeonGrid className="md:grid-cols-2">
-        <section className="rounded-2xl p-4">
+        <section className="neon-panel rounded-2xl p-4">
           <div className="mb-3 flex items-center gap-2">
             <FileCheck2 className="h-4 w-4 text-primary" />
             <h2 className="font-semibold text-foreground">Rights Declarations</h2>
@@ -115,7 +115,7 @@ function RightsContent() {
           </div>
         </section>
 
-        <section className="rounded-2xl p-4">
+        <section className="neon-panel rounded-2xl p-4">
           <div className="mb-3 flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-primary" />
             <h2 className="font-semibold text-foreground">Claims Queue</h2>

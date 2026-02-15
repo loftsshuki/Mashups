@@ -16,16 +16,16 @@ export function NowPlayingBar() {
   return (
     <div
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 transition-transform duration-500",
+        "fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 transition-transform duration-300",
         !hasTrack && "translate-y-full"
       )}
     >
-      {/* Progress Bar — gold accent, expands on hover */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-muted group/progress hover:h-1 transition-all">
-        <div className="h-full w-1/3 bg-primary transition-[width] duration-300 linear" />
+      {/* Progress Bar (full width, at top) */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-muted">
+        <div className="h-full w-1/3 bg-primary" />
       </div>
 
-      <div className="mx-auto flex h-20 max-w-[1400px] items-center gap-4 container-padding">
+      <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 container-padding">
         {/* Left: Track Info */}
         <div className="min-w-0 flex-1 sm:w-1/4 sm:flex-initial">
           <TrackInfo size="sm" />

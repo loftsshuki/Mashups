@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Music, Github, Twitter } from "lucide-react";
 
 const footerLinks = {
   Product: [
@@ -30,47 +31,48 @@ const footerLinks = {
   ],
 } as const;
 
+const socialLinks = [
+  { href: "https://twitter.com/mashups", label: "Twitter", icon: Twitter },
+  { href: "https://github.com/mashups", label: "GitHub", icon: Github },
+] as const;
+
 export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-background">
-      <div className="container-padding max-w-[1400px] mx-auto py-12 md:py-16">
+      <div className="container-padding max-w-7xl mx-auto py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="col-span-2">
-            <Link
-              href="/"
-              className="font-[family-name:var(--font-editorial)] italic text-xl tracking-tight text-foreground hover:text-primary transition-colors"
-            >
-              mashups
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
+                <Music className="h-4 w-4 text-primary" />
+              </div>
+              <span className="font-semibold text-lg">mashups</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
               The creator-first music platform for remix production, attribution
               loops, and rights-safe monetization.
             </p>
-            <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
-              <a
-                href="https://twitter.com/mashups"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors link-animated"
-              >
-                Twitter
-              </a>
-              <a
-                href="https://github.com/mashups"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors link-animated"
-              >
-                GitHub
-              </a>
+            <div className="mt-6 flex items-center gap-3">
+              {socialLinks.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted hover:bg-accent transition-colors"
+                  aria-label={label}
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
           {/* Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h4 className="section-label mb-4">{category}</h4>
+              <h4 className="font-semibold text-sm mb-4">{category}</h4>
               <ul className="space-y-3">
                 {links.map(({ href, label }) => (
                   <li key={href}>
@@ -88,14 +90,30 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="editorial-rule mt-12" />
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Mashups. All rights reserved.
           </p>
-          <p className="font-[family-name:var(--font-editorial)] italic text-sm text-muted-foreground">
-            Made for creators
-          </p>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/legal/terms"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/legal/copyright"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="mailto:legal@mashups.com"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Contact
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

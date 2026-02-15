@@ -94,7 +94,7 @@ export default function PricingPage() {
       />
       <NeonGrid className="md:grid-cols-3">
         {tiers.map((tier) => (
-          <div key={tier.name} className="rounded-2xl p-5">
+          <div key={tier.name} className="neon-panel rounded-2xl p-5">
             <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               {tier.name}
             </p>
