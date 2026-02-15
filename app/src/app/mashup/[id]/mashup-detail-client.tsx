@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Pause, Music, ShieldCheck, Sparkles, Copy } from "lucide-react"
+import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -398,6 +398,13 @@ export function MashupDetailClient({
               mashupId={mashup.id}
               title={mashup.title}
             />
+            <Link
+              href={`/create?remix=${mashup.id}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <Repeat2 className="h-4 w-4" />
+              Remix This
+            </Link>
             <Link
               href={`/create?fork=${mashup.id}`}
               className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2 } from "lucide-react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -97,7 +97,9 @@ function CreatePageContent() {
   )
 
   const forkId = searchParams.get("fork")
+  const remixId = searchParams.get("remix")
   const challengeId = searchParams.get("challenge") ?? undefined
+  const [remixSource, setRemixSource] = useState<{ title: string; creator: string } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -121,6 +123,48 @@ function CreatePageContent() {
       cancelled = true
     }
   }, [forkId])
+
+  // Remix: load stems from an existing mashup
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadRemixStems(id: string) {
+      try {
+        const response = await fetch(`/api/remix/load?mashupId=${encodeURIComponent(id)}`)
+        if (!response.ok) return
+        const data = (await response.json()) as {
+          mashupTitle?: string
+          creatorName?: string
+          stems?: Array<{ title: string; audio_url: string; instrument?: string; duration_ms?: number }>
+        }
+        if (cancelled || !data.stems) return
+
+        setRemixSource({ title: data.mashupTitle ?? "Remix", creator: data.creatorName ?? "" })
+
+        // Convert stems to tracks for the timeline
+        const stemTracks: TrackWithStems[] = data.stems.map((stem, i) => ({
+          file: new File([], stem.title),
+          name: stem.title,
+          size: 0,
+          uploadProgress: 100,
+          uploadedUrl: stem.audio_url,
+          duration: stem.duration_ms ? stem.duration_ms / 1000 : 30,
+        }))
+
+        setTracks(stemTracks)
+      } catch {
+        // Failed to load remix data
+      }
+    }
+
+    if (remixId) {
+      void loadRemixStems(remixId)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [remixId])
 
   // ---------------------------------------------------------------------------
   // Step 1: Upload handlers (with stem separation)
@@ -515,6 +559,21 @@ function CreatePageContent() {
             {/* ----------------------------------------------------------------- */}
             {currentStep === 1 && (
               <div className="space-y-6">
+                {remixSource && (
+                  <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                    <Repeat2 className="h-5 w-5 text-primary shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Remixing: {remixSource.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {remixSource.creator ? `by ${remixSource.creator} — ` : ""}
+                        Stems pre-loaded. Add your own twist!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <StemUploadZone onFilesAdded={handleStemResults} />
 
                 {/* Legacy upload option */}

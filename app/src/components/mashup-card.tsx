@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAudio } from "@/lib/audio/audio-context";
 import type { Track } from "@/lib/audio/types";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Repeat2 } from "lucide-react";
 import { trackRecommendationEvent } from "@/lib/data/recommendation-events";
 
 interface MashupCardProps {
@@ -161,8 +161,19 @@ export function MashupCard({
             </div>
           )}
 
-          {/* Duration Badge */}
-          <div className="absolute right-3 bottom-3">
+          {/* Remix + Duration */}
+          <div className="absolute right-3 bottom-3 flex items-center gap-1.5">
+            <Link
+              href={`/create?remix=${id}`}
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition-all duration-300",
+                "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 hover:bg-primary hover:text-primary-foreground"
+              )}
+              aria-label="Remix this mashup"
+            >
+              <Repeat2 className="h-3.5 w-3.5" />
+            </Link>
             <span className="px-2 py-1 rounded-md bg-black/70 text-xs font-medium text-white backdrop-blur-sm">
               {formatDuration(duration)}
             </span>
