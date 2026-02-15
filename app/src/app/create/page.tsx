@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2, BrainCircuit } from "lucide-react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2, BrainCircuit, Dices, Timer, Play } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -61,6 +61,8 @@ const steps = [
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { AutoMashupGenerator } from "@/components/ai-mashup/auto-mashup"
+import { RouletteSpinner } from "@/components/roulette/roulette-spinner"
+import { CountdownTimer } from "@/components/roulette/countdown-timer"
 
 interface MixerTrackState {
   name: string
@@ -497,7 +499,42 @@ function CreatePageContent() {
   const tracksWithStems = tracks.filter((t) => t.stems && !t.isProcessingStems).length
   const tracksProcessingStems = tracks.filter((t) => t.isProcessingStems).length
 
-  const mode = searchParams.get("mode") === "auto" ? "auto" : "manual"
+  // Stem Roulette state
+  const [roulettePhase, setRoulettePhase] = useState<"idle" | "spinning" | "ready" | "creating" | "done">("idle")
+  const [rouletteStems, setRouletteStems] = useState<Array<{ id: string; title: string; instrument: string | null; genre: string | null; bpm: number | null; key: string | null; audio_url: string; duration_ms: number | null }>>([])
+  const [rouletteTimer, setRouletteTimer] = useState(false)
+
+  const handleRouletteSpin = useCallback(async () => {
+    setRoulettePhase("spinning")
+    setRouletteStems([])
+    try {
+      const response = await fetch("/api/roulette/spin", { method: "POST" })
+      if (!response.ok) { setRoulettePhase("idle"); return }
+      const data = (await response.json()) as { stems: typeof rouletteStems }
+      setRouletteStems(data.stems)
+    } catch {
+      setRoulettePhase("idle")
+    }
+  }, [])
+
+  const handleRouletteStart = useCallback(() => {
+    setRoulettePhase("creating")
+    setRouletteTimer(true)
+
+    // Load roulette stems into the manual mixer
+    const stemTracks: TrackWithStems[] = rouletteStems.map((stem, i) => ({
+      file: new File([], stem.title),
+      name: stem.title,
+      size: 0,
+      uploadProgress: 100,
+      uploadedUrl: stem.audio_url,
+      duration: stem.duration_ms ? stem.duration_ms / 1000 : 30,
+    }))
+    setTracks(stemTracks)
+  }, [rouletteStems])
+
+  const modeParam = searchParams.get("mode")
+  const mode = modeParam === "auto" ? "auto" : modeParam === "roulette" ? "roulette" : "manual"
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
@@ -572,11 +609,15 @@ function CreatePageContent() {
       {/* Mode Selection */}
       <Tabs defaultValue={mode} className="mb-8">
         <div className="flex justify-center mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="manual">Manual Studio</TabsTrigger>
             <TabsTrigger value="auto">
               <Sparkles className="h-4 w-4 mr-2" />
-              Auto-Mashup AI
+              Auto-Mashup
+            </TabsTrigger>
+            <TabsTrigger value="roulette">
+              <Dices className="h-4 w-4 mr-2" />
+              Stem Roulette
             </TabsTrigger>
           </TabsList>
         </div>
@@ -589,10 +630,91 @@ function CreatePageContent() {
           <AutoMashupGenerator
             className="max-w-3xl mx-auto"
             onComplete={(result) => {
-              // Handle result - maybe switch to manual mode with pre-filled tracks?
               console.log("Auto mashup complete", result)
             }}
           />
+        </TabsContent>
+
+        <TabsContent value="roulette">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-xl font-bold">Stem Roulette</h2>
+              <p className="text-muted-foreground text-sm">
+                Spin for 3 random stems. Make something amazing in 5 minutes.
+              </p>
+            </div>
+
+            <div className="mb-8">
+              <RouletteSpinner
+                stems={rouletteStems}
+                isSpinning={roulettePhase === "spinning"}
+                onSpinComplete={() => setRoulettePhase("ready")}
+              />
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              {roulettePhase === "idle" && (
+                <Button size="lg" onClick={handleRouletteSpin} className="px-8">
+                  <Dices className="mr-2 h-5 w-5" />
+                  Spin the Wheel
+                </Button>
+              )}
+
+              {roulettePhase === "spinning" && (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  Selecting your stems...
+                </p>
+              )}
+
+              {roulettePhase === "ready" && (
+                <div className="text-center space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Your 3 stems are ready. You have 5 minutes. Go!
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <Button size="lg" onClick={handleRouletteStart}>
+                      <Timer className="mr-2 h-5 w-5" />
+                      Start the Clock
+                    </Button>
+                    <Button size="lg" variant="outline" onClick={handleRouletteSpin}>
+                      <Dices className="mr-2 h-5 w-5" />
+                      Re-spin
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {roulettePhase === "creating" && (
+                <div className="text-center space-y-4">
+                  <CountdownTimer
+                    durationSeconds={300}
+                    isRunning={rouletteTimer}
+                    onComplete={() => { setRouletteTimer(false); setRoulettePhase("done") }}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Stems loaded into your mixer. Switch to Manual Studio to start mixing!
+                  </p>
+                </div>
+              )}
+
+              {roulettePhase === "done" && (
+                <div className="text-center space-y-4">
+                  <p className="text-lg font-semibold text-foreground">
+                    Time&apos;s up!
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Publish what you&apos;ve got, or keep polishing.
+                  </p>
+                  <Button variant="outline" onClick={() => {
+                    setRoulettePhase("idle")
+                    setRouletteStems([])
+                  }}>
+                    Play Again
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="manual">

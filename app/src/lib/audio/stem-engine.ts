@@ -303,7 +303,7 @@ export class StemEngine {
 
 // -- WAV encoder --
 
-function audioBufferToWav(buffer: AudioBuffer): Blob {
+export function audioBufferToWav(buffer: AudioBuffer): Blob {
   const numChannels = buffer.numberOfChannels
   const sampleRate = buffer.sampleRate
   const format = 1 // PCM
