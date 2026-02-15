@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { Sparkles, Upload, Loader2, Play, Download, Wand2, Music } from "lucide-react"
+import { useState, useCallback, useRef } from "react"
+import { Sparkles, Upload, Loader2, Play, Pause, Download, Wand2, Music } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,8 @@ export function AutoMashupGenerator({
   const [result, setResult] = useState<AIMashupResult | null>(null)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -326,12 +328,57 @@ export function AutoMashupGenerator({
               </div>
             </div>
             
+            {/* Hidden audio element for preview */}
+            {result.outputUrl && (
+              <audio
+                ref={audioRef}
+                src={result.outputUrl}
+                onEnded={() => setIsPreviewPlaying(false)}
+                onError={() => {
+                  setIsPreviewPlaying(false)
+                  setError("Preview failed to load. The AI mashup is simulated - no actual audio file was generated.")
+                }}
+              />
+            )}
+            
             <div className="flex gap-3">
-              <Button className="flex-1" onClick={() => {}}>
-                <Play className="h-4 w-4 mr-2" />
-                Preview
+              <Button 
+                className="flex-1" 
+                onClick={() => {
+                  if (!audioRef.current) return
+                  if (isPreviewPlaying) {
+                    audioRef.current.pause()
+                    setIsPreviewPlaying(false)
+                  } else {
+                    audioRef.current.play().catch(() => {
+                      setError("Preview not available. The AI mashup feature is currently in demo mode - no actual audio processing occurs.")
+                    })
+                    setIsPreviewPlaying(true)
+                  }
+                }}
+                disabled={!result.outputUrl}
+              >
+                {isPreviewPlaying ? (
+                  <><Pause className="h-4 w-4 mr-2" /> Pause</>
+                ) : (
+                  <><Play className="h-4 w-4 mr-2" /> Preview</>
+                )}
               </Button>
-              <Button variant="outline" className="flex-1" onClick={() => {}}>
+              <Button 
+                variant="outline" 
+                className="flex-1" 
+                onClick={() => {
+                  if (!result.outputUrl) return
+                  // Create a temporary link to download
+                  const link = document.createElement('a')
+                  link.href = result.outputUrl
+                  link.download = `mashup_${result.id}.mp3`
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                }}
+                disabled={!result.outputUrl}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Download
               </Button>
@@ -341,7 +388,8 @@ export function AutoMashupGenerator({
 
         {error && (
           <div className="p-3 rounded-lg bg-red-500/10 text-red-500 text-sm">
-            {error}
+            <p className="font-medium">Note:</p>
+            <p>{error}</p>
           </div>
         )}
 
