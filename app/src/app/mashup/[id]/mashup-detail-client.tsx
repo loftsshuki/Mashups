@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers, GitBranch } from "lucide-react"
+import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers, GitBranch, GitCompareArrows } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -15,6 +15,7 @@ import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
 import { SplitManager } from "@/components/revenue/split-manager"
 import { DeconstructionView } from "@/components/mashup/deconstruction-view"
+import { EvolutionCompare } from "@/components/mashup/evolution-compare"
 import { StemCredits } from "@/components/mashup/stem-credits"
 import { useAudio } from "@/lib/audio/audio-context"
 import { exportHookClipAsWav } from "@/lib/audio/hook-export"
@@ -694,6 +695,9 @@ export function MashupDetailClient({
               </div>
             </div>
           ) : null}
+
+          {/* Version Evolution */}
+          <EvolutionCompare mashupId={mashup.id} />
 
           {/* Stem Credits */}
           <StemCredits mashupId={mashup.id} />
