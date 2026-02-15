@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2 } from "lucide-react"
+import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2, BrainCircuit } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,7 @@ import { SmartMatchPanel } from "@/components/create/smart-match-panel"
 import { AutomationLane } from "@/components/create/automation-lane"
 import { PlatformExport } from "@/components/create/platform-export"
 import { HookGenerator } from "@/components/create/hook-generator"
+import { CopilotPanel } from "@/components/ai/copilot-panel"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
 import type { AutomationNode } from "@/lib/audio/automation"
 import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
@@ -89,6 +90,7 @@ function CreatePageContent() {
   const [generatedCaptions, setGeneratedCaptions] = useState<GeneratedCaptions | null>(null)
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail | null>(null)
   const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
+  const [copilotOpen, setCopilotOpen] = useState(false)
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
@@ -625,6 +627,28 @@ function CreatePageContent() {
             {/* ----------------------------------------------------------------- */}
             {currentStep === 2 && (
               <div className="space-y-6">
+                {/* AI Copilot Toggle */}
+                <div className="flex justify-end">
+                  <Button
+                    variant={copilotOpen ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCopilotOpen(!copilotOpen)}
+                  >
+                    <BrainCircuit className="mr-2 h-4 w-4" />
+                    AI Copilot
+                  </Button>
+                </div>
+
+                <CopilotPanel
+                  isOpen={copilotOpen}
+                  onClose={() => setCopilotOpen(false)}
+                  currentStems={tracks.map((t) => ({
+                    instrument: t.stems ? "multi" : undefined,
+                    title: t.name,
+                  }))}
+                  bpm={beatAnalysis?.bpm.bpm ?? null}
+                />
+
                 {/* Stem Mixer for tracks with stems */}
                 {tracksWithStems > 0 && (
                   <div className="space-y-4">
