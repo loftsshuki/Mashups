@@ -1,4 +1,9 @@
 // Realtime Collab 2.0 - Cursor presence and collaborative editing
+// Session persistence backed by Supabase collaboration_sessions table
+
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export interface Collaborator {
   id: string
@@ -230,3 +235,78 @@ export const mockCollaborators: Collaborator[] = [
     lastSeen: new Date().toISOString(),
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Supabase-backed session persistence
+// ---------------------------------------------------------------------------
+
+export async function persistCollabSession(
+  sessionId: string,
+  mashupId: string,
+  hostId: string,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { error } = await supabase.from("collaboration_sessions").upsert(
+      {
+        id: sessionId,
+        title: `Collab ${sessionId.slice(0, 8)}`,
+        status: "active",
+      },
+      { onConflict: "id" },
+    )
+
+    if (error) return false
+
+    // Add host as participant
+    await supabase.from("collaboration_participants").upsert(
+      {
+        session_id: sessionId,
+        user_id: hostId,
+        role: "owner",
+      },
+      { onConflict: "session_id,user_id" },
+    )
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function getActiveCollabSessions(
+  userId: string,
+): Promise<Array<{ id: string; title: string; participantCount: number; createdAt: string }>> {
+  if (!isSupabaseConfigured()) return []
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("collaboration_participants")
+      .select("session_id, collaboration_sessions(id, title, status, started_at)")
+      .eq("user_id", userId)
+
+    if (error || !data) return []
+
+    return (data as Record<string, unknown>[])
+      .map((row) => {
+        const session = row.collaboration_sessions as Record<string, unknown> | null
+        if (!session || session.status !== "active") return null
+        return {
+          id: session.id as string,
+          title: (session.title ?? "") as string,
+          participantCount: 0,
+          createdAt: (session.started_at ?? "") as string,
+        }
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null)
+  } catch {
+    return []
+  }
+}

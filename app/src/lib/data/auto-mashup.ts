@@ -1,5 +1,9 @@
 // Auto-Mashup AI - "Surprise me" full auto-mashup generation
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export type VibePreset = "energetic" | "chill" | "dark" | "euphoric" | "retro" | "experimental"
 export type AIMashupStatus = "uploading" | "analyzing" | "generating" | "mixing" | "complete" | "error"
 
@@ -366,3 +370,133 @@ export const mockAIMashupResults: AIMashupResult[] = [
     completedAt: "2026-02-10T10:01:30Z",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Supabase-backed AI job tracking
+// ---------------------------------------------------------------------------
+
+export async function createAIJob(
+  userId: string,
+  jobType: "mashup" | "stem_separation" | "vocal_generation",
+  inputData: Record<string, unknown>,
+): Promise<string | null> {
+  if (!isSupabaseConfigured()) return `job_${Date.now()}`
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("ai_jobs")
+      .insert({
+        user_id: userId,
+        job_type: jobType,
+        status: "queued",
+        input_data: inputData,
+      })
+      .select("id")
+      .single()
+
+    if (error || !data) return null
+    return (data as Record<string, unknown>).id as string
+  } catch {
+    return null
+  }
+}
+
+export async function updateAIJobProgress(
+  jobId: string,
+  progress: number,
+  status?: "processing" | "complete" | "error",
+  outputData?: Record<string, unknown>,
+  errorMessage?: string,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return true
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const update: Record<string, unknown> = { progress }
+    if (status) update.status = status
+    if (outputData) update.output_data = outputData
+    if (errorMessage) update.error_message = errorMessage
+    if (status === "complete" || status === "error") {
+      update.completed_at = new Date().toISOString()
+    }
+
+    const { error } = await supabase
+      .from("ai_jobs")
+      .update(update)
+      .eq("id", jobId)
+
+    return !error
+  } catch {
+    return false
+  }
+}
+
+export async function getAIJob(jobId: string): Promise<{
+  id: string
+  status: string
+  progress: number
+  outputData: Record<string, unknown> | null
+  errorMessage: string | null
+} | null> {
+  if (!isSupabaseConfigured()) return null
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("ai_jobs")
+      .select("id, status, progress, output_data, error_message")
+      .eq("id", jobId)
+      .single()
+
+    if (error || !data) return null
+
+    const row = data as Record<string, unknown>
+    return {
+      id: row.id as string,
+      status: row.status as string,
+      progress: (row.progress as number) ?? 0,
+      outputData: row.output_data as Record<string, unknown> | null,
+      errorMessage: row.error_message as string | null,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function getUserAIJobs(
+  userId: string,
+  limit: number = 20,
+): Promise<Array<{ id: string; jobType: string; status: string; progress: number; createdAt: string }>> {
+  if (!isSupabaseConfigured()) return []
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("ai_jobs")
+      .select("id, job_type, status, progress, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error || !data) return []
+
+    return (data as Record<string, unknown>[]).map((row) => ({
+      id: row.id as string,
+      jobType: row.job_type as string,
+      status: row.status as string,
+      progress: (row.progress as number) ?? 0,
+      createdAt: row.created_at as string,
+    }))
+  } catch {
+    return []
+  }
+}

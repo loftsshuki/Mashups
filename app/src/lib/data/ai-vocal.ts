@@ -1,6 +1,7 @@
 // AI Vocal Features - Voice transformation and effects
+// AI job tracking uses createAIJob/updateAIJobProgress from auto-mashup.ts
 
-export type VocalEffect = 
+export type VocalEffect =
   | "autotune" 
   | "harmony" 
   | "robotic" 

@@ -1,5 +1,10 @@
 // Content ID Pre-Check System
 // Simulates YouTube Content ID risk assessment
+// Results can be persisted to rights_declarations/claims tables
+
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export type RiskLevel = "low" | "medium" | "high" | "critical"
 
@@ -299,4 +304,73 @@ export async function batchContentCheck(
   }
   
   return results
+}
+
+// ---------------------------------------------------------------------------
+// Supabase-backed content ID persistence
+// ---------------------------------------------------------------------------
+
+export async function saveContentIDResult(
+  mashupId: string,
+  assessment: RiskAssessment,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    // Log each match as a claim in the claims table
+    for (const match of assessment.matches) {
+      if (match.riskLevel === "high" || match.riskLevel === "critical") {
+        await supabase.from("claims").insert({
+          mashup_id: mashupId,
+          claim_type: "content_id",
+          contact_info: match.artist,
+          status: "open",
+          metadata: {
+            trackTitle: match.trackTitle,
+            matchPercentage: match.matchPercentage,
+            policy: match.policy,
+            riskLevel: match.riskLevel,
+          },
+        })
+      }
+    }
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function getContentIDHistory(
+  mashupId: string,
+): Promise<Array<{ riskLevel: string; matchCount: number; checkedAt: string }>> {
+  if (!isSupabaseConfigured()) return []
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("claims")
+      .select("id, status, metadata, created_at")
+      .eq("mashup_id", mashupId)
+      .eq("claim_type", "content_id")
+      .order("created_at", { ascending: false })
+
+    if (error || !data) return []
+
+    return (data as Record<string, unknown>[]).map((row) => {
+      const meta = (row.metadata ?? {}) as Record<string, unknown>
+      return {
+        riskLevel: (meta.riskLevel as string) ?? "unknown",
+        matchCount: 1,
+        checkedAt: row.created_at as string,
+      }
+    })
+  } catch {
+    return []
+  }
 }

@@ -1,5 +1,9 @@
 // Attribution Watermark System - Audio fingerprinting and attribution
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export interface AttributionSource {
   id: string
   title: string
@@ -279,3 +283,77 @@ export const mockAttributionSources: AttributionSource[] = [
     licenseType: "royalty_free",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Supabase-backed attribution persistence
+// ---------------------------------------------------------------------------
+
+export async function saveAttributionToDb(
+  mashupId: string,
+  sources: AttributionSource[],
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    // Save each source as a rights_declaration linked to the mashup
+    for (const source of sources) {
+      await supabase.from("rights_declarations").upsert(
+        {
+          mashup_id: mashupId,
+          source_title: source.title,
+          source_artist: source.artist,
+          source_platform: source.platform,
+          source_url: source.url ?? null,
+          isrc: source.isrc ?? null,
+          license_type: source.licenseType,
+          sample_start: source.sampleUsed.startTime,
+          sample_end: source.sampleUsed.endTime,
+          status: "pending",
+        },
+        { onConflict: "mashup_id,source_title" },
+      )
+    }
+
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function getAttributionsForMashup(
+  mashupId: string,
+): Promise<AttributionSource[]> {
+  if (!isSupabaseConfigured()) return []
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("rights_declarations")
+      .select("*")
+      .eq("mashup_id", mashupId)
+
+    if (error || !data) return []
+
+    return (data as Record<string, unknown>[]).map((row) => ({
+      id: row.id as string,
+      title: (row.source_title ?? "") as string,
+      artist: (row.source_artist ?? "") as string,
+      platform: (row.source_platform ?? "other") as AttributionSource["platform"],
+      url: row.source_url as string | undefined,
+      isrc: row.isrc as string | undefined,
+      duration: 0,
+      sampleUsed: {
+        startTime: (row.sample_start as number) ?? 0,
+        endTime: (row.sample_end as number) ?? 0,
+      },
+      licenseType: (row.license_type ?? "unknown") as AttributionSource["licenseType"],
+    }))
+  } catch {
+    return []
+  }
+}
