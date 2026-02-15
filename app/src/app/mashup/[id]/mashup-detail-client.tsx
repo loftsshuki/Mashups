@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers } from "lucide-react"
+import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers, GitBranch } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -425,6 +425,13 @@ export function MashupDetailClient({
               <Layers className="h-4 w-4" />
               Deconstruct
             </button>
+            <Link
+              href={`/graph/${mashup.id}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <GitBranch className="h-4 w-4" />
+              Remix Graph
+            </Link>
             <button
               onClick={handleIssueLicense}
               disabled={issuingLicense}
