@@ -1,6 +1,7 @@
 "use client"
 
-import { Users, Music, Headphones, Calendar, Award, Zap } from "lucide-react"
+import Link from "next/link"
+import { Users, Music, Headphones, Calendar, Award, Zap, Palette } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MashupCard } from "@/components/mashup-card"
@@ -12,6 +13,7 @@ import { CreatorTierCard } from "@/components/gamification/creator-tier"
 import { getMockUserGamification } from "@/lib/data/gamification"
 import { CreativeStreakCard } from "@/components/profile/creative-streak"
 import { FeaturedIn } from "@/components/profile/featured-in"
+import { Button } from "@/components/ui/button"
 
 function formatCount(count: number): string {
   if (count >= 1_000_000) {
@@ -82,13 +84,20 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
             </div>
           </div>
 
-          {/* Follow button */}
-          <FollowButton
-            targetUserId={creator.id}
-            initialFollowing={false}
-            initialCount={creator.followerCount}
-            className="mt-2"
-          />
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 mt-2">
+            <FollowButton
+              targetUserId={creator.id}
+              initialFollowing={false}
+              initialCount={creator.followerCount}
+            />
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/portrait/${creator.username}`}>
+                <Palette className="mr-2 h-3 w-3" />
+                Style Portrait
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
