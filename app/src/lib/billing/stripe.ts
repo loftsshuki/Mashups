@@ -126,3 +126,50 @@ export function verifyStripeWebhookSignature(input: {
 
   return false
 }
+
+// ---------------------------------------------------------------------------
+// Stripe Customer Portal
+// ---------------------------------------------------------------------------
+
+export async function createStripePortalSession(input: {
+  secretKey: string
+  customerId: string
+  returnUrl: string
+}): Promise<{ url: string } | null> {
+  const body = new URLSearchParams()
+  body.set("customer", input.customerId)
+  body.set("return_url", input.returnUrl)
+
+  const response = await fetch(`${STRIPE_API_BASE}/billing_portal/sessions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.secretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  })
+
+  if (!response.ok) return null
+
+  const payload = (await response.json()) as { url?: string }
+  if (!payload.url) return null
+  return { url: payload.url }
+}
+
+// Look up Stripe customer ID by email
+export async function findStripeCustomerByEmail(input: {
+  secretKey: string
+  email: string
+}): Promise<string | null> {
+  const response = await fetch(
+    `${STRIPE_API_BASE}/customers?email=${encodeURIComponent(input.email)}&limit=1`,
+    {
+      headers: { Authorization: `Bearer ${input.secretKey}` },
+    },
+  )
+
+  if (!response.ok) return null
+
+  const payload = (await response.json()) as { data?: Array<{ id: string }> }
+  return payload.data?.[0]?.id ?? null
+}
