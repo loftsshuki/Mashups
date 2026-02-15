@@ -15,6 +15,7 @@ import { RemixFamilyTree } from "@/components/mashup/remix-family-tree"
 import { RiskAssessmentPanel } from "@/components/content-id/risk-assessment"
 import { SplitManager } from "@/components/revenue/split-manager"
 import { DeconstructionView } from "@/components/mashup/deconstruction-view"
+import { StemCredits } from "@/components/mashup/stem-credits"
 import { useAudio } from "@/lib/audio/audio-context"
 import { exportHookClipAsWav } from "@/lib/audio/hook-export"
 import type { Track } from "@/lib/audio/types"
@@ -686,6 +687,9 @@ export function MashupDetailClient({
               </div>
             </div>
           ) : null}
+
+          {/* Stem Credits */}
+          <StemCredits mashupId={mashup.id} />
 
           {/* Source tracks */}
           <div>

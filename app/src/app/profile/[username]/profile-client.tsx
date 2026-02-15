@@ -11,6 +11,7 @@ import { BadgeShowcase } from "@/components/gamification/badge-showcase"
 import { CreatorTierCard } from "@/components/gamification/creator-tier"
 import { getMockUserGamification } from "@/lib/data/gamification"
 import { CreativeStreakCard } from "@/components/profile/creative-streak"
+import { FeaturedIn } from "@/components/profile/featured-in"
 
 function formatCount(count: number): string {
   if (count >= 1_000_000) {
@@ -108,8 +109,11 @@ export function ProfileClient({ creator, mashups }: ProfileClientProps) {
         )
       })()}
 
-      {/* Creative Streak */}
-      <CreativeStreakCard username={creator.username} className="mb-10" />
+      {/* Creative Streak + Featured In */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <CreativeStreakCard username={creator.username} />
+        <FeaturedIn username={creator.username} />
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="mashups">
