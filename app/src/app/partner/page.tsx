@@ -59,7 +59,7 @@ export default function PartnerPortalPage() {
       />
       <NeonGrid className="md:grid-cols-3">
         {partnerBlocks.map((block) => (
-          <div key={block.title} className="neon-panel rounded-2xl p-5">
+          <div key={block.title} className="rounded-2xl p-5">
             <block.icon className="h-5 w-5 text-primary" />
             <p className="mt-3 text-base font-semibold text-foreground">{block.title}</p>
             <p className="mt-2 text-sm text-muted-foreground">{block.detail}</p>

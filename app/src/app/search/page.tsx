@@ -104,7 +104,7 @@ export default function SearchPage() {
         description="Search now follows the same sectioned visual system used across the rest of the redesigned site."
       />
 
-      <section className="neon-panel mb-8 rounded-2xl p-4">
+      <section className="mb-8 rounded-2xl p-4">
         <NeonSectionHeader
           title="Query"
           description="Search by title, genre, creator, or campaign-related themes."
@@ -152,7 +152,7 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <div className="neon-panel rounded-2xl px-6 py-12 text-center">
+                <div className="rounded-2xl px-6 py-12 text-center">
                   <p className="text-sm text-muted-foreground">
                     No mashups found for &ldquo;{debouncedQuery}&rdquo;
                   </p>
@@ -164,7 +164,7 @@ export default function SearchPage() {
               {filteredCreators.length > 0 ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                   {filteredCreators.map((creator) => (
-                    <div key={creator.username} className="neon-panel rounded-2xl p-3">
+                    <div key={creator.username} className="rounded-2xl p-3">
                       <CreatorAvatar
                         username={creator.username}
                         displayName={creator.displayName}
@@ -177,7 +177,7 @@ export default function SearchPage() {
                   ))}
                 </div>
               ) : (
-                <div className="neon-panel rounded-2xl px-6 py-12 text-center">
+                <div className="rounded-2xl px-6 py-12 text-center">
                   <p className="text-sm text-muted-foreground">
                     No creators found for &ldquo;{debouncedQuery}&rdquo;
                   </p>
@@ -186,7 +186,7 @@ export default function SearchPage() {
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="neon-panel rounded-2xl px-6 py-16 text-center">
+          <div className="rounded-2xl px-6 py-16 text-center">
             <Search className="mx-auto h-10 w-10 text-muted-foreground/50" />
             <p className="mt-4 text-lg font-medium text-foreground">No results found</p>
             <p className="mt-2 text-sm text-muted-foreground">

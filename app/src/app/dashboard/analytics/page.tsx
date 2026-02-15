@@ -59,37 +59,37 @@ function AnalyticsContent() {
         description="Core metrics driving ranking, retention, and campaign optimization."
       />
       <NeonGrid className="sm:grid-cols-2 lg:grid-cols-3">
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Total Plays</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {stats.totalPlays.toLocaleString()}
           </p>
         </div>
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Avg Completion</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {formatPercent(stats.avgCompletionRate)}
           </p>
         </div>
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Skip Rate</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {formatPercent(stats.skipRate)}
           </p>
         </div>
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Save Rate</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {formatPercent(stats.saveRate)}
           </p>
         </div>
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Likes</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {stats.totalLikes.toLocaleString()}
           </p>
         </div>
-        <div className="neon-panel rounded-2xl p-4">
+        <div className="rounded-2xl p-4">
           <p className="text-xs text-muted-foreground">Comments</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">
             {stats.totalComments.toLocaleString()}

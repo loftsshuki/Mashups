@@ -506,7 +506,7 @@ export default function StudioPage() {
       {/* Phase 3: Voice Chat Panel */}
       {showVoicePanel && (
         <Suspense fallback={<div className="h-32 bg-muted rounded-xl animate-pulse" />}>
-          <section className="neon-panel rounded-2xl p-4 mb-6">
+          <section className="rounded-2xl p-4 mb-6">
             <NeonSectionHeader
               title="Voice Chat"
               description="Real-time voice communication with collaborators via Daily.co."
@@ -524,7 +524,7 @@ export default function StudioPage() {
       {/* Phase 3: MIDI Controller Panel */}
       {showMIDISettings && (
         <Suspense fallback={<div className="h-32 bg-muted rounded-xl animate-pulse" />}>
-          <section className="neon-panel rounded-2xl p-4 mb-6">
+          <section className="rounded-2xl p-4 mb-6">
             <MIDIControllerPanel
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
@@ -536,7 +536,7 @@ export default function StudioPage() {
       )}
 
       {/* Phase 3: Spectral Waveform */}
-      <section className="neon-panel rounded-2xl p-4 mb-6">
+      <section className="rounded-2xl p-4 mb-6">
         <NeonSectionHeader
           title="Spectral Analysis"
           description="Frequency visualization of your mix."
@@ -553,13 +553,13 @@ export default function StudioPage() {
 
       {viewMode === "live" ? (
         <Suspense fallback={<div className="h-[600px] bg-muted rounded-xl animate-pulse" />}>
-          <section className="neon-panel rounded-2xl p-6 mb-6">
+          <section className="rounded-2xl p-6 mb-6">
             <LivePerformanceDeck />
           </section>
         </Suspense>
       ) : (
         <>
-          <section className="neon-panel rounded-2xl p-4">
+          <section className="rounded-2xl p-4">
             <NeonSectionHeader
               title="Shared Transport"
               description="Broadcast and mirror playback state across collaborators."
@@ -602,7 +602,7 @@ export default function StudioPage() {
           </section>
 
           <NeonGrid className="mt-6 lg:grid-cols-2">
-            <section className="neon-panel rounded-2xl p-4">
+            <section className="rounded-2xl p-4">
               <NeonSectionHeader
                 title="Timeline Markers"
                 description="Drop cues at exact timestamps for arrangement or drop transitions."
@@ -647,7 +647,7 @@ export default function StudioPage() {
               </div>
             </section>
 
-            <section className="neon-panel rounded-2xl p-4">
+            <section className="rounded-2xl p-4">
               <NeonSectionHeader
                 title="Session Notes"
                 description="Post collaborator notes with playhead context."
@@ -683,7 +683,7 @@ export default function StudioPage() {
             </section>
           </NeonGrid>
 
-          <section className="neon-panel mt-6 rounded-2xl p-4">
+          <section className="mt-6 rounded-2xl p-4">
             <NeonSectionHeader
               title="Version Snapshots"
               description="Save session states to restore arrangement checkpoints."
@@ -734,7 +734,7 @@ export default function StudioPage() {
             </div>
           </section>
 
-          <section className="neon-panel mt-6 rounded-2xl p-4">
+          <section className="mt-6 rounded-2xl p-4">
             <NeonSectionHeader
               title="Live Audience Room"
               description="Open session playback to viewers and convert live audience into followers."
@@ -792,7 +792,7 @@ export default function StudioPage() {
           {sessions.map((entry) => (
             <div
               key={entry.id}
-              className="neon-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
             >
               <div>
                 <p className="text-base font-semibold text-foreground">{entry.title}</p>

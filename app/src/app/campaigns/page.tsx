@@ -166,7 +166,7 @@ export default function CampaignsPage() {
         }
       />
 
-      <section id="cohort-invites" className="neon-panel mb-8 rounded-2xl p-4">
+      <section id="cohort-invites" className="mb-8 rounded-2xl p-4">
         <NeonSectionHeader
           title="Template + Cohort Setup"
           description="Select campaign pattern and generate referral invites for creator cohorts."
@@ -264,7 +264,7 @@ export default function CampaignsPage() {
         {slots.map((slot, index) => {
           const slotKey = `${slot.day}-${slot.platform}-${slot.mashupId}-${index}`
           return (
-            <div key={slotKey} className="neon-panel rounded-2xl p-4">
+            <div key={slotKey} className="rounded-2xl p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-foreground">

@@ -22,7 +22,7 @@ export default async function MomentumPage() {
         description="Tracks are ranked by engagement velocity and freshness. Sponsored feature slots require quality threshold passing."
       />
 
-      <section className="neon-panel mb-6 rounded-2xl p-4">
+      <section className="mb-6 rounded-2xl p-4">
         <NeonSectionHeader
           title="Feed Health"
           description="Algorithm emphasizes growth speed, recency, and interaction density."
@@ -76,7 +76,7 @@ export default async function MomentumPage() {
         />
         <NeonGrid className="md:grid-cols-2">
           {sponsoredEligible.slice(0, 4).map((mashup) => (
-            <div key={mashup.id} className="neon-panel rounded-2xl p-4">
+            <div key={mashup.id} className="rounded-2xl p-4">
               <p className="text-sm font-semibold text-foreground">{mashup.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {mashup.creator.displayName} | momentum {(mashup.momentumScore / 1000).toFixed(1)}k

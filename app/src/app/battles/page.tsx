@@ -77,7 +77,7 @@ export default function BattlesPage() {
       </section>
 
       {/* Create Battle CTA */}
-      <section className="neon-panel mb-8 rounded-2xl p-6">
+      <section className="mb-8 rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold">Host Your Own Battle</h2>
@@ -143,7 +143,7 @@ export default function BattlesPage() {
               ))}
             </div>
           ) : (
-            <div className="neon-panel rounded-2xl px-6 py-16 text-center">
+            <div className="rounded-2xl px-6 py-16 text-center">
               <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium">No active battles</p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -178,7 +178,7 @@ export default function BattlesPage() {
               ))}
             </div>
           ) : (
-            <div className="neon-panel rounded-2xl px-6 py-16 text-center">
+            <div className="rounded-2xl px-6 py-16 text-center">
               <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium">No upcoming battles</p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -213,7 +213,7 @@ export default function BattlesPage() {
               ))}
             </div>
           ) : (
-            <div className="neon-panel rounded-2xl px-6 py-16 text-center">
+            <div className="rounded-2xl px-6 py-16 text-center">
               <History className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium">No completed battles</p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -248,7 +248,7 @@ export default function BattlesPage() {
               description: "Top entries win cash prizes, badges, and featured placement on the platform.",
             },
           ].map((item) => (
-            <div key={item.step} className="neon-panel rounded-2xl p-6 text-center">
+            <div key={item.step} className="rounded-2xl p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <span className="text-xl font-bold text-primary">{item.step}</span>
               </div>

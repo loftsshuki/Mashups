@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   Menu,
-  Music,
   User,
   LogOut,
   Settings,
@@ -67,7 +66,7 @@ export function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -97,7 +96,7 @@ export function Header() {
           );
         }
       } catch {
-        // Supabase not configured — no auth
+        // Supabase not configured
       }
       setIsLoading(false);
     }
@@ -121,21 +120,19 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         isScrolled
           ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
           : "bg-transparent"
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between container-padding">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
-            <Music className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-semibold text-lg tracking-tight">
-            mashups
-          </span>
+      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between container-padding">
+        {/* Logo — Serif Wordmark */}
+        <Link
+          href="/"
+          className="font-[family-name:var(--font-editorial)] italic text-xl tracking-tight text-foreground hover:text-primary transition-colors"
+        >
+          mashups
         </Link>
 
         {/* Desktop Navigation */}
@@ -145,16 +142,13 @@ export function Header() {
               key={href}
               href={href}
               className={cn(
-                "relative px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                "relative px-3 py-2 text-sm font-medium transition-colors rounded-md",
                 isActive(href)
-                  ? "text-foreground"
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               {label}
-              {isActive(href) && (
-                <span className="absolute inset-x-3 -bottom-px h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-              )}
             </Link>
           ))}
 
@@ -162,9 +156,9 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-md",
                 communityLinks.some((l) => isActive(l.href))
-                  ? "text-foreground"
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -184,9 +178,9 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-md",
                 moreLinks.some((l) => isActive(l.href))
-                  ? "text-foreground"
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -208,7 +202,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground"
             asChild
           >
             <Link href="/search" aria-label="Search">
@@ -291,7 +285,7 @@ export function Header() {
               </Button>
               <Button
                 size="sm"
-                className="h-9 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+                className="h-9 px-4 text-sm font-medium"
                 asChild
               >
                 <Link href="/signup">Get Started</Link>

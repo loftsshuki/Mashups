@@ -52,12 +52,12 @@ export function MobileNav() {
   return (
     <SheetContent
       side="right"
-      className="w-[290px] border-l border-primary/20 bg-background/90 backdrop-blur-2xl sm:w-[330px]"
+      className="w-[290px] border-l border-border/50 bg-background/90 backdrop-blur-2xl sm:w-[330px]"
     >
       <SheetHeader>
         <SheetTitle className="text-left">
-          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-lg font-bold text-transparent">
-            mashups.com
+          <span className="font-[family-name:var(--font-editorial)] italic text-lg text-foreground">
+            mashups
           </span>
         </SheetTitle>
       </SheetHeader>
@@ -70,10 +70,10 @@ export function MobileNav() {
               <Link
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <Icon className="size-4" />
@@ -90,14 +90,14 @@ export function MobileNav() {
         <SheetClose asChild>
           <Button
             variant="outline"
-            className="w-full rounded-full border-primary/30 bg-transparent"
+            className="w-full"
             asChild
           >
             <Link href="/login">Log In</Link>
           </Button>
         </SheetClose>
         <SheetClose asChild>
-          <Button className="neon-outline w-full rounded-full" asChild>
+          <Button className="w-full" asChild>
             <Link href="/signup">Sign Up</Link>
           </Button>
         </SheetClose>

@@ -175,7 +175,7 @@ export default function ChallengesPage() {
       />
       <NeonGrid className="md:grid-cols-2">
         {challenges.map((challenge) => (
-          <div key={challenge.id} className="neon-panel rounded-2xl p-4">
+          <div key={challenge.id} className="rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">{challenge.title}</h2>
               <Badge variant={challenge.status === "active" ? "default" : "secondary"}>

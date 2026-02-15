@@ -43,7 +43,7 @@ export default function SponsorsPage() {
       />
       <NeonGrid className="md:grid-cols-3">
         {packages.map((pkg) => (
-          <div key={pkg.name} className="neon-panel rounded-2xl p-5">
+          <div key={pkg.name} className="rounded-2xl p-5">
             <pkg.icon className="h-5 w-5 text-primary" />
             <p className="mt-3 text-base font-semibold text-foreground">{pkg.name}</p>
             <p className="mt-1 text-2xl font-semibold text-foreground">{pkg.price}</p>

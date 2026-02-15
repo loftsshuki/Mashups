@@ -71,7 +71,7 @@ export default function ScoreboardPage() {
         {rows.map((row) => (
           <div
             key={row.username}
-            className="neon-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
           >
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
