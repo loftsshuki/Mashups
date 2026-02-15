@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AudioProvider } from "@/lib/audio/audio-context";
+import { PostHogProvider, PostHogPageView } from "@/lib/analytics/posthog";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { NowPlayingBar } from "@/components/layout/now-playing-bar";
@@ -60,23 +62,28 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <AudioProvider>
-            <TooltipProvider delayDuration={200}>
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-                <NowPlayingBar />
-              </div>
-            </TooltipProvider>
-          </AudioProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AudioProvider>
+              <TooltipProvider delayDuration={200}>
+                <Suspense fallback={null}>
+                  <PostHogPageView />
+                </Suspense>
+                <div className="relative flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                  <NowPlayingBar />
+                </div>
+              </TooltipProvider>
+            </AudioProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
