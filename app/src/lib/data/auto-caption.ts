@@ -36,38 +36,74 @@ export interface CaptionStyle {
   animation: "none" | "fade" | "slide" | "karaoke"
 }
 
-// Transcribe audio to text (mock implementation)
-// In production, this would use Whisper API or similar
+// Transcribe audio to text
+// Uses OpenAI Whisper when OPENAI_API_KEY is set, otherwise falls back to mock
 export async function transcribeAudio(
   audioBlob: Blob,
   options: {
     language?: string
     detectLyrics?: boolean
     minConfidence?: number
+    mashupId?: string
   } = {}
 ): Promise<GeneratedCaptions> {
-  const { language = "en", detectLyrics = true, minConfidence = 70 } = options
-  
-  // Simulate processing time
+  const { language = "en", detectLyrics = true, minConfidence = 70, mashupId } = options
+
+  // Real transcription via Whisper when API key is available
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const { transcribeWithWhisper } = await import("@/lib/audio/whisper")
+      const segments = await transcribeWithWhisper(audioBlob, language)
+
+      const wordCount = segments.reduce((acc, seg) =>
+        acc + seg.text.split(/\s+/).length, 0
+      )
+      const duration = segments.length > 0
+        ? segments[segments.length - 1].endTime
+        : 0
+
+      const captions: GeneratedCaptions = {
+        id: `captions_${Date.now()}`,
+        mashupId: mashupId ?? "",
+        language,
+        segments,
+        isLyrics: detectLyrics,
+        generatedAt: new Date().toISOString(),
+        wordCount,
+        duration,
+      }
+
+      // Persist to database
+      if (mashupId) {
+        await saveCaptionsToDb(mashupId, captions)
+      }
+
+      return captions
+    } catch {
+      // Whisper failed — fall through to mock
+    }
+  }
+
+  // Mock transcription fallback
   await new Promise(resolve => setTimeout(resolve, 2000))
-  
+
   // Mock transcription based on audio duration
   const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
   const arrayBuffer = await audioBlob.arrayBuffer()
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0))
   const duration = audioBuffer.duration
-  
+
   // Generate mock segments
   const segments: CaptionSegment[] = []
   const segmentDuration = 3 // Average segment length in seconds
   const numSegments = Math.floor(duration / segmentDuration)
-  
+
   const mockPhrases = detectLyrics ? getMockLyrics() : getMockPhrases()
-  
+
   for (let i = 0; i < numSegments && i < mockPhrases.length; i++) {
     const startTime = i * segmentDuration
     const endTime = Math.min(startTime + segmentDuration + Math.random(), duration)
-    
+
     segments.push({
       id: `seg_${i}`,
       startTime,
@@ -77,14 +113,14 @@ export async function transcribeAudio(
       speaker: detectLyrics ? undefined : (i % 2 === 0 ? "Speaker 1" : "Speaker 2"),
     })
   }
-  
-  const wordCount = segments.reduce((acc, seg) => 
+
+  const wordCount = segments.reduce((acc, seg) =>
     acc + seg.text.split(/\s+/).length, 0
   )
-  
+
   return {
     id: `captions_${Date.now()}`,
-    mashupId: "",
+    mashupId: mashupId ?? "",
     language,
     segments,
     isLyrics: detectLyrics,

@@ -61,14 +61,25 @@ export interface TrendingAnalysis {
 }
 
 // Generate personalized recommendations
+// Uses vector similarity search when embeddings exist, otherwise mock
 export async function getRecommendations(
   userId: string,
   userTaste: UserTaste,
   limit: number = 10
 ): Promise<Recommendation[]> {
+  // Try vector-based recommendations first
+  if (isSupabaseConfigured() && process.env.OPENAI_API_KEY) {
+    try {
+      const vectorRecs = await getVectorRecommendations(userId, userTaste, limit)
+      if (vectorRecs.length > 0) return vectorRecs
+    } catch {
+      // Fall through to mock
+    }
+  }
+
   // Simulate ML model
   await new Promise(resolve => setTimeout(resolve, 800))
-  
+
   const recommendations: Recommendation[] = []
   
   // Trending recommendations
@@ -365,6 +376,53 @@ export async function getRecommendationHistory(
   } catch {
     return []
   }
+}
+
+// ---------------------------------------------------------------------------
+// Vector-based recommendations (pgvector similarity search)
+// ---------------------------------------------------------------------------
+
+async function getVectorRecommendations(
+  userId: string,
+  userTaste: UserTaste,
+  limit: number,
+): Promise<Recommendation[]> {
+  const { createClient } = await import("@/lib/supabase/client")
+  const supabase = createClient()
+
+  // Get user's most recent mashup with an embedding
+  const { data: userMashups } = await supabase
+    .from("mashups")
+    .select("id, embedding")
+    .eq("creator_id", userId)
+    .not("embedding", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  if (!userMashups?.length) return []
+
+  const { findSimilarMashups } = await import("@/lib/ai/embeddings")
+  const similar = await findSimilarMashups(userMashups[0].id, limit)
+
+  if (!similar.length) return []
+
+  return similar.map((m, i) => ({
+    id: `rec_vec_${Date.now()}_${i}`,
+    type: "compatible" as RecommendationType,
+    title: m.title,
+    description: `${Math.round(m.similarity * 100)}% match based on style and content`,
+    confidence: Math.round(m.similarity * 100),
+    reason: "AI-powered similarity analysis",
+    target: {
+      type: "mashup" as const,
+      id: m.id,
+      data: { similarity: m.similarity },
+    },
+    actions: [
+      { label: "Listen", href: `/mashups/${m.id}` },
+      { label: "Remix", href: `/create?remix=${m.id}` },
+    ],
+  }))
 }
 
 // Helper functions
