@@ -36,7 +36,7 @@ export default function EnterprisePage() {
         description="A Neon-style enterprise narrative re-mapped to Mashups: controlled distribution, attribution telemetry, and compliance certainty."
         actions={
           <Button className="rounded-full" asChild>
-            <Link href="/partner">
+            <Link href="/signup">
               Request Demo
               <ArrowRight className="size-4" />
             </Link>

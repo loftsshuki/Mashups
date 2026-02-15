@@ -316,8 +316,7 @@ export function analyzeCompatibility(tracks: AIMashupTrack[]): {
   const bpms = tracks.map(t => t.bpm)
   const bpmRange = Math.max(...bpms) - Math.min(...bpms)
   if (bpmRange > 20) {
-    issues.push("Large BPM difference detected")
-    suggestions.push("Consider using 'Energetic' or 'Experimental' vibe for better tempo matching")
+    suggestions.push("Large BPM difference detected — AI will auto-adjust tempo for smoother mixing")
   }
   
   // Check key compatibility
