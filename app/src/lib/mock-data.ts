@@ -226,6 +226,30 @@ export const mockMashups: MockMashup[] = [
       { title: "Festival Anthem", artist: "Drop Zone" },
     ],
   },
+  {
+    id: "mash-009",
+    title: "NO BATIDÃO Phonk Remix",
+    description:
+      "Brazilian phonk meets trap funk. Heavy 808s, cowbell rhythms, and that signature phonk atmosphere. Perfect for late-night drives and workout sessions.",
+    creator: {
+      username: "funkphonk",
+      displayName: "Funk Phonk",
+      avatarUrl: "https://placehold.co/100x100/7c3aed/white?text=FP",
+    },
+    coverUrl: "https://placehold.co/400x400/ea580c/white?text=NB",
+    audioUrl: "/audio/no-batidao.mp3",
+    genre: "Phonk / Funk",
+    bpm: 140,
+    duration: 120,
+    playCount: 892000,
+    likeCount: 45600,
+    commentCount: 2103,
+    createdAt: "2026-02-10T22:00:00Z",
+    sourceTracks: [
+      { title: "NO BATIDÃO", artist: "ZXKAI & slxughter" },
+      { title: "Funk Brasileiro", artist: "Baile Sound" },
+    ],
+  },
 ]
 
 export const mockCreators: MockCreator[] = [
@@ -264,6 +288,15 @@ export const mockCreators: MockCreator[] = [
     followerCount: 15600,
     mashupCount: 29,
     totalPlays: 2100000,
+  },
+  {
+    username: "funkphonk",
+    displayName: "Funk Phonk",
+    avatarUrl: "https://placehold.co/100x100/7c3aed/white?text=FP",
+    bio: "Bringing Brazilian funk to the phonk scene. 808s, cowbells, and heavy bass. Let's make the floor shake.",
+    followerCount: 34200,
+    mashupCount: 28,
+    totalPlays: 4100000,
   },
   {
     username: "samplesurgeon",
