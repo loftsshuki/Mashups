@@ -3,6 +3,9 @@ import { separateStems, isReplicateConfigured, getEstimatedProcessingTime } from
 import { separateStemsModal, isModalConfigured } from "@/lib/audio/modal-stems"
 import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
+// Demucs takes 30-60+ seconds — extend Vercel function timeout
+export const maxDuration = 60
+
 /** Convert a data URI to a Blob, upload to Vercel Blob, return URL */
 async function uploadDataUriToBlob(dataUri: string, stemName: string): Promise<string> {
   if (!dataUri || !dataUri.startsWith("data:")) return dataUri

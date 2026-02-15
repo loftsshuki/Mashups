@@ -438,9 +438,14 @@ export async function generateAutoMashup(
 }
 
 // ---------------------------------------------------------------------------
-// Replicate stem separation: upload files, call API, decode stem audio
-// Returns null if Replicate is not configured or separation fails
+// Stem separation: calls Modal directly from the browser to avoid
+// Vercel serverless timeout (Demucs takes 30-60+ seconds).
+// Falls back to /api/audio/separate if Modal endpoint is not set.
 // ---------------------------------------------------------------------------
+
+const MODAL_ENDPOINT = typeof window !== "undefined"
+  ? process.env.NEXT_PUBLIC_MODAL_STEM_ENDPOINT
+  : undefined
 
 async function tryStemSeparation(
   fileA: File,
@@ -448,35 +453,37 @@ async function tryStemSeparation(
   onProgress?: ProgressCallback,
 ): Promise<{ vocalsBuffer: AudioBuffer; beatsBuffer: AudioBuffer } | null> {
   try {
-    // Upload both files to get URLs for Replicate
-    onProgress?.("Uploading track 1...", 15)
+    // Upload both files to get public URLs
+    onProgress?.("Uploading track 1...", 10)
     const urlA = await uploadFileForSeparation(fileA)
-
-    onProgress?.("Uploading track 2...", 25)
+    onProgress?.("Uploading track 2...", 20)
     const urlB = await uploadFileForSeparation(fileB)
 
-    if (!urlA || !urlB) return null
+    if (!urlA || !urlB) {
+      console.warn("File upload failed — cannot separate stems")
+      return null
+    }
 
     // Separate track A (we need its vocals)
-    onProgress?.("Separating vocals from track 1...", 35)
-    const stemsA = await callSeparateAPI(urlA)
+    onProgress?.("AI is separating vocals (this takes 30-60s)...", 30)
+    const stemsA = await callStemSeparation(urlA)
     if (!stemsA) return null
 
     // Separate track B (we need its drums + bass + other)
-    onProgress?.("Separating beat from track 2...", 50)
-    const stemsB = await callSeparateAPI(urlB)
+    onProgress?.("AI is separating beat (this takes 30-60s)...", 50)
+    const stemsB = await callStemSeparation(urlB)
     if (!stemsB) return null
 
-    // Decode the stem audio files into AudioBuffers
-    onProgress?.("Decoding stems...", 65)
+    // Decode the stem audio into AudioBuffers
+    onProgress?.("Decoding separated stems...", 65)
     const ctx = new AudioContext()
 
-    const vocalsBuffer = await fetchAndDecode(ctx, stemsA.vocals)
+    const vocalsBuffer = await decodeAudioFromUri(ctx, stemsA.vocals)
 
     // Mix drums + bass + other from track B into a single "beats" buffer
-    const drumsBuffer = await fetchAndDecode(ctx, stemsB.drums)
-    const bassBuffer = await fetchAndDecode(ctx, stemsB.bass)
-    const otherBuffer = await fetchAndDecode(ctx, stemsB.other)
+    const drumsBuffer = await decodeAudioFromUri(ctx, stemsB.drums)
+    const bassBuffer = await decodeAudioFromUri(ctx, stemsB.bass)
+    const otherBuffer = await decodeAudioFromUri(ctx, stemsB.other)
 
     // Render the three instrument stems into one buffer
     const maxLen = Math.max(drumsBuffer.length, bassBuffer.length, otherBuffer.length)
@@ -505,31 +512,70 @@ async function uploadFileForSeparation(file: File): Promise<string | null> {
     const formData = new FormData()
     formData.set("file", file)
     const res = await fetch("/api/upload", { method: "POST", body: formData })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.warn("Upload failed:", res.status, await res.text())
+      return null
+    }
     const data = (await res.json()) as { url?: string }
-    return data.url || null
-  } catch {
+    const url = data.url || null
+    // Reject placeholder URLs that Modal can't access
+    if (url && (url.startsWith("/audio/dev-") || !url.startsWith("http"))) {
+      console.warn("Upload returned local placeholder URL — Blob storage not configured")
+      return null
+    }
+    return url
+  } catch (err) {
+    console.warn("Upload error:", err)
     return null
   }
 }
 
-async function callSeparateAPI(audioUrl: string): Promise<{
+/** Call stem separation — tries Modal directly from browser, then API route */
+async function callStemSeparation(audioUrl: string): Promise<{
   vocals: string
   drums: string
   bass: string
   other: string
 } | null> {
+  // Try Modal directly from browser (no Vercel timeout issue)
+  if (MODAL_ENDPOINT) {
+    try {
+      console.log("[Stems] Calling Modal directly:", MODAL_ENDPOINT)
+      const res = await fetch(MODAL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audio_url: audioUrl }),
+      })
+      if (res.ok) {
+        const data = (await res.json()) as Record<string, string>
+        if (data.error) {
+          console.warn("[Stems] Modal returned error:", data.error)
+        } else if (data.vocals || data.drums) {
+          console.log("[Stems] Modal separation successful")
+          return {
+            vocals: data.vocals || "",
+            drums: data.drums || "",
+            bass: data.bass || "",
+            other: data.other || "",
+          }
+        }
+      } else {
+        console.warn("[Stems] Modal HTTP error:", res.status)
+      }
+    } catch (err) {
+      console.warn("[Stems] Modal direct call failed:", err)
+    }
+  }
+
+  // Fallback: try via API route (may timeout on Vercel)
   try {
+    console.log("[Stems] Trying API route fallback")
     const res = await fetch("/api/audio/separate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ audioUrl }),
     })
-    if (!res.ok) {
-      const err = (await res.json()) as { code?: string }
-      if (err.code === "NOT_CONFIGURED") return null // Replicate not set up
-      return null
-    }
+    if (!res.ok) return null
     const data = (await res.json()) as { stems?: { vocals: string; drums: string; bass: string; other: string } }
     return data.stems || null
   } catch {
@@ -537,8 +583,20 @@ async function callSeparateAPI(audioUrl: string): Promise<{
   }
 }
 
-async function fetchAndDecode(ctx: AudioContext, url: string): Promise<AudioBuffer> {
-  const res = await fetch(url)
+/** Decode audio from a URL or data URI into an AudioBuffer */
+async function decodeAudioFromUri(ctx: AudioContext, uri: string): Promise<AudioBuffer> {
+  if (uri.startsWith("data:")) {
+    // Data URI — extract base64, decode to ArrayBuffer
+    const [, b64] = uri.split(",")
+    const binary = atob(b64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i)
+    }
+    return ctx.decodeAudioData(bytes.buffer)
+  }
+  // Regular URL
+  const res = await fetch(uri)
   const arrayBuffer = await res.arrayBuffer()
   return ctx.decodeAudioData(arrayBuffer)
 }
