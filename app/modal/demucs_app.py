@@ -48,11 +48,13 @@ def separate(data: dict):
         output_dir = Path(tmpdir) / "output"
         output_dir.mkdir()
 
-        # Run full 4-stem separation
+        # Run full 4-stem separation, output MP3 at 192kbps (much smaller than WAV)
         subprocess.run(
             [
                 "python", "-m", "demucs",
                 "-n", "htdemucs",
+                "--mp3",
+                "--mp3-bitrate", "192",
                 "-o", str(output_dir),
                 str(input_path),
             ],
@@ -70,10 +72,14 @@ def separate(data: dict):
 
         result = {}
         for stem_name in ["vocals", "drums", "bass", "other"]:
-            stem_file = stem_dir / f"{stem_name}.wav"
+            # Check for mp3 first, then wav
+            stem_file = stem_dir / f"{stem_name}.mp3"
+            if not stem_file.exists():
+                stem_file = stem_dir / f"{stem_name}.wav"
             if stem_file.exists():
                 with open(stem_file, "rb") as f:
-                    result[stem_name] = base64.b64encode(f.read()).decode("utf-8")
+                    ext = stem_file.suffix.lstrip(".")
+                    result[stem_name] = f"data:audio/{ext};base64," + base64.b64encode(f.read()).decode("utf-8")
             else:
                 result[stem_name] = ""
 

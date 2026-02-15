@@ -320,35 +320,66 @@ export async function generateAutoMashup(
     beatGain.connect(masterGain)
     beatSrc.start(0)
   } else {
-    // --- Frequency fallback: highpass A (vocal-ish) + lowpass B (beat-ish) ---
-    // Track A → highpass at 300 Hz (extract vocals / upper content)
+    // --- Frequency fallback: aggressive filtering to isolate vocals vs beat ---
+    // This is an approximation — real stem separation (Modal/Replicate) is much better
+
+    // Track A → cascade two steep highpass filters at 500 Hz + bandpass 800-4000 Hz
+    // Vocals live mostly in 300-3500 Hz range; this aggressively cuts low-end
     const srcA = offline.createBufferSource()
     srcA.buffer = bufferA
     srcA.playbackRate.value = vibe.settings.tempoMultiplier
     const gainA = offline.createGain()
-    gainA.gain.value = config.vocalFocus ? 1.0 : 0.7
-    const hpFilter = offline.createBiquadFilter()
-    hpFilter.type = "highpass"
-    hpFilter.frequency.value = 300
-    hpFilter.Q.value = 0.7
+    gainA.gain.value = config.vocalFocus ? 1.2 : 0.8
+
+    // First highpass — kill sub-bass and bass
+    const hp1 = offline.createBiquadFilter()
+    hp1.type = "highpass"
+    hp1.frequency.value = 500
+    hp1.Q.value = 1.0
+
+    // Second highpass — steeper rolloff
+    const hp2 = offline.createBiquadFilter()
+    hp2.type = "highpass"
+    hp2.frequency.value = 400
+    hp2.Q.value = 1.0
+
+    // Low-pass to cut harsh highs (cymbals, hats from the instrumental)
+    const lpVocal = offline.createBiquadFilter()
+    lpVocal.type = "lowpass"
+    lpVocal.frequency.value = 4000
+    lpVocal.Q.value = 0.5
+
     srcA.connect(gainA)
-    gainA.connect(hpFilter)
-    hpFilter.connect(masterGain)
+    gainA.connect(hp1)
+    hp1.connect(hp2)
+    hp2.connect(lpVocal)
+    lpVocal.connect(masterGain)
     srcA.start(0)
 
-    // Track B → lowpass at 5000 Hz (keep beat / bass / body)
+    // Track B → cascade two steep lowpass filters at 800 Hz
+    // Keep only kick, bass, and low-end body
     const srcB = offline.createBufferSource()
     srcB.buffer = bufferB
     srcB.playbackRate.value = vibe.settings.tempoMultiplier
     const gainB = offline.createGain()
-    gainB.gain.value = config.vocalFocus ? 0.75 : 1.0
-    const lpFilter = offline.createBiquadFilter()
-    lpFilter.type = "lowpass"
-    lpFilter.frequency.value = 5000
-    lpFilter.Q.value = 0.7
+    gainB.gain.value = config.vocalFocus ? 0.8 : 1.0
+
+    // First lowpass — cut mids and highs
+    const lp1 = offline.createBiquadFilter()
+    lp1.type = "lowpass"
+    lp1.frequency.value = 800
+    lp1.Q.value = 1.0
+
+    // Second lowpass — steeper rolloff
+    const lp2 = offline.createBiquadFilter()
+    lp2.type = "lowpass"
+    lp2.frequency.value = 1200
+    lp2.Q.value = 0.7
+
     srcB.connect(gainB)
-    gainB.connect(lpFilter)
-    lpFilter.connect(masterGain)
+    gainB.connect(lp1)
+    lp1.connect(lp2)
+    lp2.connect(masterGain)
     srcB.start(0)
   }
 
