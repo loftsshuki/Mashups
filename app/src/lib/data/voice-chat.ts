@@ -77,6 +77,18 @@ export async function createVoiceRoom(sessionId: string): Promise<VoiceRoom> {
     createdAt: new Date().toISOString(),
   }
 
+  // Create real Daily.co room when API key is present
+  let providerRoomUrl: string | null = null
+  if (process.env.DAILY_API_KEY) {
+    try {
+      const { createDailyRoom } = await import("@/lib/integrations/daily")
+      const dailyRoom = await createDailyRoom(`mashup-${sessionId}`)
+      providerRoomUrl = dailyRoom.url
+    } catch {
+      // Fall back to mock room
+    }
+  }
+
   voiceRooms.set(room.id, room)
 
   // Persist to Supabase if configured
@@ -92,6 +104,7 @@ export async function createVoiceRoom(sessionId: string): Promise<VoiceRoom> {
           session_id: sessionId,
           status: "active",
           expires_at: expiresAt,
+          provider_room_url: providerRoomUrl,
         })
         .select("id")
         .single()
