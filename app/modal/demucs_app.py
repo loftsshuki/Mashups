@@ -3,23 +3,25 @@ Modal deployment for Demucs stem separation.
 
 Setup:
   1. pip install modal
-  2. modal token new          # authenticate with Modal
-  3. modal deploy modal/demucs_app.py   # deploy the function
+  2. modal token new
+  3. PYTHONIOENCODING=utf-8 python -m modal deploy modal/demucs_app.py
 
 After deploy, set MODAL_STEM_ENDPOINT in .env.local to the URL Modal prints.
 """
 
 import modal
-import io
-import json
 import tempfile
 import urllib.request
 
 app = modal.App("mashups-demucs")
 
 demucs_image = (
-    modal.Image.debian_slim(python_version="3.11")
-    .pip_install("demucs", "torch", "torchaudio", "numpy", "pydub")
+    modal.Image.from_registry(
+        "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime",
+        add_python="3.11",
+    )
+    .apt_install("ffmpeg")
+    .pip_install("demucs", "numpy", "fastapi[standard]")
 )
 
 
@@ -29,42 +31,24 @@ demucs_image = (
     timeout=600,
     memory=8192,
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def separate(data: dict):
-    """Separate audio into stems using Demucs htdemucs model.
-
-    Request body: { "audio_url": "https://..." }
-    Returns: { "vocals": <base64>, "drums": <base64>, "bass": <base64>, "other": <base64> }
-    """
     import subprocess
     import base64
     from pathlib import Path
 
     audio_url = data.get("audio_url")
     if not audio_url:
-        return {"error": "audio_url is required"}, 400
+        return {"error": "audio_url is required"}
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Download the audio file
         input_path = Path(tmpdir) / "input_audio"
         urllib.request.urlretrieve(audio_url, str(input_path))
 
         output_dir = Path(tmpdir) / "output"
         output_dir.mkdir()
 
-        # Run demucs
-        subprocess.run(
-            [
-                "python", "-m", "demucs",
-                "--two-stems=vocals",  # only separate vocals vs. accompaniment first
-                "-n", "htdemucs",
-                "-o", str(output_dir),
-                str(input_path),
-            ],
-            check=False,
-        )
-
-        # Also run the full 4-stem separation
+        # Run full 4-stem separation
         subprocess.run(
             [
                 "python", "-m", "demucs",
@@ -78,12 +62,11 @@ def separate(data: dict):
         # Find the output stems
         stem_dir = output_dir / "htdemucs" / "input_audio"
         if not stem_dir.exists():
-            # Try without extension
             candidates = list((output_dir / "htdemucs").iterdir())
             if candidates:
                 stem_dir = candidates[0]
             else:
-                return {"error": "Demucs produced no output"}, 500
+                return {"error": "Demucs produced no output"}
 
         result = {}
         for stem_name in ["vocals", "drums", "bass", "other"]:
