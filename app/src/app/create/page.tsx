@@ -19,6 +19,7 @@ import { PlatformExport } from "@/components/create/platform-export"
 import { HookGenerator } from "@/components/create/hook-generator"
 import { CopilotPanel } from "@/components/ai/copilot-panel"
 import { StemGenerator } from "@/components/ai/stem-generator"
+import { GhostCollaborator } from "@/components/ai/ghost-collaborator"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
 import type { AutomationNode } from "@/lib/audio/automation"
 import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
@@ -92,6 +93,7 @@ function CreatePageContent() {
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail | null>(null)
   const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
   const [copilotOpen, setCopilotOpen] = useState(false)
+  const [ghostOpen, setGhostOpen] = useState(false)
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
@@ -653,8 +655,16 @@ function CreatePageContent() {
             {/* ----------------------------------------------------------------- */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                {/* AI Copilot Toggle */}
-                <div className="flex justify-end">
+                {/* AI Toggles */}
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant={ghostOpen ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setGhostOpen(!ghostOpen)}
+                  >
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Ghost Collab
+                  </Button>
                   <Button
                     variant={copilotOpen ? "default" : "outline"}
                     size="sm"
@@ -664,6 +674,8 @@ function CreatePageContent() {
                     AI Copilot
                   </Button>
                 </div>
+
+                {ghostOpen && <GhostCollaborator />}
 
                 <CopilotPanel
                   isOpen={copilotOpen}
