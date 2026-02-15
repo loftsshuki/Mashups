@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 interface GeneratedStem {
   id: string
@@ -58,6 +59,10 @@ function generateMockStem(
 
 export async function POST(request: NextRequest) {
   try {
+    // Check AI generation limit
+    const tierCheck = await enforceTierLimit("ai_generations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+
     const body = (await request.json()) as {
       prompt: string
       instrument?: string

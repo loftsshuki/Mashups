@@ -1,6 +1,10 @@
 // Smart Contract Revenue Splits
 // Blockchain-based auto-distribution system with wallet abstraction
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export type SplitStatus = "pending" | "active" | "paused" | "completed"
 export type PayoutFrequency = "instant" | "daily" | "weekly" | "monthly"
 export type PayoutStatus = "pending" | "processing" | "completed" | "failed"
@@ -85,6 +89,42 @@ export interface BlockchainTransaction {
 
 // Default platform fee (15%)
 const PLATFORM_FEE_PERCENT = 15
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapSplitFromDb(row: any, recipients: any[]): RevenueSplit {
+  return {
+    id: row.id,
+    mashupId: row.mashup_id || "",
+    mashupTitle: "", // Not stored in DB — populated by caller if needed
+    status: row.status === "draft" ? "pending" : row.status,
+    createdAt: row.created_at,
+    activatedAt: row.activated_at || undefined,
+    recipients: recipients.map(r => ({
+      id: r.id,
+      userId: r.user_id || "",
+      displayName: r.display_name,
+      walletAddress: r.wallet_address || "",
+      percentage: Number(r.percentage),
+      role: r.role as RevenueRecipient["role"],
+      verified: r.verified,
+      totalReceived: Number(r.total_received),
+      lastPayout: r.last_payout_at || undefined,
+    })),
+    totalRecipients: recipients.length,
+    totalRevenue: Number(row.total_revenue),
+    currency: "USDC",
+    platformFee: Number(row.platform_fee_percent),
+    payoutFrequency: row.payout_frequency as PayoutFrequency,
+    minimumPayout: Number(row.minimum_payout),
+    contractAddress: row.contract_address || undefined,
+    transactionHash: row.transaction_hash || undefined,
+    chainId: Number(row.chain_id) || 137,
+    totalDistributed: Number(row.total_distributed),
+    totalPending: Number(row.total_pending),
+    lastDistribution: row.last_distribution_at || undefined,
+    auditLog: [],
+  }
+}
 
 // Mock split templates
 export const splitTemplates = {
@@ -193,6 +233,49 @@ export async function createRevenueSplit(
   // Simulate blockchain deployment
   await simulateDeployment(split)
 
+  // Persist to Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+
+      const { data: inserted, error: splitErr } = await supabase
+        .from("revenue_splits")
+        .insert({
+          mashup_id: mashupId,
+          creator_id: recipients.find(r => r.role === "creator")?.userId || null,
+          status: split.status === "pending" ? "draft" : split.status,
+          payout_frequency: split.payoutFrequency,
+          minimum_payout: split.minimumPayout,
+          platform_fee_percent: split.platformFee,
+          contract_address: split.contractAddress,
+          transaction_hash: split.transactionHash,
+          chain_id: String(split.chainId),
+          activated_at: split.activatedAt,
+        })
+        .select("id")
+        .single()
+
+      if (!splitErr && inserted) {
+        split.id = inserted.id
+
+        const recipientRows = split.recipients.map(r => ({
+          split_id: inserted.id,
+          user_id: r.userId === "platform" ? null : r.userId || null,
+          display_name: r.displayName,
+          wallet_address: r.walletAddress || null,
+          percentage: r.percentage,
+          role: r.role === "sample_owner" || r.role === "collaborator" ? "other" : r.role,
+          verified: r.verified,
+        }))
+
+        await supabase.from("revenue_split_recipients").insert(recipientRows)
+      }
+    } catch {
+      // Supabase persistence failed — split still returned from mock
+    }
+  }
+
   return { split, success: true }
 }
 
@@ -272,22 +355,109 @@ export async function distributeRevenue(
   return { success: true, transactions }
 }
 
-// Get split by ID (mock)
+// Get split by ID
 export async function getSplitById(id: string): Promise<RevenueSplit | null> {
-  // Mock data
-  return mockSplits.find(s => s.id === id) || null
+  if (!isSupabaseConfigured()) {
+    return mockSplits.find(s => s.id === id) || null
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data: split, error } = await supabase
+      .from("revenue_splits")
+      .select("*")
+      .eq("id", id)
+      .single()
+
+    if (error || !split) return mockSplits.find(s => s.id === id) || null
+
+    const { data: recipients } = await supabase
+      .from("revenue_split_recipients")
+      .select("*")
+      .eq("split_id", id)
+
+    return mapSplitFromDb(split, recipients || [])
+  } catch {
+    return mockSplits.find(s => s.id === id) || null
+  }
 }
 
 // Get splits by mashup
 export async function getSplitsByMashup(mashupId: string): Promise<RevenueSplit[]> {
-  return mockSplits.filter(s => s.mashupId === mashupId)
+  if (!isSupabaseConfigured()) {
+    return mockSplits.filter(s => s.mashupId === mashupId)
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data: splits, error } = await supabase
+      .from("revenue_splits")
+      .select("*")
+      .eq("mashup_id", mashupId)
+
+    if (error || !splits?.length) return mockSplits.filter(s => s.mashupId === mashupId)
+
+    const results: RevenueSplit[] = []
+    for (const split of splits) {
+      const { data: recipients } = await supabase
+        .from("revenue_split_recipients")
+        .select("*")
+        .eq("split_id", split.id)
+      results.push(mapSplitFromDb(split, recipients || []))
+    }
+    return results
+  } catch {
+    return mockSplits.filter(s => s.mashupId === mashupId)
+  }
 }
 
 // Get splits by user
 export async function getSplitsByUser(userId: string): Promise<RevenueSplit[]> {
-  return mockSplits.filter(s => 
-    s.recipients.some(r => r.userId === userId)
-  )
+  if (!isSupabaseConfigured()) {
+    return mockSplits.filter(s => s.recipients.some(r => r.userId === userId))
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    // Find splits where user is a recipient
+    const { data: recipientRows, error: rErr } = await supabase
+      .from("revenue_split_recipients")
+      .select("split_id")
+      .eq("user_id", userId)
+
+    if (rErr || !recipientRows?.length) {
+      return mockSplits.filter(s => s.recipients.some(r => r.userId === userId))
+    }
+
+    const splitIds = [...new Set(recipientRows.map((r: { split_id: string }) => r.split_id))]
+
+    const { data: splits, error } = await supabase
+      .from("revenue_splits")
+      .select("*")
+      .in("id", splitIds)
+
+    if (error || !splits?.length) {
+      return mockSplits.filter(s => s.recipients.some(r => r.userId === userId))
+    }
+
+    const results: RevenueSplit[] = []
+    for (const split of splits) {
+      const { data: recipients } = await supabase
+        .from("revenue_split_recipients")
+        .select("*")
+        .eq("split_id", split.id)
+      results.push(mapSplitFromDb(split, recipients || []))
+    }
+    return results
+  } catch {
+    return mockSplits.filter(s => s.recipients.some(r => r.userId === userId))
+  }
 }
 
 // Update recipient wallet
@@ -322,26 +492,66 @@ export async function getEarningsSummary(userId: string): Promise<{
   totalSplits: number
   recentTransactions: PayoutTransaction[]
 }> {
-  const userSplits = await getSplitsByUser(userId)
-  
+  if (isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+
+      const { data: recipientRows } = await supabase
+        .from("revenue_split_recipients")
+        .select("total_received, percentage, split_id")
+        .eq("user_id", userId)
+
+      if (recipientRows?.length) {
+        const splitIds = [...new Set(recipientRows.map((r: { split_id: string }) => r.split_id))]
+        const { data: splits } = await supabase
+          .from("revenue_splits")
+          .select("id, total_revenue, total_distributed")
+          .in("id", splitIds)
+
+        let totalEarned = 0
+        let totalPending = 0
+
+        for (const r of recipientRows) {
+          totalEarned += Number(r.total_received)
+          const split = splits?.find((s: { id: string }) => s.id === r.split_id)
+          if (split) {
+            const unpaid = Number(split.total_revenue) - Number(split.total_distributed)
+            totalPending += (unpaid * Number(r.percentage)) / 100
+          }
+        }
+
+        return {
+          totalEarned,
+          totalPending,
+          totalSplits: splitIds.length,
+          recentTransactions: [],
+        }
+      }
+    } catch {
+      // fall through to mock
+    }
+  }
+
+  // Mock fallback
+  const userSplits = mockSplits.filter(s => s.recipients.some(r => r.userId === userId))
   let totalEarned = 0
   let totalPending = 0
-  
+
   userSplits.forEach(split => {
     const recipient = split.recipients.find(r => r.userId === userId)
     if (recipient) {
       totalEarned += recipient.totalReceived
-      // Calculate pending based on unpaid revenue
       const unpaidRevenue = split.totalRevenue - split.totalDistributed
       totalPending += (unpaidRevenue * recipient.percentage) / 100
     }
   })
-  
+
   return {
     totalEarned,
     totalPending,
     totalSplits: userSplits.length,
-    recentTransactions: [], // Would fetch from blockchain
+    recentTransactions: [],
   }
 }
 

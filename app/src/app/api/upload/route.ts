@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 export async function POST(request: NextRequest) {
   try {
+    // Check mashup upload limit
+    const tierCheck = await enforceTierLimit("mashups")
+    if (tierCheck instanceof NextResponse) return tierCheck
+
     const formData = await request.formData()
     const file = formData.get("file") as File
 

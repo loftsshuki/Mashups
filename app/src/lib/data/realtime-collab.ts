@@ -91,6 +91,10 @@ export async function createCollabSession(
   }
 
   activeSessions.set(session.id, session)
+
+  // Persist to Supabase so sessions survive deploys
+  await persistCollabSession(session.id, mashupId, hostId)
+
   return session
 }
 
@@ -98,7 +102,40 @@ export async function joinCollabSession(
   sessionId: string,
   user: { id: string; displayName: string; avatarUrl: string }
 ): Promise<CollabSession | null> {
-  const session = activeSessions.get(sessionId)
+  let session = activeSessions.get(sessionId)
+
+  // If not in memory, try recovering from Supabase
+  if (!session && isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+
+      const { data, error } = await supabase
+        .from("collaboration_sessions")
+        .select("id, title, status, started_at")
+        .eq("id", sessionId)
+        .eq("status", "active")
+        .single()
+
+      if (!error && data) {
+        session = {
+          id: data.id,
+          mashupId: "",
+          hostId: "",
+          collaborators: [],
+          operations: [],
+          isLocked: false,
+          followMode: { enabled: false, leaderId: null },
+          createdAt: data.started_at || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        activeSessions.set(sessionId, session)
+      }
+    } catch {
+      // Could not recover — session stays null
+    }
+  }
+
   if (!session) return null
 
   const existingIndex = session.collaborators.findIndex(c => c.userId === user.id)
@@ -122,6 +159,26 @@ export async function joinCollabSession(
   }
 
   session.updatedAt = new Date().toISOString()
+
+  // Persist participant to Supabase
+  if (isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      await supabase.from("collaboration_participants").upsert(
+        {
+          session_id: sessionId,
+          user_id: user.id,
+          role: "editor",
+          status: "active",
+        },
+        { onConflict: "session_id,user_id" },
+      )
+    } catch {
+      // Non-critical — participant persistence failed
+    }
+  }
+
   return session
 }
 
@@ -184,6 +241,21 @@ export async function leaveCollabSession(
   if (collaborator) {
     collaborator.isActive = false
     collaborator.lastSeen = new Date().toISOString()
+  }
+
+  // Update participant status in Supabase
+  if (isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      await supabase
+        .from("collaboration_participants")
+        .update({ status: "left" })
+        .eq("session_id", sessionId)
+        .eq("user_id", userId)
+    } catch {
+      // Non-critical
+    }
   }
 }
 

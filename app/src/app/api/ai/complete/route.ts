@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 interface CompletionOption {
   id: string
@@ -61,6 +62,10 @@ function generateCompletions(
 
 export async function POST(request: NextRequest) {
   try {
+    // Check AI generation limit
+    const tierCheck = await enforceTierLimit("ai_generations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+
     const body = (await request.json()) as {
       stems?: { instrument?: string; title?: string }[]
       bpm?: number | null

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { separateStems, isReplicateConfigured, getEstimatedProcessingTime } from "@/lib/audio/replicate"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 export async function POST(request: NextRequest) {
   try {
+    // Check stem separation limit
+    const tierCheck = await enforceTierLimit("stem_separations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+
     // Check if Replicate is configured
     if (!isReplicateConfigured()) {
       return NextResponse.json(
