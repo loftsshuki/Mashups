@@ -191,3 +191,134 @@ export interface FeedPreferences {
   preferred_bpm_max: number | null
   updated_at: string
 }
+
+// ---------------------------------------------------------------------------
+// Stems Registry (first-class stem entities)
+// ---------------------------------------------------------------------------
+
+export type StemSource = "upload" | "ai_generated" | "separated" | "recorded"
+
+export interface Stem {
+  id: string
+  creator_id: string
+  title: string
+  instrument: string | null // vocal, drums, bass, synth, texture, other
+  genre: string | null
+  bpm: number | null
+  key: string | null // e.g. "Cm", "F#"
+  duration_ms: number | null
+  audio_url: string
+  waveform_data: unknown | null
+  tags: string[]
+  source: StemSource
+  play_count: number
+  usage_count: number
+  created_at: string
+  // Joined fields
+  creator?: Profile
+}
+
+export interface StemMashupLink {
+  mashup_id: string
+  stem_id: string
+  track_number: number | null
+}
+
+// ---------------------------------------------------------------------------
+// Crates — shared stem collections
+// ---------------------------------------------------------------------------
+
+export interface Crate {
+  id: string
+  creator_id: string
+  title: string
+  description: string | null
+  is_public: boolean
+  follower_count: number
+  created_at: string
+  // Joined fields
+  creator?: Profile
+  stems?: CrateStem[]
+}
+
+export interface CrateStem {
+  crate_id: string
+  stem_id: string
+  added_by: string
+  added_at: string
+  // Joined fields
+  stem?: Stem
+  added_by_user?: Profile
+}
+
+// ---------------------------------------------------------------------------
+// Creative Streaks
+// ---------------------------------------------------------------------------
+
+export interface CreativeStreak {
+  user_id: string
+  current_weekly_streak: number
+  longest_weekly_streak: number
+  last_creation_week: string | null // ISO week like '2026-W07'
+  streak_history: StreakWeek[]
+}
+
+export interface StreakWeek {
+  week: string // ISO week
+  mashup_count: number
+  mashup_ids: string[]
+}
+
+// ---------------------------------------------------------------------------
+// Platform Challenges v2
+// ---------------------------------------------------------------------------
+
+export type ChallengeType = "flip" | "chain" | "collision" | "blind_test" | "roulette"
+export type ChallengeStatus = "upcoming" | "active" | "voting" | "completed"
+
+export interface PlatformChallenge {
+  id: string
+  type: ChallengeType
+  title: string
+  description: string | null
+  stem_ids: string[]
+  genre_pair: string[] | null
+  rules: Record<string, unknown> | null
+  starts_at: string | null
+  ends_at: string | null
+  max_entries: number | null
+  prize_description: string | null
+  status: ChallengeStatus
+  created_at: string
+}
+
+// ---------------------------------------------------------------------------
+// Seasons
+// ---------------------------------------------------------------------------
+
+export type SeasonStatus = "upcoming" | "active" | "completed"
+
+export interface Season {
+  id: string
+  name: string
+  theme: string | null
+  description: string | null
+  stem_pack_ids: string[]
+  collective_goal: number | null
+  current_count: number
+  starts_at: string | null
+  ends_at: string | null
+  status: SeasonStatus
+}
+
+// ---------------------------------------------------------------------------
+// Stem Usage / Provenance
+// ---------------------------------------------------------------------------
+
+export interface StemUsageLog {
+  id: string
+  stem_id: string
+  mashup_id: string
+  total_plays_contributed: number
+  created_at: string
+}
