@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { BadgeDollarSign, FileText, Wallet } from "lucide-react"
+import { BadgeDollarSign, FileText, Wallet, Music } from "lucide-react"
 
 import { AuthGuard } from "@/components/auth/auth-guard"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +35,7 @@ import {
   type ReferralRevenueSummary,
 } from "@/lib/growth/referral-revenue"
 import type { EarningsLedgerEntry, Payout } from "@/lib/data/types"
+import { getStemRoyalties, type StemRoyaltySummary } from "@/lib/data/stem-royalties"
 
 function formatMoney(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
@@ -49,6 +50,7 @@ function MonetizationContent() {
   const [entitlement, setEntitlement] = useState<EntitlementSummary | null>(null)
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([])
   const [referralRevenue, setReferralRevenue] = useState<ReferralRevenueSummary | null>(null)
+  const [stemRoyalties, setStemRoyalties] = useState<StemRoyaltySummary | null>(null)
   const [thresholdDollars, setThresholdDollars] = useState<string>(
     (DEFAULT_PAYOUT_THRESHOLD_CENTS / 100).toString(),
   )
@@ -63,19 +65,21 @@ function MonetizationContent() {
         } = await supabase.auth.getUser()
 
         const userId = user?.id ?? "mock-user"
-        const [ledgerRows, payoutRows, entitlementSummary, invoiceRows, referralSummary] =
+        const [ledgerRows, payoutRows, entitlementSummary, invoiceRows, referralSummary, stemRoyaltySummary] =
           await Promise.all([
           getEarningsLedgerForUser(userId),
           getPayoutsForUser(userId),
           getEntitlementSummaryForUser(userId),
           getInvoiceSummariesForUser(userId),
           getReferralRevenueSummary(),
+          getStemRoyalties(userId),
         ])
         setEntries(ledgerRows)
         setPayouts(payoutRows)
         setEntitlement(entitlementSummary)
         setInvoices(invoiceRows)
         setReferralRevenue(referralSummary)
+        setStemRoyalties(stemRoyaltySummary)
       } finally {
         setLoading(false)
       }
@@ -158,6 +162,34 @@ function MonetizationContent() {
           Conversion rate: {((referralRevenue?.inviteConversionRate ?? 0) * 100).toFixed(1)}%
         </p>
       </section>
+
+      {stemRoyalties && (
+        <section className="neon-panel mt-6 rounded-2xl p-4">
+          <NeonSectionHeader
+            title="Stem Earnings"
+            description={`Your stems earned ${formatMoney(stemRoyalties.totalEarnedCents)} in ${stemRoyalties.monthLabel}`}
+          />
+          <div className="space-y-2">
+            {stemRoyalties.entries.map((entry) => (
+              <div
+                key={entry.stemId}
+                className="flex items-center justify-between rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <Music className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">{entry.stemTitle}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {entry.instrument} · Used in {entry.usedInMashups} mashups · {entry.totalPlays.toLocaleString()} plays
+                    </p>
+                  </div>
+                </div>
+                <p className="font-semibold text-foreground">{formatMoney(entry.earnedCents)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <NeonGrid className="mt-6 md:grid-cols-2">
         <section className="neon-panel rounded-2xl p-4">
