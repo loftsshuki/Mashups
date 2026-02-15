@@ -30,9 +30,7 @@ import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
-  { href: "/feed", label: "For You" },
   { href: "/explore", label: "Explore" },
-  { href: "/discover", label: "Discover" },
   { href: "/create", label: "Create" },
   { href: "/studio", label: "Studio" },
 ] as const;
@@ -46,7 +44,6 @@ const communityLinks = [
 ] as const;
 
 const moreLinks = [
-  { href: "/marketplace", label: "Marketplace" },
   { href: "/pricing", label: "Pricing" },
   { href: "/enterprise", label: "Enterprise" },
 ] as const;

@@ -6,7 +6,6 @@ const footerLinks = {
     { href: "/create", label: "Create Mashup" },
     { href: "/studio", label: "Studio" },
     { href: "/tools", label: "AI Tools" },
-    { href: "/marketplace", label: "Marketplace" },
     { href: "/pricing", label: "Pricing" },
   ],
   Discover: [
@@ -24,7 +23,6 @@ const footerLinks = {
   ],
   Company: [
     { href: "/enterprise", label: "Enterprise" },
-    { href: "/partner", label: "Partner Program" },
     { href: "/sponsors", label: "Sponsors" },
     { href: "/legal/terms", label: "Terms" },
     { href: "/legal/copyright", label: "Copyright" },

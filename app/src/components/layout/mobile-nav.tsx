@@ -28,22 +28,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const navLinks = [
-  { href: "/feed", label: "For You", icon: Flame },
-  { href: "/launchpad", label: "Product", icon: LayoutGrid },
-  { href: "/packs", label: "Viral Pack", icon: PackageOpen },
-  { href: "/battles", label: "Battles", icon: Trophy },
-  { href: "/daily", label: "Daily Flip", icon: Flame },
-  { href: "/thunderdome", label: "Thunderdome", icon: Trophy },
-  { href: "/tools", label: "AI Tools", icon: Wand2 },
-  { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
-  { href: "/momentum", label: "Momentum", icon: Flame },
-  { href: "/studio", label: "Studio", icon: Radio },
-  { href: "/features", label: "New Features", icon: Sparkles },
-  { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
-  { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },
-  { href: "/legal", label: "Docs", icon: Search },
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/create", label: "Create", icon: PlusCircle },
+  { href: "/studio", label: "Studio", icon: Radio },
+  { href: "/battles", label: "Battles", icon: Trophy },
+  { href: "/daily-flip", label: "Daily Flip", icon: Flame },
+  { href: "/challenges", label: "Challenges", icon: Trophy },
+  { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
+  { href: "/tools", label: "AI Tools", icon: Wand2 },
+  { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
+  { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },
+  { href: "/legal", label: "Legal", icon: Search },
 ] as const;
 
 export function MobileNav() {

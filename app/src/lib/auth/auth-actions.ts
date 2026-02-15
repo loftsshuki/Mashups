@@ -56,6 +56,46 @@ export async function signup(prevState: any, formData: FormData) {
   redirect("/")
 }
 
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    redirect("/login?error=" + encodeURIComponent(error.message))
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
+export async function resetPassword(prevState: unknown, formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get("email") as string
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/update-password`,
+  })
+
+  if (error) return { error: error.message }
+  return { success: true, message: "Check your email for a password reset link" }
+}
+
+export async function updatePassword(prevState: unknown, formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get("password") as string
+
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) return { error: error.message }
+  redirect("/login?message=Password updated successfully")
+}
+
 export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut()

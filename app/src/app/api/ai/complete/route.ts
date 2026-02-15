@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { getOpenAI, isOpenAIConfigured } from "@/lib/ai/openai"
 
 interface CompletionOption {
   id: string
@@ -10,7 +11,7 @@ interface CompletionOption {
   suggestedStems: { instrument: string; description: string }[]
 }
 
-// Mock completion options — in production, this calls an AI model
+// Template-based completion options (fallback when no API key)
 function generateCompletions(
   stemCount: number,
   bpm: number | null,
@@ -52,7 +53,6 @@ function generateCompletions(
     },
   ]
 
-  // Adjust confidence based on how much context we have
   if (stemCount >= 3) {
     templates.forEach((t) => (t.confidence = Math.min(t.confidence + 0.05, 0.99)))
   }
@@ -67,11 +67,32 @@ export async function POST(request: NextRequest) {
     if (tierCheck instanceof NextResponse) return tierCheck
 
     const body = (await request.json()) as {
+      prompt?: string
       stems?: { instrument?: string; title?: string }[]
       bpm?: number | null
       key?: string | null
     }
 
+    // Use OpenAI if configured
+    if (isOpenAIConfigured() && body.prompt) {
+      const openai = getOpenAI()!
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{
+          role: "system",
+          content: "You are a music production assistant. Suggest creative mashup ideas based on the user's current project. Keep responses concise and actionable."
+        }, {
+          role: "user",
+          content: body.prompt
+        }],
+      })
+
+      return NextResponse.json({
+        suggestion: response.choices[0].message.content
+      })
+    }
+
+    // Fallback to template-based completions
     const stemCount = body.stems?.length ?? 0
     const completions = generateCompletions(stemCount, body.bpm ?? null, body.key ?? null)
 

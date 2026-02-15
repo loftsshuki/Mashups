@@ -17,12 +17,14 @@ import { SmartMatchPanel } from "@/components/create/smart-match-panel"
 import { AutomationLane } from "@/components/create/automation-lane"
 import { PlatformExport } from "@/components/create/platform-export"
 import { HookGenerator } from "@/components/create/hook-generator"
+import { AuthGuard } from "@/components/auth/auth-guard"
 import { CopilotPanel } from "@/components/ai/copilot-panel"
 import { StemGenerator } from "@/components/ai/stem-generator"
 import { GhostCollaborator } from "@/components/ai/ghost-collaborator"
 import type { TimelineTrack, TimelineClip } from "@/components/create/waveform-timeline"
 import type { AutomationNode } from "@/lib/audio/automation"
 import { useBeatAnalysis } from "@/lib/hooks/use-beat-analysis"
+import { useStemEngine } from "@/lib/hooks/use-stem-engine"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
@@ -78,7 +80,6 @@ function CreatePageContent() {
   const [currentStep, setCurrentStep] = useState(1)
   const [tracks, setTracks] = useState<TrackWithStems[]>([])
   const [mixerTracks, setMixerTracks] = useState<MixerTrackState[]>([])
-  const [previewMessage, setPreviewMessage] = useState("")
   const [forkedFrom, setForkedFrom] = useState<MockMashup | null>(null)
   const [isPending, startTransition] = useTransition()
   const [selectedStemTrack, setSelectedStemTrack] = useState<number | null>(null)
@@ -94,6 +95,9 @@ function CreatePageContent() {
   const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [ghostOpen, setGhostOpen] = useState(false)
+
+  // Audio engine for real-time multi-track playback
+  const stemEngine = useStemEngine()
 
   // Beat analysis for first track
   const firstTrack = tracks[0]
@@ -394,26 +398,34 @@ function CreatePageContent() {
     setMixerTracks((prev) =>
       prev.map((t, i) => (i === index ? { ...t, volume } : t))
     )
-  }, [])
+    // Sync to audio engine
+    const engineTracks = stemEngine.tracks
+    if (engineTracks[index]) {
+      stemEngine.setVolume(engineTracks[index].id, volume / 100) // UI is 0-100, engine is 0-1
+    }
+  }, [stemEngine])
 
   const handleMuteToggle = useCallback((index: number) => {
-    setMixerTracks((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, muted: !t.muted } : t))
-    )
-  }, [])
+    setMixerTracks((prev) => {
+      const next = prev.map((t, i) => (i === index ? { ...t, muted: !t.muted } : t))
+      const engineTracks = stemEngine.tracks
+      if (engineTracks[index]) {
+        stemEngine.setMuted(engineTracks[index].id, next[index].muted)
+      }
+      return next
+    })
+  }, [stemEngine])
 
   const handleSoloToggle = useCallback((index: number) => {
-    setMixerTracks((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, solo: !t.solo } : t))
-    )
-  }, [])
-
-  const handlePreview = useCallback(() => {
-    setPreviewMessage(
-      "Real-time audio mixing is coming in a future update. For now, your volume and mute settings will be saved with the mashup metadata."
-    )
-    setTimeout(() => setPreviewMessage(""), 5000)
-  }, [])
+    setMixerTracks((prev) => {
+      const next = prev.map((t, i) => (i === index ? { ...t, solo: !t.solo } : t))
+      const engineTracks = stemEngine.tracks
+      if (engineTracks[index]) {
+        stemEngine.setSolo(engineTracks[index].id, next[index].solo)
+      }
+      return next
+    })
+  }, [stemEngine])
 
   // ---------------------------------------------------------------------------
   // Step 3: Publish handler
@@ -422,10 +434,25 @@ function CreatePageContent() {
   const handlePublish = useCallback(
     (formData: FormData) => {
       startTransition(async () => {
+        // Export the mix to WAV if engine has tracks loaded
+        const wavBlob = await stemEngine.exportWav()
+
+        if (wavBlob) {
+          // Upload the mixed WAV
+          const uploadForm = new FormData()
+          uploadForm.append("file", new File([wavBlob], "mashup-mix.wav", { type: "audio/wav" }))
+          const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm })
+          const { url } = await uploadRes.json()
+
+          if (url) {
+            formData.set("audio_url", url)
+          }
+        }
+
         await createMashup(null, formData)
       })
     },
-    []
+    [stemEngine]
   )
 
   // ---------------------------------------------------------------------------
@@ -437,13 +464,25 @@ function CreatePageContent() {
   const canProceedStep2 = true
 
   const goToStep = useCallback(
-    (step: number) => {
+    async (step: number) => {
       if (step === 2 && currentStep === 1) {
         initMixerTracks()
+
+        // Load audio into the stem engine
+        for (const track of tracks) {
+          if (track.stems) {
+            await stemEngine.addTrack(`${track.name}-vocals`, `${track.name} (Vocals)`, track.stems.vocals)
+            await stemEngine.addTrack(`${track.name}-drums`, `${track.name} (Drums)`, track.stems.drums)
+            await stemEngine.addTrack(`${track.name}-bass`, `${track.name} (Bass)`, track.stems.bass)
+            await stemEngine.addTrack(`${track.name}-other`, `${track.name} (Other)`, track.stems.other)
+          } else if (track.uploadedUrl) {
+            await stemEngine.addTrack(track.name, track.name, track.uploadedUrl)
+          }
+        }
       }
       setCurrentStep(step)
     },
-    [currentStep, initMixerTracks]
+    [currentStep, initMixerTracks, tracks, stemEngine]
   )
 
   // Compute first uploaded audio URL and total duration for publish form
@@ -803,17 +842,41 @@ function CreatePageContent() {
                   onSoloToggle={handleSoloToggle}
                 />
 
-                <div className="flex justify-center">
-                  <Button variant="outline" onClick={handlePreview}>
-                    <Music className="h-4 w-4" />
-                    Preview Mix
+                {/* Transport controls — real-time multi-track playback */}
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
+                  <Button
+                    size="sm"
+                    variant={stemEngine.engineState === "playing" ? "secondary" : "default"}
+                    onClick={stemEngine.engineState === "playing" ? stemEngine.pause : stemEngine.play}
+                    disabled={stemEngine.engineState === "loading" || stemEngine.engineState === "idle"}
+                  >
+                    {stemEngine.engineState === "playing" ? "Pause" : "Play"}
                   </Button>
+                  <Button size="sm" variant="outline" onClick={stemEngine.stop}>
+                    Stop
+                  </Button>
+
+                  {/* Time display */}
+                  <span className="font-mono text-sm text-muted-foreground">
+                    {formatTime(stemEngine.currentTime)} / {formatTime(stemEngine.duration)}
+                  </span>
+
+                  {/* Seek bar */}
+                  <input
+                    type="range"
+                    min={0}
+                    max={stemEngine.duration || 1}
+                    step={0.1}
+                    value={stemEngine.currentTime}
+                    onChange={(e) => stemEngine.seek(parseFloat(e.target.value))}
+                    className="flex-1"
+                  />
                 </div>
 
-                {previewMessage && (
-                  <div className="rounded-lg border border-border/50 bg-muted/30 px-4 py-3 text-center text-sm text-muted-foreground">
-                    {previewMessage}
-                  </div>
+                {stemEngine.engineState === "loading" && (
+                  <p className="text-sm text-muted-foreground animate-pulse text-center">
+                    Loading audio into mixer...
+                  </p>
                 )}
 
                 {/* Volume Automation */}
@@ -928,16 +991,24 @@ function CreatePageContent() {
   )
 }
 
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
 export default function CreatePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
-          <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
-        </div>
-      }
-    >
-      <CreatePageContent />
-    </Suspense>
+    <AuthGuard>
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+            <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
+          </div>
+        }
+      >
+        <CreatePageContent />
+      </Suspense>
+    </AuthGuard>
   )
 }
