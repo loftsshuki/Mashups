@@ -3,8 +3,43 @@
 This document catalogs all simulated/mock features in the Mashups codebase that need real backend implementations.
 
 **Last Updated:** February 14, 2026  
-**Total Features:** 15 major areas  
+**Total Data Files:** 58  
+**Mock/Demo Files:** 24  
+**Real Implementations:** 34  
 **Priority Order:** High → Medium → Low
+
+---
+
+## 📊 Complete Inventory
+
+### Mock Features (24 files needing real backend)
+1. ai-vocal.ts - AI Vocal Generation
+2. attribution.ts - Audio Fingerprinting & Attribution
+3. auto-caption.ts - Auto-Caption/Subtitle Generation
+4. auto-mashup.ts - AI Magic Mashup Generator
+5. battles.ts - Battle System
+6. billing.ts - Billing/Subscriptions
+7. challenge-engine.ts - Challenge Engine
+8. content-id.ts - Content ID/Rights Management
+9. crates.ts - Stem Crates/Collections
+10. creative-streaks.ts - Creative Streaks/Gamification
+11. gamification.ts - Gamification System
+12. platform-challenges.ts - Platform-Specific Challenges
+13. realtime-collab.ts - Real-time Collaboration
+14. recommendations.ts - Smart Recommendations
+15. remix-loader.ts - Remix/Stem Loader
+16. revenue-splits.ts - Revenue Splitting
+17. seasons.ts - Seasonal Events
+18. stems-registry.ts - Stem Registry
+19. studio-collab.ts - Studio Collaboration
+20. subscriptions.ts - Subscription Management
+21. thumbnail-generator.ts - Thumbnail Generation
+22. tipping.ts - Creator Tipping
+23. trending-sounds.ts - Trending Sounds Discovery
+24. voice-chat.ts - Voice Chat
+
+### Real Implementations (34 files with working backends)
+analytics.ts, audit-log.ts, challenges.ts, collaboration.ts, comments.ts, comments-v2.ts, earnings.ts, follow-feed.ts, follows.ts, fork-contests.ts, genres.ts, likes.ts, mashup-adapter.ts, mashup-detail.ts, mashups.ts, mashups-mutations.ts, midi-controller.ts, momentum-feed.ts, payout-threshold.ts, playlists.ts, plays.ts, profile-detail.ts, profiles.ts, recommendation-events.ts, rights.ts, rights-safety.ts, scoreboard.ts, scoreboard-server.ts, stems.ts, studio-persistence.ts, studio-sessions.ts, types.ts, viral-packs.ts, viral-packs-server.ts
 
 ---
 
@@ -300,6 +335,100 @@ user_streaks (user_id, current_streak, last_activity)
 
 **Note:** This is mostly client-side Web MIDI API - just needs real implementation, not backend.
 
+### 16. Billing System (billing.ts)
+**Status:** Mock subscription tiers, no real payment processing  
+**User Impact:** High - revenue critical  
+**Effort:** 2-3 weeks / Stripe integration
+
+**Missing:**
+- Stripe Checkout integration
+- Subscription lifecycle (upgrade/downgrade/cancel)
+- Invoice generation
+- Failed payment handling
+- Tax calculation (Stripe Tax)
+
+### 17. Stem Crates/Collections (crates.ts)
+**Status:** Mock crate system  
+**User Impact:** Medium - content organization  
+**Effort:** 1 week / $0 (database only)
+
+**Simple CRUD:**
+- Create/update/delete crates
+- Add/remove stems from crates
+- Share crates with community
+
+### 18. Creative Streaks (creative-streaks.ts)
+**Status:** Mock streak data  
+**User Impact:** Medium - engagement/retention  
+**Effort:** 1 week / $0
+
+**Backend:**
+- Track daily creation activity
+- Calculate streaks
+- Handle streak recovery
+- Reward distribution
+
+### 19. Studio Collaboration (studio-collab.ts)
+**Status:** Mock studio session sync  
+**User Impact:** High - collaboration  
+**Effort:** 3-4 weeks
+
+**See:** Realtime Collaboration (#3) - may be duplicate
+
+### 20. Thumbnail Generator (thumbnail-generator.ts)
+**Status:** Mock waveform data, static templates  
+**User Impact:** Medium - visual appeal  
+**Effort:** 1-2 weeks / Canvas API (client-side)
+
+**Real Implementation:**
+- Canvas-based generation
+- Real waveform analysis
+- Template rendering
+- Export to PNG/JPG
+
+### 21. Platform Challenges (platform-challenges.ts)
+**Status:** Mock TikTok/Instagram challenge data  
+**User Impact:** Medium - viral growth  
+**Effort:** 2 weeks
+
+**Backend:**
+- Platform API integration (TikTok, Instagram)
+- Challenge tracking
+- Hashtag monitoring
+- Winner selection
+
+### 22. Remix Loader (remix-loader.ts)
+**Status:** Mock stem loading from mashups  
+**User Impact:** High - remix culture  
+**Effort:** 2 weeks
+
+**Backend:**
+- Extract stems from existing mashups
+- Permission system (allow remixing)
+- Stem storage and delivery
+- Attribution tracking
+
+### 23. Seasons/Events (seasons.ts)
+**Status:** Mock seasonal events data  
+**User Impact:** Low - engagement  **Effort:** 1 week
+
+**Backend:**
+- Season configuration
+- Time-limited challenges
+- Special rewards
+- Event analytics
+
+### 24. Trending Sounds (trending-sounds.ts)
+**Status:** Mock TikTok/Spotify trending data  
+**User Impact:** High - content discovery  
+**Effort:** 2-3 weeks / API integrations
+
+**Real Implementation:**
+- TikTok API integration (requires partnership)
+- Spotify Charts API
+- YouTube Trending API
+- Internal trending algorithm
+
 ---
 
 ## 📊 Implementation Roadmap
@@ -337,13 +466,16 @@ user_streaks (user_id, current_streak, last_activity)
 | Phase 2 | 4 weeks | $50-100 |
 | Phase 3 | 4 weeks | $100-200 |
 | Phase 4 | 4 weeks | $50-100 |
-| **Total** | **16 weeks** | **$300-550/month** |
+| Phase 5 | 4 weeks | $30-50 |
+| **Total** | **20 weeks** | **$330-600/month** |
 
 **Per-User Costs:**
 - AI Mashup: $0.01-0.05
 - Caption Generation: $0.006/min
 - Voice Chat: $0.001-0.004/min
 - Vocal AI: $0.50-2.00/generation
+- Thumbnail Generation: $0 (client-side)
+- Trending Sounds API: $0.001/query
 
 ---
 
