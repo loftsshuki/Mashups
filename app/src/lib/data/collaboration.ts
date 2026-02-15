@@ -34,6 +34,14 @@ export interface CollaborationSnapshot {
   createdAt: string
 }
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// ---------------------------------------------------------------------------
+// Mock data (fallback)
+// ---------------------------------------------------------------------------
+
 export const mockCollaborationSessions: CollaborationSession[] = [
   {
     id: "sess-001",
@@ -91,6 +99,142 @@ export const mockCollaborationSnapshots: CollaborationSnapshot[] = [
     createdAt: "2026-02-13T16:38:00Z",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Supabase-backed operations
+// ---------------------------------------------------------------------------
+
+export async function getCollaborationSessions(options?: {
+  status?: CollaborationSession["status"]
+  limit?: number
+}): Promise<CollaborationSession[]> {
+  if (!isSupabaseConfigured()) {
+    let filtered = [...mockCollaborationSessions]
+    if (options?.status) filtered = filtered.filter((s) => s.status === options.status)
+    if (options?.limit) filtered = filtered.slice(0, options.limit)
+    return filtered
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    let query = supabase
+      .from("collaboration_sessions")
+      .select("id, title, status, started_at, participant_count:collaboration_participants(count)")
+
+    if (options?.status) query = query.eq("status", options.status)
+    query = query.order("started_at", { ascending: false })
+    if (options?.limit) query = query.limit(options.limit)
+
+    const { data, error } = await query
+    if (error || !data) return mockCollaborationSessions
+
+    return data.map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      title: row.title as string,
+      status: row.status as CollaborationSession["status"],
+      participants: Array.isArray(row.participant_count) && row.participant_count[0]
+        ? (row.participant_count[0] as { count: number }).count
+        : 0,
+      startedAt: row.started_at as string,
+    }))
+  } catch {
+    return mockCollaborationSessions
+  }
+}
+
+export async function getCollaborationSessionById(
+  id: string,
+): Promise<CollaborationSession | null> {
+  if (!isSupabaseConfigured()) {
+    return mockCollaborationSessions.find((s) => s.id === id) ?? null
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("collaboration_sessions")
+      .select("id, title, status, started_at, participant_count:collaboration_participants(count)")
+      .eq("id", id)
+      .single()
+
+    if (error || !data) return mockCollaborationSessions.find((s) => s.id === id) ?? null
+
+    const row = data as Record<string, unknown>
+    return {
+      id: row.id as string,
+      title: row.title as string,
+      status: row.status as CollaborationSession["status"],
+      participants: Array.isArray(row.participant_count) && row.participant_count[0]
+        ? (row.participant_count[0] as { count: number }).count
+        : 0,
+      startedAt: row.started_at as string,
+    }
+  } catch {
+    return mockCollaborationSessions.find((s) => s.id === id) ?? null
+  }
+}
+
+export async function createCollaborationSession(
+  title: string,
+  userId: string,
+): Promise<CollaborationSession | null> {
+  if (!isSupabaseConfigured()) return null
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data: session, error: sessionError } = await supabase
+      .from("collaboration_sessions")
+      .insert({ title, status: "active" })
+      .select("id, title, status, started_at")
+      .single()
+
+    if (sessionError || !session) return null
+
+    await supabase.from("collaboration_participants").insert({
+      session_id: session.id,
+      user_id: userId,
+      role: "owner",
+    })
+
+    return {
+      id: session.id,
+      title: session.title,
+      status: session.status,
+      participants: 1,
+      startedAt: session.started_at,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function joinCollaborationSession(
+  sessionId: string,
+  userId: string,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { error } = await supabase.from("collaboration_participants").insert({
+      session_id: sessionId,
+      user_id: userId,
+      role: "collaborator",
+    })
+
+    return !error
+  } catch {
+    return false
+  }
+}
 
 export function getSessionCollabSummary(sessionId: string) {
   const markerCount = mockCollaborationMarkers.filter(

@@ -341,55 +341,105 @@ export function getRarityBg(rarity: Badge["rarity"]): string {
   }
 }
 
-// Mock user gamification data
-export function getMockUserGamification(userId: string): UserGamification {
-  const mockBadges: Badge[] = [
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Mock fallback data
+const mockGamificationData: Omit<UserGamification, "userId"> = {
+  currentPoints: 750,
+  currentTier: getTierForPoints(750),
+  badges: [
     { ...badges.first_mashup, unlockedAt: "2026-01-15T10:00:00Z" },
     { ...badges.trending, unlockedAt: "2026-02-01T15:30:00Z" },
     { ...badges.battle_participant, unlockedAt: "2026-02-05T09:00:00Z" },
     { ...badges.remix_master, unlockedAt: "2026-02-10T14:20:00Z" },
     { ...badges.stem_expert, unlockedAt: "2026-02-12T11:45:00Z" },
-  ]
-  
-  const currentPoints = 750
-  const currentTier = getTierForPoints(currentPoints)
-  
-  return {
-    userId,
-    currentPoints,
-    currentTier,
-    badges: mockBadges,
-    stats: {
-      totalMashups: 15,
-      totalPlays: 45000,
-      totalLikes: 2300,
-      battleWins: 0,
-      battleParticipations: 2,
-      remixesCreated: 12,
-      followers: 180,
-      following: 45,
-    },
-    recentActivity: [
-      {
-        type: "badge_earned",
-        description: "Earned Stem Expert badge",
-        points: 50,
-        timestamp: "2026-02-12T11:45:00Z",
-      },
-      {
-        type: "tier_up",
-        description: "Leveled up to Established tier",
-        points: 500,
-        timestamp: "2026-02-08T16:00:00Z",
-      },
-      {
-        type: "points_earned",
-        description: "Mashup reached 1,000 plays",
-        points: 25,
-        timestamp: "2026-02-10T09:30:00Z",
-      },
-    ],
+  ],
+  stats: {
+    totalMashups: 15,
+    totalPlays: 45000,
+    totalLikes: 2300,
+    battleWins: 0,
+    battleParticipations: 2,
+    remixesCreated: 12,
+    followers: 180,
+    following: 45,
+  },
+  recentActivity: [
+    { type: "badge_earned", description: "Earned Stem Expert badge", points: 50, timestamp: "2026-02-12T11:45:00Z" },
+    { type: "tier_up", description: "Leveled up to Established tier", points: 500, timestamp: "2026-02-08T16:00:00Z" },
+    { type: "points_earned", description: "Mashup reached 1,000 plays", points: 25, timestamp: "2026-02-10T09:30:00Z" },
+  ],
+}
+
+// Get user gamification data — aggregates real stats from existing tables
+export async function getUserGamification(userId: string): Promise<UserGamification> {
+  if (!isSupabaseConfigured()) {
+    return { userId, ...mockGamificationData }
   }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    // Aggregate stats from existing tables in parallel
+    const [mashupResult, followersResult, followingResult, likesResult] = await Promise.all([
+      supabase.from("mashups").select("id, play_count", { count: "exact" }).eq("creator_id", userId),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", userId),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+      supabase.from("likes").select("mashup_id, mashups!inner(creator_id)", { count: "exact", head: true }).eq("mashups.creator_id", userId),
+    ])
+
+    const totalMashups = mashupResult.count ?? 0
+    const totalPlays = (mashupResult.data ?? []).reduce((sum: number, m: Record<string, unknown>) => sum + ((m.play_count as number) ?? 0), 0)
+    const followers = followersResult.count ?? 0
+    const following = followingResult.count ?? 0
+    const totalLikes = likesResult.count ?? 0
+
+    // Calculate points from real activity
+    const currentPoints =
+      totalMashups * 10 +
+      Math.floor(totalPlays / 100) * 5 +
+      Math.floor(totalLikes / 10) * 5 +
+      followers
+
+    const currentTier = getTierForPoints(currentPoints)
+
+    // Derive badges from stats
+    const earnedBadges: Badge[] = []
+    if (totalMashups >= 1) earnedBadges.push({ ...badges.first_mashup, unlockedAt: new Date().toISOString() })
+    if (totalPlays >= 10000) earnedBadges.push({ ...badges.trending, unlockedAt: new Date().toISOString() })
+    if (totalPlays >= 100000) earnedBadges.push({ ...badges.viral_hit, unlockedAt: new Date().toISOString() })
+    if (totalLikes >= 1000) earnedBadges.push({ ...badges.community_favorite, unlockedAt: new Date().toISOString() })
+    if (totalMashups >= 50) earnedBadges.push({ ...badges.pro_creator, unlockedAt: new Date().toISOString() })
+    if (currentTier.level >= 5) earnedBadges.push({ ...badges.legend, unlockedAt: new Date().toISOString() })
+
+    return {
+      userId,
+      currentPoints,
+      currentTier,
+      badges: earnedBadges,
+      stats: {
+        totalMashups,
+        totalPlays,
+        totalLikes,
+        battleWins: 0,
+        battleParticipations: 0,
+        remixesCreated: 0,
+        followers,
+        following,
+      },
+      recentActivity: [],
+    }
+  } catch {
+    return { userId, ...mockGamificationData }
+  }
+}
+
+// Sync alias for backward compatibility
+export function getMockUserGamification(userId: string): UserGamification {
+  return { userId, ...mockGamificationData }
 }
 
 // Points calculation
