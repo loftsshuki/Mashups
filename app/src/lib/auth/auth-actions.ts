@@ -56,12 +56,17 @@ export async function signup(prevState: any, formData: FormData) {
   redirect("/")
 }
 
-export async function signInWithGoogle() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function signInWithGoogle(_formData?: FormData) {
   const supabase = await createClient()
+
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  console.log("[Google OAuth] redirectTo:", `${siteUrl}/auth/callback`)
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`,
+      redirectTo: `${siteUrl}/auth/callback`,
     },
   })
 
@@ -72,6 +77,8 @@ export async function signInWithGoogle() {
   if (data.url) {
     redirect(data.url)
   }
+
+  redirect("/login?error=no-redirect-url")
 }
 
 export async function resetPassword(prevState: unknown, formData: FormData) {
