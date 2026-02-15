@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (!SUPABASE_URL) return "#"
     const redirectTo = typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback`
-      : "https://mashups.agency/auth/callback"
+      : "https://www.mashups.agency/auth/callback"
     return `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`
   }
 
