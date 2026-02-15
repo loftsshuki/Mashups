@@ -13,6 +13,10 @@ export function createClient() {
           data: { user: null, session: null },
           error: { message: "Supabase not configured" },
         }),
+        signInWithOAuth: async () => ({
+          data: { provider: "google", url: null },
+          error: { message: "Supabase not configured" },
+        }),
         signUp: async () => ({
           data: { user: null, session: null },
           error: { message: "Supabase not configured" },
