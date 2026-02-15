@@ -17,6 +17,7 @@ import {
   MousePointer2,
   Music,
   Settings,
+  GraduationCap,
 } from "lucide-react"
 
 // Lazy load heavy components for performance
@@ -25,6 +26,7 @@ const VoiceChatPanel = lazy(() => import("@/components/voice/voice-chat-panel").
 const SpectralWaveform = lazy(() => import("@/components/waveform/spectral-waveform").then(m => ({ default: m.SpectralWaveform })))
 const MIDIControllerPanel = lazy(() => import("@/components/create/midi-controller-panel").then(m => ({ default: m.MIDIControllerPanel })))
 const LivePerformanceDeck = lazy(() => import("@/components/features/live-deck").then(m => ({ default: m.LivePerformanceDeck })))
+const ApprenticePanel = lazy(() => import("@/components/studio/apprentice-panel").then(m => ({ default: m.ApprenticePanel })))
 
 import {
   NeonGrid,
@@ -198,6 +200,7 @@ export default function StudioPage() {
   // Phase 3: New collaboration features
   const [showVoicePanel, setShowVoicePanel] = useState(false)
   const [showMIDISettings, setShowMIDISettings] = useState(false)
+  const [showApprentice, setShowApprentice] = useState(false)
   const [viewMode, setViewMode] = useState<"timeline" | "live">("timeline")
 
   const channelRef = useRef<StudioRealtimeChannel | null>(null)
@@ -488,6 +491,15 @@ export default function StudioPage() {
                 <Settings className="h-3 w-3" />
                 MIDI
               </Button>
+              <Button
+                size="sm"
+                variant={showApprentice ? "default" : "outline"}
+                className="h-7 gap-1 text-xs rounded-full"
+                onClick={() => setShowApprentice(!showApprentice)}
+              >
+                <GraduationCap className="h-3 w-3" />
+                Apprentice
+              </Button>
             </div>
           </div>
         }
@@ -532,6 +544,17 @@ export default function StudioPage() {
               onSeek={(pos) => setPlayhead(pos)}
             />
           </section>
+        </Suspense>
+      )}
+
+      {/* Apprentice Mode Panel */}
+      {showApprentice && (
+        <Suspense fallback={null}>
+          <ApprenticePanel
+            mode="mentor"
+            isOpen={showApprentice}
+            onClose={() => setShowApprentice(false)}
+          />
         </Suspense>
       )}
 
