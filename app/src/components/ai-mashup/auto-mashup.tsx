@@ -24,6 +24,7 @@ import {
   type AIMashupTrack,
   type AIMashupResult,
   type AIMashupConfig,
+  type ProgressCallback,
 } from "@/lib/data/auto-mashup"
 
 interface AutoMashupGeneratorProps {
@@ -47,6 +48,7 @@ export function AutoMashupGenerator({
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
+  const [progressMessage, setProgressMessage] = useState("")
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,16 +76,17 @@ export function AutoMashupGenerator({
       setError("Need at least 2 tracks")
       return
     }
-    
+
     setIsGenerating(true)
     setProgress(0)
+    setProgressMessage("Starting...")
     setError(null)
-    
-    // Simulate progress updates
-    const progressInterval = setInterval(() => {
-      setProgress(p => Math.min(p + 5, 90))
-    }, 500)
-    
+
+    const onProgressUpdate: ProgressCallback = (message, percent) => {
+      setProgressMessage(message)
+      setProgress(percent)
+    }
+
     try {
       const config: AIMashupConfig = {
         tracks,
@@ -93,16 +96,14 @@ export function AutoMashupGenerator({
         vocalFocus,
         includeOriginalSegments: false,
       }
-      
-      const mashup = await generateAutoMashup(config)
-      clearInterval(progressInterval)
+
+      const mashup = await generateAutoMashup(config, onProgressUpdate)
       setProgress(100)
       setResult(mashup)
       onComplete?.(mashup)
-    } catch (err) {
+    } catch {
       setError("Failed to generate mashup. Please try again.")
     } finally {
-      clearInterval(progressInterval)
       setIsGenerating(false)
     }
   }
@@ -287,18 +288,18 @@ export function AutoMashupGenerator({
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                AI is creating your mashup...
+                {progressMessage || "Processing..."}
               </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              This may take 1-2 minutes depending on track complexity
+              Separating stems and mixing vocals + beat from your tracks
             </p>
           </div>
         )}
