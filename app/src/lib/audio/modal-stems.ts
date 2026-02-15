@@ -8,7 +8,7 @@
  */
 
 export interface ModalStemResult {
-  vocals: string // base64-encoded WAV
+  vocals: string // data URI (data:audio/mp3;base64,...) or empty
   drums: string
   bass: string
   other: string
@@ -23,7 +23,7 @@ export function isModalConfigured(): boolean {
 
 /**
  * Separate audio into stems via Modal-hosted Demucs.
- * Returns base64-encoded WAV strings for each stem.
+ * Returns data URIs for each stem (MP3 encoded).
  */
 export async function separateStemsModal(audioUrl: string): Promise<ModalStemResult> {
   const endpoint = process.env.MODAL_STEM_ENDPOINT
@@ -44,7 +44,11 @@ export async function separateStemsModal(audioUrl: string): Promise<ModalStemRes
     throw new Error(`Modal stem separation failed (${response.status}): ${text}`)
   }
 
-  const result = (await response.json()) as ModalStemResult
+  const result = (await response.json()) as ModalStemResult & { error?: string }
+
+  if (result.error) {
+    throw new Error(`Modal error: ${result.error}`)
+  }
 
   // Validate we got actual data
   if (!result.vocals && !result.drums && !result.bass && !result.other) {

@@ -3,6 +3,35 @@ import { separateStems, isReplicateConfigured, getEstimatedProcessingTime } from
 import { separateStemsModal, isModalConfigured } from "@/lib/audio/modal-stems"
 import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
+/** Convert a data URI to a Blob, upload to Vercel Blob, return URL */
+async function uploadDataUriToBlob(dataUri: string, stemName: string): Promise<string> {
+  if (!dataUri || !dataUri.startsWith("data:")) return dataUri
+
+  try {
+    const { put } = await import("@vercel/blob")
+
+    // Parse the data URI
+    const [header, b64Data] = dataUri.split(",")
+    const mimeMatch = header.match(/data:([^;]+)/)
+    const mime = mimeMatch ? mimeMatch[1] : "audio/mpeg"
+    const ext = mime.includes("wav") ? "wav" : "mp3"
+
+    // Decode base64 to buffer
+    const buffer = Buffer.from(b64Data, "base64")
+
+    const blob = await put(
+      `stems/${Date.now()}-${stemName}.${ext}`,
+      buffer,
+      { access: "public", contentType: mime }
+    )
+
+    return blob.url
+  } catch (err) {
+    console.warn(`[API /audio/separate] Failed to upload ${stemName} to Blob, using data URI:`, err)
+    return dataUri
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Check stem separation limit
@@ -54,13 +83,16 @@ export async function POST(request: NextRequest) {
       provider = "modal"
       try {
         const modalResult = await separateStemsModal(audioUrl)
-        // Modal returns base64 WAV data — convert to data URIs for the client
-        stems = {
-          vocals: modalResult.vocals ? `data:audio/wav;base64,${modalResult.vocals}` : "",
-          drums: modalResult.drums ? `data:audio/wav;base64,${modalResult.drums}` : "",
-          bass: modalResult.bass ? `data:audio/wav;base64,${modalResult.bass}` : "",
-          other: modalResult.other ? `data:audio/wav;base64,${modalResult.other}` : "",
-        }
+
+        // Upload data URIs to Vercel Blob for smaller JSON response
+        const [vocals, drums, bass, other] = await Promise.all([
+          uploadDataUriToBlob(modalResult.vocals, "vocals"),
+          uploadDataUriToBlob(modalResult.drums, "drums"),
+          uploadDataUriToBlob(modalResult.bass, "bass"),
+          uploadDataUriToBlob(modalResult.other, "other"),
+        ])
+
+        stems = { vocals, drums, bass, other }
       } catch (modalError) {
         console.warn("[API /audio/separate] Modal failed, trying Replicate fallback:", modalError)
         if (useReplicate) {
