@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { enforceTierLimit } from "@/lib/billing/enforce-tier"
-import { getOpenAI, isOpenAIConfigured } from "@/lib/ai/openai"
+import { chatJSON } from "@/lib/ai/chat"
 
 interface CompletionOption {
   id: string
@@ -11,13 +11,10 @@ interface CompletionOption {
   suggestedStems: { instrument: string; description: string }[]
 }
 
-// Template-based completion options (fallback when no API key)
-function generateCompletions(
-  stemCount: number,
-  bpm: number | null,
-  key: string | null
-): CompletionOption[] {
-  const templates: CompletionOption[] = [
+const SYSTEM_PROMPT = `You are a music production AI for a mashup platform. Given the user's current stems, BPM, and key, suggest exactly 3 ways to complete/extend their mashup. Each option should have a distinct style/mood. Return valid JSON: { "completions": [{ "label": string (2-4 words), "description": string (1-2 sentences), "style": string (one of: "high-energy", "ambient", "drop", "groove", "cinematic", "experimental"), "confidence": number (0.65-0.95), "suggestedStems": [{ "instrument": string, "description": string (specific detail with key/BPM) }] }] }. Each completion should suggest 2-3 stems. Be musically specific.`
+
+function generateFallback(bpm: number | null, key: string | null): CompletionOption[] {
+  return [
     {
       id: "energetic-build",
       label: "Energetic Build",
@@ -52,51 +49,36 @@ function generateCompletions(
       ],
     },
   ]
-
-  if (stemCount >= 3) {
-    templates.forEach((t) => (t.confidence = Math.min(t.confidence + 0.05, 0.99)))
-  }
-
-  return templates
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Check AI generation limit
     const tierCheck = await enforceTierLimit("ai_generations")
     if (tierCheck instanceof NextResponse) return tierCheck
 
     const body = (await request.json()) as {
-      prompt?: string
       stems?: { instrument?: string; title?: string }[]
       bpm?: number | null
       key?: string | null
     }
 
-    // Use OpenAI if configured
-    if (isOpenAIConfigured() && body.prompt) {
-      const openai = getOpenAI()!
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{
-          role: "system",
-          content: "You are a music production assistant. Suggest creative mashup ideas based on the user's current project. Keep responses concise and actionable."
-        }, {
-          role: "user",
-          content: body.prompt
-        }],
-      })
+    const stemList = body.stems?.map((s) => s.instrument || s.title || "unknown").join(", ") || "none yet"
+    const userMsg = `Current project stems: ${stemList}. BPM: ${body.bpm ?? "not set"}. Key: ${body.key ?? "not set"}. Suggest 3 creative completion options.`
 
-      return NextResponse.json({
-        suggestion: response.choices[0].message.content
-      })
+    const ai = await chatJSON<{ completions: Omit<CompletionOption, "id">[] }>({
+      system: SYSTEM_PROMPT,
+      user: userMsg,
+    })
+
+    if (ai?.completions) {
+      const completions: CompletionOption[] = ai.completions.map((c, i) => ({
+        ...c,
+        id: `comp-${Date.now()}-${i}`,
+      }))
+      return NextResponse.json({ completions })
     }
 
-    // Fallback to template-based completions
-    const stemCount = body.stems?.length ?? 0
-    const completions = generateCompletions(stemCount, body.bpm ?? null, body.key ?? null)
-
-    return NextResponse.json({ completions })
+    return NextResponse.json({ completions: generateFallback(body.bpm ?? null, body.key ?? null) })
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
