@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Menu, Music, User, LogOut, Settings } from "lucide-react";
+import {
+  Search,
+  Menu,
+  Music,
+  User,
+  LogOut,
+  Settings,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,18 +31,22 @@ import { logout } from "@/lib/auth/auth-actions";
 
 const navLinks = [
   { href: "/feed", label: "For You" },
-  { href: "/launchpad", label: "Product" },
-  { href: "/packs", label: "Viral Pack" },
-  { href: "/battles", label: "Battles" },
-  { href: "/daily", label: "Daily Flip" },
-  { href: "/thunderdome", label: "Thunderdome" },
-  { href: "/tools", label: "AI Tools" },
-  { href: "/scoreboard", label: "Scoreboard" },
+  { href: "/explore", label: "Explore" },
+  { href: "/create", label: "Create" },
   { href: "/studio", label: "Studio" },
-  { href: "/features", label: "New Features" },
+] as const;
+
+const communityLinks = [
+  { href: "/battles", label: "Battles" },
+  { href: "/daily-flip", label: "Daily Flip" },
+  { href: "/challenges", label: "Challenges" },
+  { href: "/scoreboard", label: "Scoreboard" },
+] as const;
+
+const moreLinks = [
+  { href: "/marketplace", label: "Marketplace" },
   { href: "/pricing", label: "Pricing" },
   { href: "/enterprise", label: "Enterprise" },
-  { href: "/legal", label: "Docs" },
 ] as const;
 
 interface UserProfile {
@@ -48,6 +61,16 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -82,63 +105,114 @@ export function Header() {
     getUser();
   }, [pathname]);
 
-  const initials = user?.display_name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() ?? user?.username?.slice(0, 2).toUpperCase() ?? "U";
+  const initials =
+    user?.display_name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ??
+    user?.username?.slice(0, 2).toUpperCase() ??
+    "U";
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/70 backdrop-blur-xl">
-      <div className="border-b border-border/60 bg-background/75">
-        <div className="mx-auto flex h-8 max-w-7xl items-center justify-center px-4 text-center text-xs text-muted-foreground sm:px-6 lg:px-8">
-          <span>
-            New: attribution signatures now power creator growth loops.
-          </span>
-          <Link href="/dashboard/analytics" className="ml-2 text-primary">
-            View analytics
-          </Link>
-        </div>
-      </div>
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled
+          ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
+          : "bg-transparent"
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between container-padding">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <div className="neon-rail rounded-xl p-1.5">
-            <Music className="size-4 text-primary-foreground" />
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
+            <Music className="h-4 w-4 text-primary" />
           </div>
-          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-xl font-semibold text-transparent">
+          <span className="font-semibold text-lg tracking-tight">
             mashups
           </span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ href, label }) => {
-            const isActive =
-              pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                )}
-              >
-                {label}
-              </Link>
-            );
-          })}
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "relative px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                isActive(href)
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+              {isActive(href) && (
+                <span className="absolute inset-x-3 -bottom-px h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
+              )}
+            </Link>
+          ))}
+
+          {/* Community Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                communityLinks.some((l) => isActive(l.href))
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Community
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              {communityLinks.map(({ href, label }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href}>{label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* More Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
+                moreLinks.some((l) => isActive(l.href))
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              More
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              {moreLinks.map(({ href, label }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href}>{label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
-        {/* Desktop right actions */}
+        {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+            asChild
+          >
             <Link href="/search" aria-label="Search">
-              <Search className="size-4" />
+              <Search className="h-4 w-4" />
             </Link>
           </Button>
 
@@ -149,16 +223,18 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
+                  className="relative h-8 w-8 rounded-full p-0"
                 >
-                  <Avatar size="sm">
+                  <Avatar className="h-8 w-8">
                     {user.avatar_url && (
                       <AvatarImage
                         src={user.avatar_url}
                         alt={user.display_name ?? user.username}
                       />
                     )}
-                    <AvatarFallback>{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-muted">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -174,13 +250,19 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href={`/profile/${user.username}`}>
-                    <User className="mr-2 size-4" />
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/dashboard">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/settings">
-                    <Settings className="mr-2 size-4" />
+                    <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
@@ -192,7 +274,7 @@ export function Header() {
                     router.push("/");
                   }}
                 >
-                  <LogOut className="mr-2 size-4" />
+                  <LogOut className="mr-2 h-4 w-4" />
                   Log Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -200,30 +282,34 @@ export function Header() {
           ) : (
             <>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="rounded-full border-primary/30 bg-transparent"
+                className="h-9 px-4 text-sm font-medium"
                 asChild
               >
-                <Link href="/login">Log In</Link>
+                <Link href="/login">Sign In</Link>
               </Button>
-              <Button size="sm" className="rounded-full neon-outline" asChild>
-                <Link href="/signup">Sign Up</Link>
+              <Button
+                size="sm"
+                className="h-9 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+                asChild
+              >
+                <Link href="/signup">Get Started</Link>
               </Button>
             </>
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile Menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden h-9 w-9"
               aria-label="Open menu"
             >
-              <Menu className="size-5" />
+              <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
           <MobileNav />

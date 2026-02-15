@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 import {
   ArrowRight,
   AudioLines,
@@ -10,398 +10,283 @@ import {
   Sparkles,
   Users,
   Zap,
-} from "lucide-react"
+  Play,
+  BarChart3,
+  Layers,
+  Check,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { MashupCard } from "@/components/mashup-card"
-import { CreatorAvatar } from "@/components/creator-avatar"
-import { SmartMashupLab } from "@/components/discovery/smart-mashup-lab"
-import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
-import { getMomentumFeed } from "@/lib/data/momentum-feed"
-import { getTrendingMashups } from "@/lib/data/mashups"
-import { mockCreators } from "@/lib/mock-data"
+import { Button } from "@/components/ui/button";
+import { MashupCard } from "@/components/mashup-card";
+import { CreatorAvatar } from "@/components/creator-avatar";
+import { SmartMashupLab } from "@/components/discovery/smart-mashup-lab";
+import { CreateMashupTerminal } from "@/components/animated-terminal";
+import { PlatformStats } from "@/components/stats-counter";
+import { mapRowToMockMashup } from "@/lib/data/mashup-adapter";
+import { getMomentumFeed } from "@/lib/data/momentum-feed";
+import { getTrendingMashups } from "@/lib/data/mashups";
+import { mockCreators } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
 
-const creatorChannels = [
-  "YouTube Shorts",
-  "Instagram Reels",
-  "TikTok",
-  "OnlyFans",
-  "Discord",
-  "X / Twitter",
-] as const
-
-const featurePills = [
-  "Weekly Viral Pack",
-  "15s Hook Generator",
-  "Campaign Copilot",
-  "Realtime Studio",
-  "Rights + Licensing",
-  "Attribution Links",
-  "Creator Scoreboard",
-  "Creator Payouts",
-  "Thunderdome Battles",
-] as const
-
-const launchChecks = [
-  ["Campaigns active", "48"],
-  ["Weekly pack clips", "20"],
-  ["Creator clips shipped", "1,284"],
-  ["Licenses issued", "319"],
-] as const
-
-const platformPillars = [
+// Feature section data
+const features = [
   {
     icon: Sparkles,
-    title: "Campaign Copilot for weekly creator drops.",
+    title: "AI-Powered Mashup Creation",
     description:
-      "Generate hooks, posting cadence, and tracking links in minutes. Keep creators on-message without slowing them down.",
-    bullets: [
-      "Built-in caption and CTA generator",
-      "Attribution signing for every outbound share",
-      "Weekly planner for Shorts/Reels/TikTok",
+      "Upload your stems and let our AI handle the mixing. Get professional-sounding mashups in minutes, not hours.",
+    points: [
+      "Automatic key and tempo matching",
+      "Smart vocal isolation and enhancement",
+      "One-click publishing to all platforms",
     ],
-    metricLabel: "Campaign velocity",
-    metricValue: "+42% week-over-week",
-    href: "/campaigns",
-    cta: "Open Campaign Builder",
+    stat: { value: "10x", label: "Faster production" },
+    href: "/create",
+    cta: "Start Creating",
   },
   {
     icon: Radio,
-    title: "Realtime Studio for collaborative mashup sessions.",
+    title: "Real-Time Collaborative Studio",
     description:
-      "Sync transport state, BPM, and session presence so collaborators can co-produce without drift.",
-    bullets: [
+      "Produce together in real-time. Share transport control, sync BPM, and jam with creators anywhere in the world.",
+    points: [
       "Shared play/pause and timeline control",
-      "Realtime participant presence",
-      "Studio-first workflow tied to publish",
+      "Live participant presence indicators",
+      "Built-in video chat for remote sessions",
     ],
-    metricLabel: "Collab sessions",
-    metricValue: "5.3k this month",
+    stat: { value: "5.3k", label: "Monthly sessions" },
     href: "/studio",
     cta: "Enter Studio",
   },
   {
     icon: ShieldCheck,
-    title: "Rights and licensing rails from day one.",
+    title: "Built-In Rights Protection",
     description:
-      "Issue creator-safe licenses, process claims, and route usage into monetization dashboards.",
-    bullets: [
-      "Legal policy surfaces already wired",
-      "Claim handling and moderation queue",
-      "License issuance and redemption pages",
+      "Every mashup comes with automated rights clearance. Issue licenses, track usage, and monetize with confidence.",
+    points: [
+      "Automated sample clearance checks",
+      "Creator-safe license generation",
+      "Real-time usage monitoring",
     ],
-    metricLabel: "Rights confidence",
-    metricValue: "99.2% clear distribution",
+    stat: { value: "99.2%", label: "Clearance rate" },
     href: "/dashboard/rights",
     cta: "View Rights Dashboard",
   },
   {
     icon: LineChart,
-    title: "For-you ranking and growth analytics baked in.",
+    title: "Growth Analytics & Attribution",
     description:
-      "Track recommendation events, rank by momentum, and iterate faster with creator-level signals.",
-    bullets: [
-      "For-you sort default in discovery",
-      "Momentum scoring across catalog",
-      "Analytics + monetization dashboards",
+      "Track every play, share, and remix. Understand your audience and get paid for every use of your music.",
+    points: [
+      "Cross-platform performance tracking",
+      "Automatic attribution on shares",
+      "Direct monetization dashboard",
     ],
-    metricLabel: "Discovery lift",
-    metricValue: "3.1x faster pickup",
+    stat: { value: "3.1x", label: "Faster discovery" },
     href: "/dashboard/analytics",
     cta: "Open Analytics",
   },
-] as const
+] as const;
+
+// Creator platforms
+const platforms = [
+  "YouTube Shorts",
+  "Instagram Reels",
+  "TikTok",
+  "Twitch",
+  "Discord",
+  "X / Twitter",
+] as const;
 
 export default async function Home() {
   const [trendingRows, momentumMashups] = await Promise.all([
     getTrendingMashups(6),
     getMomentumFeed(4),
-  ])
+  ]);
   const trendingMashups = trendingRows.map((row) =>
-    mapRowToMockMashup(row as unknown as Record<string, unknown>),
-  )
+    mapRowToMockMashup(row as unknown as Record<string, unknown>)
+  );
 
   return (
-    <div className="pb-24">
-      <section className="relative overflow-hidden border-b border-border/70 py-20 md:py-28">
-        <div className="neon-grid pointer-events-none absolute inset-0 opacity-55" />
-        <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
-        <div className="pointer-events-none absolute -right-20 top-16 h-72 w-72 rounded-full bg-secondary/20 blur-3xl" />
+    <div className="pt-16">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-border/50">
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+        
+        {/* Subtle Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(to right, currentColor 1px, transparent 1px),
+                              linear-gradient(to bottom, currentColor 1px, transparent 1px)`,
+            backgroundSize: '60px 60px',
+          }}
+        />
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              <AudioLines className="size-3.5" />
-              Mashups Platform
-            </p>
-            <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                The creator music platform for viral distribution at scale.
-              </span>
-            </h1>
-
-            {/* Thunderdome Promo Banner */}
-            <div className="mt-8 mb-4 relative overflow-hidden rounded-2xl border border-red-500/20 bg-red-950/10 p-6 md:p-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent pointer-events-none" />
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="text-left space-y-2">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-500">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
-                    Live Now
-                  </div>
-                  <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">
-                    Enter the Thunderdome
-                  </h3>
-                  <p className="text-sm text-zinc-400 max-w-md">
-                    Live multiplayer production battles. 1v1 challenge mode active.
-                  </p>
-                </div>
-                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 shadow-[0_0_20px_rgba(220,38,38,0.4)] whitespace-nowrap" asChild>
-                  <Link href="/thunderdome">
-                    Fight in Arena
-                    <ArrowRight className="ml-2 size-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-              Neon-level polish, adapted for mashup growth. Build tracks,
-              activate creators, issue safe licenses, and convert every share
-              into measurable demand.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button size="lg" className="rounded-full px-7" asChild>
-                <Link href="/create">
-                  Start Creating
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-full border-primary/35 bg-transparent px-7"
-                asChild
-              >
-                <Link href="/launchpad">
-                  Open Launchpad
-                  <Zap className="size-4" />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-full border-primary/35 bg-transparent px-7"
-                asChild
-              >
-                <Link href="/packs">
-                  Weekly Viral Pack
-                  <Flame className="size-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-12 grid gap-4 lg:grid-cols-5">
-            <div className="neon-panel rounded-3xl p-6 lg:col-span-3">
-              <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-primary" />
-                <span className="size-2 rounded-full bg-secondary" />
-                <span className="size-2 rounded-full bg-accent" />
-                <span className="ml-2 text-xs text-muted-foreground">
-                  campaign-runner.sh
+        <div className="relative container-padding max-w-7xl mx-auto py-20 md:py-32 lg:py-40">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left: Content */}
+            <div className="stagger-children">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                <AudioLines className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">
+                  Now with AI-powered mixing
                 </span>
               </div>
-              <div className="mt-5 space-y-2 font-mono text-sm">
-                <p className="text-primary">$ mashups launch --campaign friday_fire</p>
-                <p className="text-foreground">Creating creator task list...</p>
-                <p className="text-foreground">Signing attribution links...</p>
-                <p className="text-foreground">Publishing weekly schedule...</p>
-              </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {launchChecks.map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="rounded-xl border border-primary/20 bg-background/45 px-3 py-2"
-                  >
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="text-lg font-semibold">{value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="grid gap-4 lg:col-span-2">
-              <div className="neon-panel rounded-3xl p-5">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Creator Loop
-                </p>
-                <p className="mt-2 text-lg font-semibold">
-                  Share clips with built-in Mashups signatures and route fans
-                  back to source.
-                </p>
-                <Button
-                  variant="ghost"
-                  className="mt-4 h-8 rounded-full bg-background/70 px-3 text-xs"
-                  asChild
-                >
-                  <Link href="/partner">View Partner Flow</Link>
-                </Button>
-              </div>
-              <div className="neon-panel rounded-3xl p-5">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Pricing
-                </p>
-                <p className="mt-2 text-lg font-semibold">
-                  Turn rights + creator growth into recurring revenue.
-                </p>
-                <Button
-                  variant="ghost"
-                  className="mt-4 h-8 rounded-full bg-background/70 px-3 text-xs"
-                  asChild
-                >
-                  <Link href="/pricing">Open Pricing</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+              {/* Headline */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+                Create viral music{" "}
+                <span className="gradient-text">mashups</span> at the speed of
+                sound
+              </h1>
 
-      <section className="border-b border-border/70 py-7">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="mb-4 text-center text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Deployed by creators across
-          </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {creatorChannels.map((channel) => (
-              <div
-                key={channel}
-                className="rounded-xl border border-border bg-background/50 px-3 py-2 text-center text-sm text-muted-foreground"
-              >
-                {channel}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border/70 py-6">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 sm:px-6 lg:px-8">
-          {featurePills.map((pill) => (
-            <span
-              key={pill}
-              className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-            >
-              {pill}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {platformPillars.map((pillar, index) => (
-        <section key={pillar.title} className="border-b border-border/70 py-16 md:py-20">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-5 lg:px-8">
-            <div className={index % 2 ? "lg:order-2 lg:col-span-3" : "lg:col-span-3"}>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <pillar.icon className="size-3.5" />
-                Platform Block {index + 1}
-              </div>
-              <h2 className="mt-4 max-w-2xl text-pretty text-3xl font-semibold tracking-tight md:text-4xl">
-                {pillar.title}
-              </h2>
-              <p className="mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
-                {pillar.description}
+              {/* Description */}
+              <p className="mt-6 text-lg text-muted-foreground max-w-lg leading-relaxed">
+                Upload stems, remix with AI, and share everywhere. Built for
+                creators who want professional sound without the studio
+                overhead.
               </p>
-              <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-                {pillar.bullets.map((point) => (
-                  <li key={point} className="flex items-center gap-2">
-                    <span className="size-1.5 rounded-full bg-primary" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={index % 2 ? "lg:order-1 lg:col-span-2" : "lg:col-span-2"}>
-              <div className="neon-panel rounded-3xl p-6">
-                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  {pillar.metricLabel}
-                </p>
-                <p className="mt-3 text-3xl font-semibold">{pillar.metricValue}</p>
-                <Button className="mt-8 w-full rounded-full" asChild>
-                  <Link href={pillar.href}>{pillar.cta}</Link>
+
+              {/* CTAs */}
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Button
+                  size="lg"
+                  className="h-12 px-6 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+                  asChild
+                >
+                  <Link href="/create">
+                    Start Creating
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-6 rounded-lg border-border/50 hover:bg-accent/50"
+                  asChild
+                >
+                  <Link href="/pricing">View Pricing</Link>
                 </Button>
               </div>
-            </div>
-          </div>
-        </section>
-      ))}
 
-      <section className="border-b border-border/70 py-16 md:py-20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-5 lg:px-8">
-          <div className="lg:col-span-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <Users className="size-3.5" />
-              Trusted by creators
+              {/* Mini social proof */}
+              <div className="mt-8 flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex -space-x-2">
+                  {mockCreators.slice(0, 4).map((creator) => (
+                    <div
+                      key={creator.username}
+                      className="w-8 h-8 rounded-full border-2 border-background overflow-hidden"
+                    >
+                      <img
+                        src={creator.avatarUrl}
+                        alt={creator.displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <span>
+                  Join <strong className="text-foreground">18,000+</strong>{" "}
+                  creators
+                </span>
+              </div>
             </div>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-              Community momentum, not vanity traffic.
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Mashups is optimized for creator conversion loops: discover, remix,
-              share, attribute, and monetize.
-            </p>
-            <div className="mt-6 space-y-3">
-              <div className="rounded-xl border border-border bg-background/50 px-4 py-3">
-                <p className="text-xs text-muted-foreground">Monthly active creators</p>
-                <p className="text-lg font-semibold">18,400+</p>
-              </div>
-              <div className="rounded-xl border border-border bg-background/50 px-4 py-3">
-                <p className="text-xs text-muted-foreground">Average clips per campaign</p>
-                <p className="text-lg font-semibold">26</p>
-              </div>
+
+            {/* Right: Terminal */}
+            <div className="relative lg:pl-8">
+              <CreateMashupTerminal className="w-full" />
+              
+              {/* Decorative glow */}
+              <div className="absolute -inset-4 bg-primary/10 blur-3xl -z-10 rounded-full opacity-50" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:col-span-3">
-            {mockCreators.map((creator) => (
-              <div key={creator.username} className="neon-panel rounded-2xl p-3">
-                <CreatorAvatar
-                  username={creator.username}
-                  displayName={creator.displayName}
-                  avatarUrl={creator.avatarUrl}
-                  followerCount={creator.followerCount}
-                  mashupCount={creator.mashupCount}
-                  size="lg"
-                />
+        </div>
+
+        {/* Trust Bar */}
+        <div className="border-t border-border/50">
+          <div className="container-padding max-w-7xl mx-auto py-12">
+            <PlatformStats />
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Logos */}
+      <section className="border-b border-border/50 py-8">
+        <div className="container-padding max-w-7xl mx-auto">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-6">
+            Share everywhere your audience lives
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {platforms.map((platform) => (
+              <div
+                key={platform}
+                className="px-4 py-2 rounded-lg bg-card border border-border/50 text-sm text-muted-foreground"
+              >
+                {platform}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Flame className="size-7 text-primary" />
-              <div>
-                <h2 className="text-3xl font-semibold">Trending Now</h2>
-                <p className="text-sm text-muted-foreground">
-                  Discover what creators are remixing this week.
-                </p>
-              </div>
+      {/* Features Section */}
+      <section className="section-spacing">
+        <div className="container-padding max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Everything you need to{" "}
+              <span className="gradient-text">create and grow</span>
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              From AI-powered mixing to rights management, Mashups gives you
+              the tools to focus on what matters — the music.
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="space-y-24">
+            {features.map((feature, index) => (
+              <FeatureBlock
+                key={feature.title}
+                feature={feature}
+                reversed={index % 2 === 1}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trending Section */}
+      <section className="section-spacing border-t border-border/50">
+        <div className="container-padding max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="flex items-end justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+                Trending Now
+              </h2>
+              <p className="mt-1 text-muted-foreground">
+                Discover what creators are remixing this week
+              </p>
             </div>
             <Button
-              variant="outline"
-              className="rounded-full border-primary/35 bg-transparent"
+              variant="ghost"
+              className="hidden sm:flex items-center gap-2"
               asChild
             >
-              <Link href="/explore">Explore all</Link>
+              <Link href="/explore">
+                Explore all
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+
+          {/* Horizontal Scroll */}
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
             {trendingMashups.map((mashup) => (
               <MashupCard
                 key={mashup.id}
@@ -413,27 +298,43 @@ export default async function Home() {
                 duration={mashup.duration}
                 playCount={mashup.playCount}
                 creator={mashup.creator}
-                className="w-[220px] min-w-[220px] sm:w-[240px] sm:min-w-[240px]"
+                className="w-[220px] min-w-[220px] sm:w-[260px] sm:min-w-[260px]"
               />
             ))}
+          </div>
+
+          {/* Mobile CTA */}
+          <div className="mt-6 sm:hidden">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/explore">Explore all mashups</Link>
+            </Button>
           </div>
         </div>
       </section>
 
+      {/* Smart Mashup Lab */}
       <SmartMashupLab />
 
-      <section className="py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 flex items-center gap-3">
-            <LineChart className="size-7 text-primary" />
+      {/* Momentum Feed */}
+      <section className="section-spacing border-t border-border/50">
+        <div className="container-padding max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <BarChart3 className="h-5 w-5 text-primary" />
+            </div>
             <div>
-              <h2 className="text-3xl font-semibold">Momentum Feed</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+                Momentum Feed
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Velocity-ranked tracks with engagement-weighted lift.
+                Tracks gaining traction right now
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {momentumMashups.map((mashup) => (
               <MashupCard
                 key={mashup.id}
@@ -451,39 +352,237 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="neon-panel rounded-3xl px-6 py-14 text-center md:px-14">
-            <h2 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl">
-              Ship your next creator campaign in one platform.
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground md:text-lg">
-              Create mashups, launch creator briefs, track attribution, and
-              monetize rights from a single control plane.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button size="lg" className="rounded-full px-8" asChild>
-                <Link href="/signup">
-                  Get Started
-                  <ArrowRight className="size-4" />
+      {/* Creators Section */}
+      <section className="section-spacing border-t border-border/50">
+        <div className="container-padding max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Content */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 mb-6">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  Creator Community
+                </span>
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Join a community of{" "}
+                <span className="gradient-text">music innovators</span>
+              </h2>
+
+              <p className="mt-4 text-lg text-muted-foreground">
+                Connect with creators, collaborate on tracks, and grow your
+                audience together. Our community is built on sharing,
+                attribution, and mutual support.
+              </p>
+
+              <div className="mt-8 grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <div className="text-2xl font-bold gradient-text">
+                    18,400+
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Monthly active creators
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <div className="text-2xl font-bold gradient-text">26</div>
+                  <div className="text-sm text-muted-foreground">
+                    Avg. clips per campaign
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <Button className="h-11 px-6 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg" asChild>
+                  <Link href="/signup">
+                    Join the Community
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Creator Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {mockCreators.slice(0, 6).map((creator) => (
+                <Link
+                  key={creator.username}
+                  href={`/profile/${creator.username}`}
+                  className="group p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <CreatorAvatar
+                    username={creator.username}
+                    displayName={creator.displayName}
+                    avatarUrl={creator.avatarUrl}
+                    followerCount={creator.followerCount}
+                    mashupCount={creator.mashupCount}
+                    size="lg"
+                  />
                 </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="rounded-full" asChild>
-                <Link href="/scoreboard">
-                  Weekly Scoreboard
-                  <LineChart className="size-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className="rounded-full" asChild>
-                <Link href="/enterprise">
-                  <Headphones className="size-4" />
-                  Talk Enterprise
-                </Link>
-              </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="section-spacing">
+        <div className="container-padding max-w-7xl mx-auto">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-background border border-border/50 p-8 md:p-12 lg:p-16">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+            <div className="relative text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+                Ready to create your first{" "}
+                <span className="gradient-text">mashup</span>?
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Join thousands of creators who are already mixing, sharing, and
+                growing their audience on Mashups.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button
+                  size="lg"
+                  className="h-12 px-8 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+                  asChild
+                >
+                  <Link href="/signup">
+                    Get Started Free
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-8 rounded-lg border-border/50"
+                  asChild
+                >
+                  <Link href="/enterprise">
+                    <Headphones className="mr-2 h-4 w-4" />
+                    Talk to Sales
+                  </Link>
+                </Button>
+              </div>
+
+              <p className="mt-6 text-sm text-muted-foreground">
+                Free plan includes 5 mashups/month. No credit card required.
+              </p>
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
+}
+
+// Feature Block Component
+interface Feature {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  points: readonly string[];
+  stat: { value: string; label: string };
+  href: string;
+  cta: string;
+}
+
+function FeatureBlock({
+  feature,
+  reversed,
+}: {
+  feature: Feature;
+  reversed: boolean;
+}) {
+  const Icon = feature.icon;
+
+  return (
+    <div
+      className={cn(
+        "grid lg:grid-cols-5 gap-8 lg:gap-12 items-center",
+        reversed && "lg:direction-rtl"
+      )}
+    >
+      {/* Content */}
+      <div
+        className={cn(
+          "lg:col-span-3",
+          reversed ? "lg:order-2 lg:direction-ltr" : "lg:direction-ltr"
+        )}
+      >
+        <div className="inline-flex items-center gap-2 p-2 rounded-xl bg-primary/10 mb-4">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+
+        <h3 className="text-2xl md:text-3xl font-bold tracking-tight">
+          {feature.title}
+        </h3>
+
+        <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+          {feature.description}
+        </p>
+
+        <ul className="mt-6 space-y-3">
+          {feature.points.map((point) => (
+            <li key={point} className="flex items-start gap-3">
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 mt-0.5 shrink-0">
+                <Check className="h-3 w-3 text-primary" />
+              </div>
+              <span className="text-muted-foreground">{point}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-8">
+          <Button
+            className="h-11 px-6 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+            asChild
+          >
+            <Link href={feature.href}>
+              {feature.cta}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Visual */}
+      <div
+        className={cn(
+          "lg:col-span-2",
+          reversed ? "lg:order-1 lg:direction-ltr" : "lg:direction-ltr"
+        )}
+      >
+        <div className="relative">
+          <div className="surface-elevated p-6 md:p-8">
+            {/* Icon Header */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Icon className="h-6 w-6 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                {feature.stat.label}
+              </span>
+            </div>
+
+            {/* Big Stat */}
+            <div className="text-5xl md:text-6xl font-bold gradient-text">
+              {feature.stat.value}
+            </div>
+
+            {/* Decorative element */}
+            <div className="mt-6 h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full w-3/4 bg-gradient-to-r from-primary to-accent rounded-full" />
+            </div>
+          </div>
+
+          {/* Glow effect */}
+          <div className="absolute -inset-4 bg-primary/5 blur-2xl -z-10 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
 }
