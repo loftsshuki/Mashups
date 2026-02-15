@@ -108,12 +108,6 @@ const modules = [
     desc: "Creator and studio monetization plans.",
   },
   {
-    href: "/partner",
-    title: "Partner Portal",
-    status: "Beta",
-    desc: "Catalog and policy controls for rightsholders.",
-  },
-  {
     href: "/enterprise",
     title: "Enterprise Lane",
     status: "Beta",

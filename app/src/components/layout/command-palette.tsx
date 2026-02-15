@@ -22,7 +22,6 @@ const commands: CommandItem[] = [
   { label: "Campaign Builder", href: "/campaigns", keywords: "shorts plan schedule caption" },
   { label: "Pricing", href: "/pricing", keywords: "billing subscription plan" },
   { label: "Launchpad", href: "/launchpad", keywords: "features roadmap all tools" },
-  { label: "Partner Portal", href: "/partner", keywords: "rights holder catalog policy" },
   { label: "Enterprise", href: "/enterprise", keywords: "white label agency" },
   { label: "Sponsors", href: "/sponsors", keywords: "sponsor brand challenge" },
   { label: "Dashboard", href: "/dashboard", keywords: "creator os analytics monetization" },
