@@ -1,5 +1,9 @@
 // Voice Chat Integration - WebRTC-based voice communication
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export interface VoiceParticipant {
   id: string
   userId: string
@@ -72,9 +76,73 @@ export async function createVoiceRoom(sessionId: string): Promise<VoiceRoom> {
     participants: [],
     createdAt: new Date().toISOString(),
   }
-  
+
   voiceRooms.set(room.id, room)
+
+  // Persist to Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      const { createClient } = await import("@/lib/supabase/client")
+      const supabase = createClient()
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour
+
+      const { data } = await supabase
+        .from("voice_rooms")
+        .insert({
+          session_id: sessionId,
+          status: "active",
+          expires_at: expiresAt,
+        })
+        .select("id")
+        .single()
+
+      if (data) {
+        room.id = (data as Record<string, unknown>).id as string
+        voiceRooms.set(room.id, room)
+      }
+    } catch {
+      // Continue with local-only room
+    }
+  }
+
   return room
+}
+
+// Get or create a voice room for a session
+export async function getVoiceRoomForSession(sessionId: string): Promise<VoiceRoom | null> {
+  if (!isSupabaseConfigured()) {
+    // Check local rooms
+    for (const room of voiceRooms.values()) {
+      if (room.sessionId === sessionId) return room
+    }
+    return null
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("voice_rooms")
+      .select("*")
+      .eq("session_id", sessionId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error || !data) return null
+
+    const row = data as Record<string, unknown>
+    return {
+      id: row.id as string,
+      sessionId: row.session_id as string,
+      participants: [],
+      createdAt: (row.created_at ?? "") as string,
+    }
+  } catch {
+    return null
+  }
 }
 
 export async function joinVoiceRoom(

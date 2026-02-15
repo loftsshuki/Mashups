@@ -1,5 +1,9 @@
 // Auto-Caption Generator - Lyrics and audio transcription
 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export interface CaptionSegment {
   id: string
   startTime: number // seconds
@@ -299,6 +303,78 @@ export function mergeSegments(
       ...captions.segments.filter(s => !segmentIds.includes(s.id)),
       merged,
     ].sort((a, b) => a.startTime - b.startTime),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Supabase-backed caption storage
+// ---------------------------------------------------------------------------
+
+export async function getCaptionsForMashup(
+  mashupId: string,
+  language: string = "en",
+): Promise<GeneratedCaptions | null> {
+  if (!isSupabaseConfigured()) return null
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("mashup_captions")
+      .select("*")
+      .eq("mashup_id", mashupId)
+      .eq("language", language)
+      .maybeSingle()
+
+    if (error || !data) return null
+
+    const row = data as Record<string, unknown>
+    const segments = Array.isArray(row.segments) ? (row.segments as CaptionSegment[]) : []
+    const wordTimings = row.word_timings as Record<string, unknown>[] | null
+
+    return {
+      id: row.id as string,
+      mashupId: row.mashup_id as string,
+      language: (row.language ?? "en") as string,
+      segments,
+      isLyrics: true,
+      generatedAt: (row.created_at ?? "") as string,
+      wordCount: segments.reduce((acc: number, seg) => acc + seg.text.split(/\s+/).length, 0),
+      duration: segments.length > 0 ? segments[segments.length - 1].endTime : 0,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function saveCaptionsToDb(
+  mashupId: string,
+  captions: GeneratedCaptions,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const srtText = exportCaptions(captions, "srt")
+    const vttText = exportCaptions(captions, "vtt")
+
+    const { error } = await supabase.from("mashup_captions").upsert(
+      {
+        mashup_id: mashupId,
+        language: captions.language,
+        segments: captions.segments,
+        srt_text: srtText,
+        vtt_text: vttText,
+      },
+      { onConflict: "mashup_id,language" },
+    )
+
+    return !error
+  } catch {
+    return false
   }
 }
 

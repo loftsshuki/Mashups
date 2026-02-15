@@ -1,10 +1,11 @@
 /**
  * Trending Sounds Data
- * Mock data for trending TikTok/Spotify sounds
- * In production, this would call TikTok API + Spotify Charts
+ * Queries trending_sounds table in Supabase, falls back to mock data
  */
 
-// import { fetchSpotifyTrending } from "./spotify-service"
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export interface TrendingSound {
   id: string
@@ -204,6 +205,37 @@ export const MOCK_TRENDING_SOUNDS: TrendingSound[] = [
   },
 ]
 
+// ---------------------------------------------------------------------------
+// Row mapper
+// ---------------------------------------------------------------------------
+
+function rowToTrendingSound(row: Record<string, unknown>): TrendingSound {
+  const stats = (row.stats ?? {}) as Record<string, unknown>
+  return {
+    id: row.id as string,
+    title: (row.title ?? "") as string,
+    artist: (row.artist ?? "") as string,
+    platform: (row.source ?? "spotify") as TrendingSound["platform"],
+    thumbnailUrl: (row.thumbnail_url ?? "") as string,
+    previewUrl: (row.external_url ?? "") as string,
+    velocity: (row.velocity ?? "steady") as TrendingSound["velocity"],
+    stats: {
+      posts: typeof stats.posts === "number" ? stats.posts : undefined,
+      streams: typeof stats.streams === "number" ? stats.streams : undefined,
+      views: typeof stats.views === "number" ? stats.views : undefined,
+      growthRate: typeof stats.growthRate === "number" ? stats.growthRate : 0,
+    },
+    rank: typeof row.rank === "number" ? row.rank : 99,
+    previousRank: typeof row.previous_rank === "number" ? row.previous_rank : undefined,
+    duration: typeof stats.duration === "number" ? stats.duration : 180,
+    bpm: typeof stats.bpm === "number" ? stats.bpm : undefined,
+    key: typeof stats.key === "string" ? stats.key : undefined,
+    tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
+    isRemixable: true,
+    originalSource: typeof row.external_url === "string" ? row.external_url : undefined,
+  }
+}
+
 /**
  * Get trending sounds with optional filters
  */
@@ -216,40 +248,49 @@ export async function getTrendingSounds(
 ): Promise<TrendingSound[]> {
   const { platform = "all", velocity, limit = 10 } = options
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  if (!isSupabaseConfigured()) {
+    return filterMockSounds(platform, velocity, limit)
+  }
 
-  let sounds = [...MOCK_TRENDING_SOUNDS]
-
-  // Try to fetch real data
-  /*
   try {
-    const realData = await fetchSpotifyTrending()
-    if (realData.length > 0) {
-      // Merge or replace. For now, let's prepend them
-      sounds = [...realData, ...sounds]
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
 
-      // Re-rank
-      sounds.forEach((s, i) => s.rank = i + 1)
+    let query = supabase
+      .from("trending_sounds")
+      .select("*")
+      .order("rank", { ascending: true })
+      .limit(limit)
+
+    if (platform !== "all") {
+      query = query.eq("source", platform)
     }
-  } catch (e) {
-    console.warn("Failed to fetch real trending data, falling back to mocks")
-  }
-  */
 
-  // Filter by platform
-  if (platform !== "all") {
-    sounds = sounds.filter((s) => s.platform === platform)
-  }
+    if (velocity && velocity.length > 0) {
+      query = query.in("velocity", velocity)
+    }
 
-  // Filter by velocity
-  if (velocity && velocity.length > 0) {
-    sounds = sounds.filter((s) => velocity.includes(s.velocity))
-  }
+    const { data, error } = await query
 
-  // Sort by rank
+    if (error || !data || data.length === 0) {
+      return filterMockSounds(platform, velocity, limit)
+    }
+
+    return (data as Record<string, unknown>[]).map(rowToTrendingSound)
+  } catch {
+    return filterMockSounds(platform, velocity, limit)
+  }
+}
+
+function filterMockSounds(
+  platform: string,
+  velocity: TrendingSound["velocity"][] | undefined,
+  limit: number,
+): TrendingSound[] {
+  let sounds = [...MOCK_TRENDING_SOUNDS]
+  if (platform !== "all") sounds = sounds.filter((s) => s.platform === platform)
+  if (velocity && velocity.length > 0) sounds = sounds.filter((s) => velocity.includes(s.velocity))
   sounds.sort((a, b) => a.rank - b.rank)
-
   return sounds.slice(0, limit)
 }
 
@@ -257,23 +298,70 @@ export async function getTrendingSounds(
  * Get single trending sound
  */
 export async function getTrendingSound(id: string): Promise<TrendingSound | null> {
-  await new Promise((resolve) => setTimeout(resolve, 200))
-  return MOCK_TRENDING_SOUNDS.find((s) => s.id === id) || null
+  if (!isSupabaseConfigured()) {
+    return MOCK_TRENDING_SOUNDS.find((s) => s.id === id) || null
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("trending_sounds")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+
+    if (error || !data) return MOCK_TRENDING_SOUNDS.find((s) => s.id === id) || null
+    return rowToTrendingSound(data as Record<string, unknown>)
+  } catch {
+    return MOCK_TRENDING_SOUNDS.find((s) => s.id === id) || null
+  }
 }
 
 /**
  * Search trending sounds
  */
 export async function searchTrendingSounds(query: string): Promise<TrendingSound[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300))
-
   const lowerQuery = query.toLowerCase()
-  return MOCK_TRENDING_SOUNDS.filter(
-    (s) =>
-      s.title.toLowerCase().includes(lowerQuery) ||
-      s.artist.toLowerCase().includes(lowerQuery) ||
-      s.tags.some((t) => t.toLowerCase().includes(lowerQuery))
-  )
+
+  if (!isSupabaseConfigured()) {
+    return MOCK_TRENDING_SOUNDS.filter(
+      (s) =>
+        s.title.toLowerCase().includes(lowerQuery) ||
+        s.artist.toLowerCase().includes(lowerQuery) ||
+        s.tags.some((t) => t.toLowerCase().includes(lowerQuery)),
+    )
+  }
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("trending_sounds")
+      .select("*")
+      .or(`title.ilike.%${query}%,artist.ilike.%${query}%`)
+      .order("rank", { ascending: true })
+      .limit(20)
+
+    if (error || !data || data.length === 0) {
+      return MOCK_TRENDING_SOUNDS.filter(
+        (s) =>
+          s.title.toLowerCase().includes(lowerQuery) ||
+          s.artist.toLowerCase().includes(lowerQuery) ||
+          s.tags.some((t) => t.toLowerCase().includes(lowerQuery)),
+      )
+    }
+
+    return (data as Record<string, unknown>[]).map(rowToTrendingSound)
+  } catch {
+    return MOCK_TRENDING_SOUNDS.filter(
+      (s) =>
+        s.title.toLowerCase().includes(lowerQuery) ||
+        s.artist.toLowerCase().includes(lowerQuery),
+    )
+  }
 }
 
 /**

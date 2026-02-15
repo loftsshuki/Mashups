@@ -1,6 +1,10 @@
 // Intelligent Recommendations - "What to remix next"
 
-export type RecommendationType = 
+const isSupabaseConfigured = () =>
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+export type RecommendationType =
   | "trending" 
   | "skill_building" 
   | "compatible" 
@@ -304,6 +308,64 @@ export const mockRecommendations: Recommendation[] = [
     actions: [{ label: "View", href: "/create" }],
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Supabase-backed recommendation tracking
+// ---------------------------------------------------------------------------
+
+export async function logRecommendationEvent(
+  userId: string,
+  recommendationId: string,
+  action: "shown" | "clicked" | "dismissed" | "completed",
+  metadata?: Record<string, unknown>,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { error } = await supabase.from("recommendation_events").insert({
+      user_id: userId,
+      recommendation_id: recommendationId,
+      event_type: action,
+      metadata: metadata ?? {},
+    })
+
+    return !error
+  } catch {
+    return false
+  }
+}
+
+export async function getRecommendationHistory(
+  userId: string,
+  limit: number = 20,
+): Promise<Array<{ recommendationId: string; eventType: string; createdAt: string }>> {
+  if (!isSupabaseConfigured()) return []
+
+  try {
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("recommendation_events")
+      .select("recommendation_id, event_type, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error || !data) return []
+
+    return (data as Record<string, unknown>[]).map((row) => ({
+      recommendationId: row.recommendation_id as string,
+      eventType: row.event_type as string,
+      createdAt: row.created_at as string,
+    }))
+  } catch {
+    return []
+  }
+}
 
 // Helper functions
 export function getRecommendationColor(type: RecommendationType): string {
