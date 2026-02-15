@@ -1,4 +1,6 @@
-// Auto-Mashup AI - "Surprise me" full auto-mashup generation
+// Auto-Mashup AI — real Web Audio API mixing with vibe presets
+
+import { audioBufferToWav } from "@/lib/audio/stem-engine"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -14,6 +16,7 @@ export interface AIMashupTrack {
   bpm: number
   key: string
   analyzed: boolean
+  audioBuffer?: AudioBuffer
   stems?: {
     vocals: string
     drums: string
@@ -80,7 +83,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "energetic",
     name: "High Energy",
     description: "Fast-paced, intense, festival-ready",
-    emoji: "⚡",
+    emoji: "\u26A1",
     color: "text-yellow-500 bg-yellow-500/10",
     settings: {
       tempoMultiplier: 1.1,
@@ -95,7 +98,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "chill",
     name: "Chill Vibes",
     description: "Relaxed, lo-fi, study beats",
-    emoji: "🌊",
+    emoji: "\uD83C\uDF0A",
     color: "text-blue-500 bg-blue-500/10",
     settings: {
       tempoMultiplier: 0.85,
@@ -110,7 +113,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "dark",
     name: "Dark & Moody",
     description: "Underground, techno, mysterious",
-    emoji: "🌑",
+    emoji: "\uD83C\uDF11",
     color: "text-purple-500 bg-purple-500/10",
     settings: {
       tempoMultiplier: 0.95,
@@ -125,7 +128,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "euphoric",
     name: "Euphoric",
     description: "Uplifting, emotional, anthemic",
-    emoji: "✨",
+    emoji: "\u2728",
     color: "text-pink-500 bg-pink-500/10",
     settings: {
       tempoMultiplier: 1.05,
@@ -140,7 +143,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "retro",
     name: "Retro Wave",
     description: "80s synthwave, nostalgic",
-    emoji: "🕹️",
+    emoji: "\uD83C\uDFAE",
     color: "text-cyan-500 bg-cyan-500/10",
     settings: {
       tempoMultiplier: 1.0,
@@ -155,7 +158,7 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
     id: "experimental",
     name: "Experimental",
     description: "Weird, unexpected, avant-garde",
-    emoji: "🧪",
+    emoji: "\uD83E\uDDEA",
     color: "text-green-500 bg-green-500/10",
     settings: {
       tempoMultiplier: 1.15,
@@ -168,94 +171,176 @@ export const vibePresets: Record<VibePreset, VibePresetConfig> = {
   },
 }
 
-// Mock AI analysis
+// Analyze uploaded audio files using Web Audio API for real durations
 export async function analyzeTracks(files: File[]): Promise<AIMashupTrack[]> {
-  // Simulate analysis delay
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  
-  return files.map((file, i) => ({
-    id: `track_${i}`,
-    fileName: file.name,
-    duration: 180 + Math.floor(Math.random() * 120),
-    bpm: 110 + Math.floor(Math.random() * 40),
-    key: ["C", "G", "D", "A", "F", "Am", "Em"][Math.floor(Math.random() * 7)],
-    analyzed: true,
-  }))
+  const ctx = new AudioContext()
+  const tracks: AIMashupTrack[] = []
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer)
+
+      tracks.push({
+        id: `track_${i}`,
+        fileName: file.name,
+        duration: Math.round(audioBuffer.duration),
+        bpm: estimateBpmFromBuffer(audioBuffer),
+        key: ["C", "G", "D", "A", "F", "Am", "Em"][i % 7],
+        analyzed: true,
+        audioBuffer,
+      })
+    } catch {
+      // If decode fails, add with basic info
+      tracks.push({
+        id: `track_${i}`,
+        fileName: file.name,
+        duration: 0,
+        bpm: 120,
+        key: "C",
+        analyzed: false,
+      })
+    }
+  }
+
+  await ctx.close()
+  return tracks
 }
 
-// Generate auto-mashup
+// Simple BPM estimation using peak detection on the low-frequency energy
+function estimateBpmFromBuffer(buffer: AudioBuffer): number {
+  const data = buffer.getChannelData(0)
+  const sampleRate = buffer.sampleRate
+
+  // Downsample to ~200 Hz for energy analysis
+  const hopSize = Math.floor(sampleRate / 200)
+  const energies: number[] = []
+  for (let i = 0; i < data.length - hopSize; i += hopSize) {
+    let energy = 0
+    for (let j = 0; j < hopSize; j++) {
+      energy += data[i + j] * data[i + j]
+    }
+    energies.push(energy / hopSize)
+  }
+
+  // Find peaks (onset detection)
+  const threshold = energies.reduce((a, b) => a + b, 0) / energies.length * 1.5
+  let peakCount = 0
+  let lastPeak = -10
+  for (let i = 1; i < energies.length - 1; i++) {
+    if (energies[i] > threshold && energies[i] > energies[i - 1] && energies[i] > energies[i + 1] && i - lastPeak > 10) {
+      peakCount++
+      lastPeak = i
+    }
+  }
+
+  const durationSeconds = buffer.duration
+  if (durationSeconds < 5 || peakCount < 4) return 120 // fallback
+
+  // peaks per second * 60 = BPM (roughly — assumes peaks align with beats)
+  const rawBpm = (peakCount / durationSeconds) * 60
+  // Clamp to reasonable range and snap to nearest likely BPM
+  if (rawBpm < 60) return Math.round(rawBpm * 2)
+  if (rawBpm > 200) return Math.round(rawBpm / 2)
+  return Math.round(rawBpm)
+}
+
+// Generate auto-mashup using Web Audio API — real mixing
 export async function generateAutoMashup(
   config: AIMashupConfig
 ): Promise<AIMashupResult> {
-  const result: AIMashupResult = {
+  const buffers = config.tracks
+    .map(t => t.audioBuffer)
+    .filter((b): b is AudioBuffer => b != null)
+
+  if (buffers.length === 0) {
+    throw new Error("No audio data available — upload audio files first")
+  }
+
+  const vibe = vibePresets[config.vibe]
+  const sampleRate = 44100
+
+  // Account for tempo change when computing output duration
+  const maxDuration = Math.max(...buffers.map(b => b.duration / vibe.settings.tempoMultiplier))
+  const outputLength = Math.ceil(maxDuration * sampleRate)
+
+  const offline = new OfflineAudioContext(2, outputLength, sampleRate)
+  const masterGain = offline.createGain()
+  masterGain.gain.value = config.intensity / 100
+  masterGain.connect(offline.destination)
+
+  const segments: AIMashupResult["segments"]  = []
+  const stemTypes: Array<"vocals" | "drums" | "bass" | "other"> = ["vocals", "drums", "bass", "other"]
+
+  for (let i = 0; i < buffers.length; i++) {
+    const buffer = buffers[i]
+    const source = offline.createBufferSource()
+    source.buffer = buffer
+    source.playbackRate.value = vibe.settings.tempoMultiplier
+
+    // Per-track gain (normalize so tracks don't clip)
+    const trackGain = offline.createGain()
+    trackGain.gain.value = 1 / buffers.length
+
+    // Apply filter based on vibe
+    if (vibe.settings.filterType !== "none") {
+      const filter = offline.createBiquadFilter()
+      filter.type = vibe.settings.filterType
+      filter.frequency.value = vibe.settings.filterType === "lowpass" ? 3500 : 250
+      filter.Q.value = 1
+      source.connect(trackGain)
+      trackGain.connect(filter)
+      filter.connect(masterGain)
+    } else {
+      source.connect(trackGain)
+      trackGain.connect(masterGain)
+    }
+
+    source.start(0)
+
+    // Build segment info for UI
+    const trackDuration = buffer.duration / vibe.settings.tempoMultiplier
+    segments.push({
+      startTime: 0,
+      endTime: Math.round(trackDuration),
+      sourceTrack: config.tracks[i]?.id || `track_${i}`,
+      stem: stemTypes[i % stemTypes.length],
+      effect: vibe.settings.filterType === "none" ? "none" : vibe.settings.filterType,
+    })
+  }
+
+  // Render the mix
+  const rendered = await offline.startRendering()
+  const wavBlob = audioBufferToWav(rendered)
+  const blobUrl = URL.createObjectURL(wavBlob)
+
+  const baseBpm = config.tracks[0]?.bpm || 120
+  const outputBpm = Math.round(baseBpm * vibe.settings.tempoMultiplier)
+
+  return {
     id: `ai_${Date.now()}`,
     config,
-    status: "analyzing",
-    progress: 0,
-    duration: 0,
-    bpm: 0,
-    key: "",
+    status: "complete",
+    progress: 100,
+    outputUrl: blobUrl,
+    duration: Math.round(maxDuration),
+    bpm: outputBpm,
+    key: config.tracks[0]?.key || "C",
     aiAnalysis: {
-      energy: 0,
-      danceability: 0,
-      valence: 0,
-      acousticness: 0,
+      energy: Math.min(100, config.intensity * 1.1 + (vibe.settings.tempoMultiplier - 0.8) * 100),
+      danceability: Math.min(100, 40 + config.intensity * 0.6),
+      valence: vibe.id === "dark" ? 30 + Math.random() * 20 : 50 + Math.random() * 40,
+      acousticness: vibe.settings.filterType === "lowpass" ? 50 + Math.random() * 30 : Math.random() * 30,
     },
-    segments: [],
+    segments,
     createdAt: new Date().toISOString(),
-  }
-  
-  // Simulate generation process
-  await simulateGeneration(result)
-  
-  return result
-}
-
-async function simulateGeneration(result: AIMashupResult): Promise<void> {
-  const stages: AIMashupStatus[] = ["analyzing", "generating", "mixing", "complete"]
-  const delays = [1500, 3000, 2000, 500]
-  
-  for (let i = 0; i < stages.length; i++) {
-    result.status = stages[i]
-    result.progress = (i / (stages.length - 1)) * 100
-    
-    await new Promise(resolve => setTimeout(resolve, delays[i]))
-    
-    if (i === stages.length - 1) {
-      // Complete
-      const vibe = vibePresets[result.config.vibe]
-      const baseBpm = result.config.tracks[0]?.bpm || 120
-      
-      result.bpm = Math.round(baseBpm * vibe.settings.tempoMultiplier)
-      result.key = result.config.tracks[0]?.key || "C"
-      result.duration = 180 // 3 minutes
-      result.outputUrl = `/audio/ai_mashup_${result.id}.mp3`
-      result.completedAt = new Date().toISOString()
-      result.aiAnalysis = {
-        energy: 50 + Math.random() * 50,
-        danceability: 50 + Math.random() * 50,
-        valence: 30 + Math.random() * 70,
-        acousticness: Math.random() * 40,
-      }
-      
-      // Generate segments
-      const segmentCount = 8 + Math.floor(Math.random() * 8)
-      for (let j = 0; j < segmentCount; j++) {
-        result.segments.push({
-          startTime: j * (result.duration / segmentCount),
-          endTime: (j + 1) * (result.duration / segmentCount),
-          sourceTrack: result.config.tracks[j % result.config.tracks.length]?.id || "track_0",
-          stem: ["vocals", "drums", "bass", "other"][Math.floor(Math.random() * 4)] as any,
-          effect: ["reverb", "delay", "filter", "none"][Math.floor(Math.random() * 4)],
-        })
-      }
-    }
+    completedAt: new Date().toISOString(),
   }
 }
 
 // Get generation status
 export async function getMashupStatus(id: string): Promise<AIMashupResult | null> {
-  // Mock - would fetch from API
   return null
 }
 
@@ -267,9 +352,8 @@ export async function refineMashup(
     changes: Partial<AIMashupResult["segments"][0]>
   }[]
 ): Promise<AIMashupResult> {
-  // Simulate refinement
   await new Promise(resolve => setTimeout(resolve, 2000))
-  
+
   return {
     id: mashupId,
     config: {} as AIMashupConfig,
@@ -306,26 +390,26 @@ export function analyzeCompatibility(tracks: AIMashupTrack[]): {
 } {
   const issues: string[] = []
   const suggestions: string[] = []
-  
+
   if (tracks.length < 2) {
     issues.push("Need at least 2 tracks for a mashup")
     return { compatible: false, issues, suggestions }
   }
-  
+
   // Check BPM compatibility
   const bpms = tracks.map(t => t.bpm)
   const bpmRange = Math.max(...bpms) - Math.min(...bpms)
   if (bpmRange > 20) {
-    suggestions.push("Large BPM difference detected — AI will auto-adjust tempo for smoother mixing")
+    suggestions.push("Large BPM difference detected \u2014 AI will auto-adjust tempo for smoother mixing")
   }
-  
+
   // Check key compatibility
   const keys = tracks.map(t => t.key)
   const uniqueKeys = new Set(keys)
   if (uniqueKeys.size > 2) {
     suggestions.push("Multiple keys detected - AI will auto-shift for harmonic mixing")
   }
-  
+
   return {
     compatible: issues.length === 0,
     issues,
@@ -350,7 +434,6 @@ export const mockAIMashupResults: AIMashupResult[] = [
     },
     status: "complete",
     progress: 100,
-    outputUrl: "/audio/ai_demo_1.mp3",
     duration: 195,
     bpm: 140,
     key: "C",
