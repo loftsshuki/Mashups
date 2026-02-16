@@ -19,6 +19,7 @@ export interface StemUploadResult {
   name: string
   size: number
   uploadedUrl: string
+  localBlobUrl?: string // browser blob URL for local playback
   duration?: number
   stems?: SeparatedStems
   isProcessingStems?: boolean
@@ -70,7 +71,7 @@ export function StemUploadZone({
     fetch("/api/audio/separate")
       .then((res) => res.json())
       .then((data) => {
-        setIsConfigured(data.configured)
+        setIsConfigured(data.modal || data.replicate || false)
         setIsCheckingConfig(false)
       })
       .catch(() => {
@@ -118,13 +119,14 @@ export function StemUploadZone({
 
     const limitedFiles = audioFiles.slice(0, maxFiles)
     
-    // Create initial results without stems
+    // Create initial results with browser blob URLs for local playback
     const initialResults: StemUploadResult[] = limitedFiles.map((file) => ({
       file,
       name: file.name,
       size: file.size,
       uploadedUrl: "", // Will be filled after upload
-      isProcessingStems: enableStemSeparation,
+      localBlobUrl: URL.createObjectURL(file),
+      isProcessingStems: enableStemSeparation && isConfigured,
     }))
 
     onFilesAdded(initialResults)
@@ -148,24 +150,14 @@ export function StemUploadZone({
         const uploadData = await uploadResponse.json()
         const uploadedUrl = uploadData.url
 
-        // Get audio duration
+        // Get audio duration from the local blob URL
         let duration = 180 // default estimate
         try {
-          const objectUrl = URL.createObjectURL(result.file)
-          const audio = new Audio(objectUrl)
+          const audio = new Audio(result.localBlobUrl!)
           duration = await new Promise<number>((resolve) => {
-            audio.addEventListener("loadedmetadata", () => {
-              resolve(audio.duration)
-              URL.revokeObjectURL(objectUrl)
-            })
-            audio.addEventListener("error", () => {
-              resolve(180)
-              URL.revokeObjectURL(objectUrl)
-            })
-            setTimeout(() => {
-              resolve(180)
-              URL.revokeObjectURL(objectUrl)
-            }, 5000)
+            audio.addEventListener("loadedmetadata", () => resolve(audio.duration))
+            audio.addEventListener("error", () => resolve(180))
+            setTimeout(() => resolve(180), 5000)
           })
         } catch {
           // Use default duration
@@ -191,6 +183,7 @@ export function StemUploadZone({
           stems,
           isProcessingStems: false,
           stemError,
+          uploadProgress: 100,
         }
 
         onFilesAdded([updatedResult])
@@ -242,7 +235,7 @@ export function StemUploadZone({
                 ? "Checking configuration..."
                 : isConfigured
                 ? "Automatically split tracks into vocals, drums, bass & other"
-                : "Not configured — add REPLICATE_API_TOKEN to enable"}
+                : "Not configured — set MODAL_STEM_ENDPOINT or REPLICATE_API_TOKEN to enable"}
             </p>
           </div>
         </div>
