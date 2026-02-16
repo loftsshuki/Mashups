@@ -34,6 +34,12 @@ export function useBeatAnalysis(
       return
     }
 
+    // Skip placeholder/dev URLs that will 404
+    if (audioUrl.startsWith("/audio/dev-upload-")) {
+      setAnalysis(null)
+      return
+    }
+
     // Cancel previous request
     abortControllerRef.current?.abort()
     abortControllerRef.current = new AbortController()
@@ -43,7 +49,7 @@ export function useBeatAnalysis(
 
     try {
       const result = await analyzeTrack(audioUrl)
-      
+
       if (abortControllerRef.current.signal.aborted) {
         return
       }
@@ -53,6 +59,7 @@ export function useBeatAnalysis(
       if (abortControllerRef.current?.signal.aborted) {
         return
       }
+      console.warn("[BeatAnalysis] Analysis failed for URL:", audioUrl, err)
       setError(err instanceof Error ? err : new Error("Failed to analyze track"))
       setAnalysis(null)
     } finally {

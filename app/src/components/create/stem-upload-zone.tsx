@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
 import { Upload, Wand2, Loader2, Music, Mic, Drum, Guitar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -67,7 +67,7 @@ export function StemUploadZone({
   const [isConfigured, setIsConfigured] = useState(false)
 
   // Check if stem separation is configured on mount
-  useState(() => {
+  useEffect(() => {
     fetch("/api/audio/separate")
       .then((res) => res.json())
       .then((data) => {
@@ -78,7 +78,7 @@ export function StemUploadZone({
         setIsConfigured(false)
         setIsCheckingConfig(false)
       })
-  })
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -134,21 +134,31 @@ export function StemUploadZone({
     // Upload each file
     for (const result of initialResults) {
       try {
-        const formData = new FormData()
-        formData.set("file", result.file)
-
-        // Upload to storage
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        })
-
-        if (!uploadResponse.ok) {
-          throw new Error("Upload failed")
+        // Try client-side upload first (bypasses serverless body size limit)
+        let uploadedUrl = ""
+        try {
+          const { upload } = await import("@vercel/blob/client")
+          const blob = await upload(
+            `audio/${Date.now()}-${result.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+            result.file,
+            {
+              access: "public",
+              handleUploadUrl: "/api/upload/client-token",
+            }
+          )
+          uploadedUrl = blob.url
+        } catch {
+          // Client upload failed — fall back to server upload
+          const formData = new FormData()
+          formData.set("file", result.file)
+          const uploadResponse = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          })
+          if (!uploadResponse.ok) throw new Error("Upload failed")
+          const uploadData = await uploadResponse.json()
+          uploadedUrl = uploadData.url
         }
-
-        const uploadData = await uploadResponse.json()
-        const uploadedUrl = uploadData.url
 
         // Get audio duration from the local blob URL
         let duration = 180 // default estimate

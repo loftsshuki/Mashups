@@ -102,11 +102,11 @@ function CreatePageContent() {
   // Audio engine for real-time multi-track playback
   const stemEngine = useStemEngine()
 
-  // Beat analysis for first track
+  // Beat analysis for first track — use local blob URL (instant, no network)
+  // Never pass placeholder URLs (they 404 and cause decode errors)
   const firstTrack = tracks[0]
-  const { analysis: beatAnalysis } = useBeatAnalysis(
-    firstTrack?.uploadedUrl || null
-  )
+  const beatAnalysisUrl = firstTrack?.localBlobUrl || null
+  const { analysis: beatAnalysis } = useBeatAnalysis(beatAnalysisUrl)
 
   const forkId = searchParams.get("fork")
   const remixId = searchParams.get("remix")
@@ -271,7 +271,26 @@ function CreatePageContent() {
         return updated
       })
 
-      const result = await uploadAudio(formData)
+      // Try client-side upload first (bypasses serverless body size limit)
+      let uploadedUrl = ""
+      try {
+        const { upload } = await import("@vercel/blob/client")
+        const blob = await upload(
+          `audio/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+          file,
+          {
+            access: "public",
+            handleUploadUrl: "/api/upload/client-token",
+          }
+        )
+        uploadedUrl = blob.url
+      } catch {
+        // Client upload failed — fall back to server action
+        const result = await uploadAudio(formData)
+        if ("url" in result) {
+          uploadedUrl = result.url
+        }
+      }
 
       setTracks((prev) => {
         const idx = prev.findIndex(
@@ -279,18 +298,23 @@ function CreatePageContent() {
         )
         if (idx === -1) return prev
         const updated = [...prev]
-        if ("url" in result) {
+        if (uploadedUrl) {
           updated[idx] = {
             ...updated[idx],
             uploadProgress: 100,
-            uploadedUrl: result.url,
+            uploadedUrl,
             localBlobUrl,
             duration,
           }
         } else {
-          // Upload failed — revoke the blob URL and remove the track
-          URL.revokeObjectURL(localBlobUrl)
-          updated.splice(idx, 1)
+          // Both uploads failed — still keep the track with localBlobUrl for local playback
+          updated[idx] = {
+            ...updated[idx],
+            uploadProgress: 100,
+            uploadedUrl: "",
+            localBlobUrl,
+            duration,
+          }
         }
         return updated
       })
@@ -353,7 +377,7 @@ function CreatePageContent() {
             color: stemColors[stemType],
           })
         })
-      } else if (track.uploadedUrl) {
+      } else if (track.uploadedUrl || track.localBlobUrl) {
         // Regular track without stems - add as single track
         const colors = ["#8b5cf6", "#ec4899", "#06b6d4", "#f59e0b", "#10b981"]
         const color = colors[trackIndex % colors.length]
@@ -362,7 +386,7 @@ function CreatePageContent() {
           id: `clip-${trackIndex}-full`,
           trackId: `track-${trackIndex}-full`,
           name: track.name.replace(/\.[^.]+$/, ""),
-          audioUrl: track.uploadedUrl,
+          audioUrl: track.localBlobUrl || track.uploadedUrl!,
           startTime: 0,
           duration: track.duration || 180,
           offset: 0,
