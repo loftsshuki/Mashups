@@ -515,6 +515,25 @@ async function tryStemSeparation(
 async function uploadFileForSeparation(file: File): Promise<string | null> {
   try {
     console.log(`[Stems] Uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)...`)
+
+    // Try client-side upload first (bypasses 4.5MB serverless body limit)
+    try {
+      const { upload } = await import("@vercel/blob/client")
+      const blob = await upload(
+        `audio/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/upload/client-token",
+        }
+      )
+      console.log("[Stems] Client upload success:", blob.url)
+      return blob.url
+    } catch {
+      console.log("[Stems] Client upload failed, trying server upload...")
+    }
+
+    // Fallback: server-side upload
     const formData = new FormData()
     formData.set("file", file)
     const res = await fetch("/api/upload", { method: "POST", body: formData })
