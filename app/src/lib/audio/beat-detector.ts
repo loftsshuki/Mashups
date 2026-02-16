@@ -38,8 +38,12 @@ export async function analyzeTrack(audioUrl: string): Promise<TrackAnalysis> {
 
   try {
     const response = await fetch(audioUrl)
+    if (!response.ok) {
+      console.warn(`[BeatDetector] Fetch failed with ${response.status} for ${audioUrl}`)
+      return getFallbackAnalysis()
+    }
     const arrayBuffer = await response.arrayBuffer()
-    
+
     const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
     
