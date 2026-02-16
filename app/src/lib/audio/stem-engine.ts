@@ -76,9 +76,19 @@ export class StemEngine {
     this.tracks.set(id, track)
 
     // Fetch and decode audio
-    const response = await fetch(audioUrl)
-    const arrayBuffer = await response.arrayBuffer()
-    track.buffer = await ctx.decodeAudioData(arrayBuffer)
+    try {
+      const response = await fetch(audioUrl)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const arrayBuffer = await response.arrayBuffer()
+      track.buffer = await ctx.decodeAudioData(arrayBuffer)
+    } catch (err) {
+      console.error(`[StemEngine] Failed to load track "${name}" from ${audioUrl}:`, err)
+      track.gainNode?.disconnect()
+      track.panNode?.disconnect()
+      this.tracks.delete(id)
+      this.setState(this.tracks.size > 0 ? "ready" : "idle")
+      return
+    }
 
     // Update duration (longest stem wins)
     this._duration = Math.max(this._duration, track.buffer.duration)
