@@ -75,6 +75,7 @@ interface TrackWithStems extends UploadedTrack {
   stems?: SeparatedStems
   isProcessingStems?: boolean
   stemError?: string
+  localBlobUrl?: string // browser blob URL for local playback
 }
 
 function CreatePageContent() {
@@ -239,25 +240,22 @@ function CreatePageContent() {
       const formData = new FormData()
       formData.set("file", file)
 
-      // Try to get audio duration
+      // Create a persistent browser blob URL for local playback
+      // (StemEngine uses this instead of the server upload URL)
+      const localBlobUrl = URL.createObjectURL(file)
+
+      // Get audio duration from the local blob
       let duration: number | undefined
       try {
-        const objectUrl = URL.createObjectURL(file)
-        const audio = new Audio(objectUrl)
+        const audio = new Audio(localBlobUrl)
         duration = await new Promise<number>((resolve) => {
           audio.addEventListener("loadedmetadata", () => {
             resolve(audio.duration)
-            URL.revokeObjectURL(objectUrl)
           })
           audio.addEventListener("error", () => {
             resolve(0)
-            URL.revokeObjectURL(objectUrl)
           })
-          // Timeout after 5s
-          setTimeout(() => {
-            resolve(0)
-            URL.revokeObjectURL(objectUrl)
-          }, 5000)
+          setTimeout(() => resolve(0), 5000)
         })
       } catch {
         duration = undefined
@@ -286,10 +284,12 @@ function CreatePageContent() {
             ...updated[idx],
             uploadProgress: 100,
             uploadedUrl: result.url,
+            localBlobUrl,
             duration,
           }
         } else {
-          // Upload failed — remove the track
+          // Upload failed — revoke the blob URL and remove the track
+          URL.revokeObjectURL(localBlobUrl)
           updated.splice(idx, 1)
         }
         return updated
@@ -298,7 +298,11 @@ function CreatePageContent() {
   }, [])
 
   const handleRemoveTrack = useCallback((index: number) => {
-    setTracks((prev) => prev.filter((_, i) => i !== index))
+    setTracks((prev) => {
+      const track = prev[index]
+      if (track?.localBlobUrl) URL.revokeObjectURL(track.localBlobUrl)
+      return prev.filter((_, i) => i !== index)
+    })
     if (selectedStemTrack === index) {
       setSelectedStemTrack(null)
     }
@@ -471,14 +475,18 @@ function CreatePageContent() {
         initMixerTracks()
 
         // Load audio into the stem engine
+        // Prefer local blob URL (instant, no network) over server upload URL
         for (const track of tracks) {
           if (track.stems) {
             await stemEngine.addTrack(`${track.name}-vocals`, `${track.name} (Vocals)`, track.stems.vocals)
             await stemEngine.addTrack(`${track.name}-drums`, `${track.name} (Drums)`, track.stems.drums)
             await stemEngine.addTrack(`${track.name}-bass`, `${track.name} (Bass)`, track.stems.bass)
             await stemEngine.addTrack(`${track.name}-other`, `${track.name} (Other)`, track.stems.other)
-          } else if (track.uploadedUrl) {
-            await stemEngine.addTrack(track.name, track.name, track.uploadedUrl)
+          } else {
+            const audioUrl = track.localBlobUrl || track.uploadedUrl
+            if (audioUrl) {
+              await stemEngine.addTrack(track.name, track.name, audioUrl)
+            }
           }
         }
       }

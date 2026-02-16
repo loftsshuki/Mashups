@@ -447,6 +447,11 @@ const MODAL_ENDPOINT = typeof window !== "undefined"
   ? process.env.NEXT_PUBLIC_MODAL_STEM_ENDPOINT
   : undefined
 
+// Debug: log Modal endpoint availability at module load
+if (typeof window !== "undefined") {
+  console.log("[AutoMashup] MODAL_ENDPOINT:", MODAL_ENDPOINT ? "configured" : "NOT SET")
+}
+
 async function tryStemSeparation(
   fileA: File,
   fileB: File,
@@ -509,23 +514,25 @@ async function tryStemSeparation(
 
 async function uploadFileForSeparation(file: File): Promise<string | null> {
   try {
+    console.log(`[Stems] Uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)...`)
     const formData = new FormData()
     formData.set("file", file)
     const res = await fetch("/api/upload", { method: "POST", body: formData })
     if (!res.ok) {
-      console.warn("Upload failed:", res.status, await res.text())
+      console.warn("[Stems] Upload HTTP error:", res.status)
       return null
     }
     const data = (await res.json()) as { url?: string }
     const url = data.url || null
+    console.log("[Stems] Upload result URL:", url)
     // Reject placeholder URLs that Modal can't access
     if (url && (url.startsWith("/audio/dev-") || !url.startsWith("http"))) {
-      console.warn("Upload returned local placeholder URL — Blob storage not configured")
+      console.warn("[Stems] Upload returned local placeholder — Blob storage not configured")
       return null
     }
     return url
   } catch (err) {
-    console.warn("Upload error:", err)
+    console.warn("[Stems] Upload error:", err)
     return null
   }
 }
