@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import type { Mashup } from "./types"
+import type { Mashup, Profile, SourceTrack } from "./types"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -111,7 +111,14 @@ export async function getForYouFeed(options: {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function normalizeMashupRow(row: any): Mashup {
+type MashupTransportRow = Omit<Mashup, "creator" | "source_tracks" | "like_count" | "comment_count"> & {
+  creator?: Profile | null
+  source_tracks?: SourceTrack[] | null
+  like_count?: number | Array<{ count: number }>
+  comment_count?: number | Array<{ count: number }>
+}
+
+function normalizeMashupRow(row: MashupTransportRow): Mashup {
   return {
     ...row,
     creator: row.creator ?? undefined,

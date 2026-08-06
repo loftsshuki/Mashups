@@ -81,7 +81,7 @@ export default function FeaturesPage() {
                         </li>
                         <li className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                            Solves "blank canvas" syndrome
+                            Solves &quot;blank canvas&quot; syndrome
                         </li>
                     </ul>
                 </div>

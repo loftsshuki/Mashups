@@ -27,25 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetTrigger } from "@/components/ui/sheet"
 import { logout } from "@/lib/auth/auth-actions"
+import { labNavigation, primaryNavigation } from "@/lib/navigation/product-map"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-
-const primaryLinks = [
-  { href: "/explore", label: "Discover" },
-  { href: "/create", label: "Create" },
-  { href: "/challenges", label: "Challenges" },
-  { href: "/dashboard/analytics", label: "Analytics" },
-  { href: "/earnings", label: "Earnings" },
-] as const
-
-const labLinks = [
-  { href: "/studio", label: "Live studio", note: "Co-create in real time" },
-  { href: "/packs", label: "Weekly packs", note: "Hook-ready drops" },
-  { href: "/momentum", label: "Momentum feed", note: "What is moving now" },
-  { href: "/scoreboard", label: "Scoreboard", note: "Growth over followers" },
-  { href: "/battles", label: "Beat battles", note: "Head-to-head voting" },
-  { href: "/tools", label: "Creator tools", note: "Specialized utilities" },
-] as const
 
 interface UserProfile {
   username: string
@@ -132,7 +116,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Primary navigation">
-          {primaryLinks.map((link) => (
+          {primaryNavigation.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -155,7 +139,7 @@ export function Header() {
               <DropdownMenuLabel className="mono-label px-2 py-3 text-muted-foreground">
                 Experimental surfaces
               </DropdownMenuLabel>
-              {labLinks.map((link) => (
+              {labNavigation.map((link) => (
                 <DropdownMenuItem key={link.href} asChild className="rounded-none p-0 focus:bg-secondary">
                   <Link href={link.href} className="flex items-center justify-between gap-4 px-2 py-2.5">
                     <span>

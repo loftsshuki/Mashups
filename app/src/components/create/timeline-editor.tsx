@@ -51,18 +51,29 @@ export function TimelineEditor({
   const [localTracks, setLocalTracks] = useState<TimelineTrack[]>(tracks)
   const [showSpectral, setShowSpectral] = useState(false)
   const [spectralTrackUrl, setSpectralTrackUrl] = useState<string | null>(null)
+  const [containerWidth, setContainerWidth] = useState(800)
 
   // Sync with props
   useEffect(() => {
     setLocalTracks(tracks)
   }, [tracks])
 
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateWidth = () => setContainerWidth(container.clientWidth)
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
+
   // Calculate dimensions
   const timelineWidth = useMemo(() => {
     const contentWidth = totalDuration * PIXELS_PER_SECOND * zoom
-    const minWidth = (containerRef.current?.clientWidth || 800) - TRACK_LABEL_WIDTH
+    const minWidth = containerWidth - TRACK_LABEL_WIDTH
     return Math.max(contentWidth, minWidth)
-  }, [totalDuration, zoom])
+  }, [containerWidth, totalDuration, zoom])
 
   // Time markers
   const timeMarkers = useMemo(() => {

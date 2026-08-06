@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Play, Pause, Clock, ArrowRight, Music2, AlertCircle } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +18,7 @@ interface Stem {
     color: string
     bpm: number
     key: string
-    icon: any
+    icon: LucideIcon
 }
 
 const DAILY_STEMS: Stem[] = [
@@ -74,7 +75,7 @@ export function DailyChallengeHero() {
                     </h1>
 
                     <p className="text-lg text-muted-foreground max-w-md">
-                        Today's challenge: Blend a 1968 soul vocal with modern trap drums.
+                        Today&apos;s challenge: Blend a 1968 soul vocal with modern trap drums.
                         Use at least 30s of each stem.
                     </p>
 
@@ -141,7 +142,7 @@ export function DailyChallengeHero() {
 
                     <div className="mt-8 rounded-xl bg-black/40 p-4 border border-white/5 backdrop-blur-sm text-center">
                         <p className="text-sm text-muted-foreground">
-                            "This vocal chop is insane. Whoever flips this best wins the month."
+                            &quot;This vocal chop is insane. Whoever flips this best wins the month.&quot;
                         </p>
                         <div className="mt-2 flex items-center justify-center gap-2 text-xs font-bold text-white">
                             <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500" />

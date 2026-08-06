@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
+import NextImage from "next/image"
 import { Ear, ArrowRight, RotateCcw, Headphones } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { BlindPlayer } from "@/components/ear-test/blind-player"
@@ -194,7 +195,7 @@ export default function EarTestPage() {
                 {/* Cover */}
                 <div className="h-14 w-14 rounded-lg bg-muted/50 overflow-hidden shrink-0">
                   {mashup.coverUrl ? (
-                    <img src={mashup.coverUrl} alt="" className="w-full h-full object-cover" />
+                    <NextImage unoptimized width={640} height={640} src={mashup.coverUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Headphones className="h-5 w-5 text-muted-foreground" />

@@ -1,24 +1,20 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import NextImage from "next/image"
 import {
   ImageIcon,
-  Wand2,
   RefreshCw,
   Download,
   Palette,
   Type,
-  Layout,
   Sparkles,
-  Check,
-  Upload,
-  Crop
+  Check
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import {
@@ -43,18 +39,6 @@ interface ThumbnailTemplate {
   fontFamily: string
   layout: "center" | "split" | "overlay"
   textColor?: string
-}
-
-interface ThumbnailConfig {
-  template: ThumbnailTemplate
-  title: string
-  subtitle?: string
-  showWaveform: boolean
-  waveformColor: string
-  textColor: string
-  fontSize: number
-  blur: number
-  overlayOpacity: number
 }
 
 const TEMPLATES: ThumbnailTemplate[] = [
@@ -150,19 +134,72 @@ export function ThumbnailGeneratorEnhanced({
   const [selectedThumbnail, setSelectedThumbnail] = useState<number | null>(null)
 
   // Customization options
-  const [showWaveform, setShowWaveform] = useState(true)
+  const [showWaveform] = useState(true)
   const [fontSize, setFontSize] = useState(48)
   const [blur, setBlur] = useState(0)
   const [overlayOpacity, setOverlayOpacity] = useState(50)
-  const [customColor, setCustomColor] = useState("")
+  const [customColor] = useState("")
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Generate waveform data if not provided
   const generateWaveform = useCallback(() => {
     if (audioWaveform) return audioWaveform
-    return Array.from({ length: 100 }, () => Math.random() * 0.8 + 0.2)
+    return Array.from({ length: 100 }, (_, index) => 0.2 + ((index * 31) % 80) / 100)
   }, [audioWaveform])
+
+  const drawTextAndWaveform = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (showWaveform) {
+      const waveform = generateWaveform()
+      const barWidth = width / waveform.length
+      const barHeight = height * 0.3
+
+      ctx.fillStyle = selectedTemplate.accentColor + "40"
+      waveform.forEach((value, index) => {
+        const barSize = value * barHeight
+        ctx.fillRect(index * barWidth, (height - barSize) / 2, barWidth - 1, barSize)
+      })
+    }
+
+    ctx.font = `bold ${fontSize}px ${selectedTemplate.fontFamily}`
+    ctx.fillStyle = selectedTemplate.textColor || "#ffffff"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+
+    const maxWidth = width * 0.8
+    const words = title.split(" ")
+    let line = ""
+    const lines: string[] = []
+
+    for (const word of words) {
+      const testLine = line + word + " "
+      if (ctx.measureText(testLine).width > maxWidth && line !== "") {
+        lines.push(line)
+        line = word + " "
+      } else {
+        line = testLine
+      }
+    }
+    lines.push(line)
+
+    const lineHeight = fontSize * 1.2
+    const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2
+    lines.forEach((textLine, index) => {
+      ctx.fillText(textLine.trim(), width / 2, startY + index * lineHeight)
+    })
+
+    if (subtitle) {
+      ctx.font = `${fontSize * 0.5}px ${selectedTemplate.fontFamily}`
+      ctx.fillStyle = (selectedTemplate.textColor || "#ffffff") + "cc"
+      ctx.fillText(subtitle, width / 2, startY + lines.length * lineHeight + 20)
+    }
+
+    if (selectedTemplate.style === "bold") {
+      ctx.strokeStyle = selectedTemplate.accentColor
+      ctx.lineWidth = 8
+      ctx.strokeRect(20, 20, width - 40, height - 40)
+    }
+  }, [fontSize, generateWaveform, selectedTemplate, showWaveform, subtitle, title])
 
   // Draw thumbnail on canvas
   const drawThumbnail = useCallback(() => {
@@ -212,72 +249,7 @@ export function ThumbnailGeneratorEnhanced({
     } else {
       drawTextAndWaveform(ctx, width, height)
     }
-  }, [selectedTemplate, aspectRatio, customColor, coverArt, blur, overlayOpacity, title, subtitle, fontSize, showWaveform])
-
-  const drawTextAndWaveform = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    // Draw waveform
-    if (showWaveform) {
-      const waveform = generateWaveform()
-      const barWidth = width / waveform.length
-      const barHeight = height * 0.3
-
-      ctx.fillStyle = selectedTemplate.accentColor + "40" // Add transparency
-
-      waveform.forEach((value, i) => {
-        const h = value * barHeight
-        const x = i * barWidth
-        const y = (height - h) / 2
-
-        ctx.fillRect(x, y, barWidth - 1, h)
-      })
-    }
-
-    // Draw title
-    ctx.font = `bold ${fontSize}px ${selectedTemplate.fontFamily}`
-    ctx.fillStyle = selectedTemplate.textColor || "#ffffff"
-    ctx.textAlign = "center"
-    ctx.textBaseline = "middle"
-
-    // Word wrap title
-    const maxWidth = width * 0.8
-    const words = title.split(" ")
-    let line = ""
-    const lines: string[] = []
-
-    for (const word of words) {
-      const testLine = line + word + " "
-      const metrics = ctx.measureText(testLine)
-      if (metrics.width > maxWidth && line !== "") {
-        lines.push(line)
-        line = word + " "
-      } else {
-        line = testLine
-      }
-    }
-    lines.push(line)
-
-    const lineHeight = fontSize * 1.2
-    const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2
-
-    lines.forEach((line, i) => {
-      ctx.fillText(line.trim(), width / 2, startY + i * lineHeight)
-    })
-
-    // Draw subtitle
-    if (subtitle) {
-      ctx.font = `${fontSize * 0.5}px ${selectedTemplate.fontFamily}`
-      ctx.fillStyle = (selectedTemplate.textColor || "#ffffff") + "cc"
-      ctx.fillText(subtitle, width / 2, startY + lines.length * lineHeight + 20)
-    }
-
-    // Draw accent elements based on template
-    if (selectedTemplate.style === "bold") {
-      // Draw border
-      ctx.strokeStyle = selectedTemplate.accentColor
-      ctx.lineWidth = 8
-      ctx.strokeRect(20, 20, width - 40, height - 40)
-    }
-  }
+  }, [aspectRatio, blur, coverArt, customColor, drawTextAndWaveform, overlayOpacity, selectedTemplate])
 
   // Generate multiple thumbnail variations
   const generateThumbnails = useCallback(async () => {
@@ -302,7 +274,7 @@ export function ThumbnailGeneratorEnhanced({
 
     setGeneratedThumbnails(thumbnails)
     setIsGenerating(false)
-  }, [title, aspectRatio])
+  }, [])
 
   // Export selected thumbnail
   const exportThumbnail = () => {
@@ -511,7 +483,10 @@ export function ThumbnailGeneratorEnhanced({
                         : "border-transparent hover:border-muted"
                     )}
                   >
-                    <img
+                    <NextImage
+                      unoptimized
+                      width={640}
+                      height={640}
                       src={thumb}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"

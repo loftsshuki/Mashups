@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Play, Pause, Flame, Trophy, Clock, Share2, Upload } from "lucide-react"
+import { Play, Pause, Flame, Trophy, Clock, Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -20,7 +19,7 @@ const MOCK_DAILY_STEMS = [
 
 export function DailyFlip({ className }: DailyFlipProps) {
   const [isPlaying, setIsPlaying] = useState<number | null>(null)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasSubmitted] = useState(false)
 
   // Mock audio player
   const togglePlay = (id: number) => {
@@ -64,7 +63,7 @@ export function DailyFlip({ className }: DailyFlipProps) {
 
         <h2 className="text-2xl font-bold mb-2">Motown × Trap</h2>
         <p className="text-indigo-100 mb-6 max-w-md text-sm">
-          Create a banger using today's 3 stems.
+          Create a banger using today&apos;s 3 stems.
           Use at least 10s of each. Wildcards allowed.
         </p>
 
@@ -109,7 +108,7 @@ export function DailyFlip({ className }: DailyFlipProps) {
             <Trophy className="w-8 h-8 text-green-500" />
           </div>
           <h3 className="text-lg font-bold text-white mb-1">Flip Submitted!</h3>
-          <p className="text-zinc-400 text-sm mb-4">You're currently ranked #84</p>
+          <p className="text-zinc-400 text-sm mb-4">You&apos;re currently ranked #84</p>
           <Button variant="outline" className="w-full">View Leaderboard</Button>
         </div>
       ) : (

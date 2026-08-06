@@ -14,8 +14,6 @@ import {
   UserPlus,
   Users,
   Mic,
-  MousePointer2,
-  Music,
   Settings,
   GraduationCap,
 } from "lucide-react"

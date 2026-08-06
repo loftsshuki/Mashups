@@ -115,18 +115,15 @@ export function VoiceChatPanel({
           setParticipants([])
         })
 
-        call.on("participant-joined", (event: unknown) => {
-          const e = event as { participant: DailyParticipant }
+        call.on("participant-joined", () => {
           updateParticipants(call)
         })
 
-        call.on("participant-left", (event: unknown) => {
-          const e = event as { participant: DailyParticipant }
+        call.on("participant-left", () => {
           updateParticipants(call)
         })
 
-        call.on("active-speaker-change", (event: unknown) => {
-          const e = event as { activeSpeaker: { peerId: string } }
+        call.on("active-speaker-change", () => {
           updateParticipants(call)
         })
 
@@ -309,7 +306,6 @@ export function VoiceChatPanel({
     if (callRef.current && 'setOutputDeviceAsync' in callRef.current) {
       // Daily.js uses setOutputDeviceAsync or setOutputDevice, depending on version. 
       // Checking for existence or treating as any to avoid complex type issues if version mismatch.
-      // @ts-ignore
       callRef.current.setOutputDeviceAsync({ outputDeviceId: deviceId })
     }
   }, [])
@@ -494,7 +490,7 @@ interface VoiceParticipantCardProps {
   isLocal?: boolean
 }
 
-function VoiceParticipantCard({ participant, isLocal }: VoiceParticipantCardProps) {
+function VoiceParticipantCard({ participant, isLocal: _isLocal }: VoiceParticipantCardProps) {
   const isSpeaking = participant.isSpeaking && !participant.isMuted
 
   return (

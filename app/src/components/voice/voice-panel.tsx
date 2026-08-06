@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { VoiceParticipant, mockVoiceParticipants, detectVoiceActivity } from "@/lib/data/voice-chat"
+import { useState, useEffect } from "react"
+import { VoiceParticipant, mockVoiceParticipants } from "@/lib/data/voice-chat"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -27,8 +27,6 @@ export function VoicePanel({
   const [isMuted, setIsMuted] = useState(false)
   const [isDeafened, setIsDeafened] = useState(false)
   const [localAudioLevel, setLocalAudioLevel] = useState(0)
-  const cleanupRef = useRef<(() => void) | null>(null)
-
   // Simulate local voice activity
   useEffect(() => {
     if (!isMuted) {

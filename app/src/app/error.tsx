@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, RotateCcw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { captureClientException } from "@/lib/analytics/posthog"
 
 export default function GlobalError({
   error,
@@ -14,7 +15,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("[UI] Unhandled route error:", error)
+    captureClientException(error, { surface: "root_error_boundary" })
   }, [error])
 
   return (

@@ -1,129 +1,39 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Check, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { PRODUCT_EVENTS, trackProductEvent } from "@/lib/analytics/events"
 import { startCheckout } from "@/lib/data/billing"
-import {
-  NeonGrid,
-  NeonHero,
-  NeonPage,
-  NeonSectionHeader,
-} from "@/components/marketing/neon-page"
 
-const tiers = [
-  {
-    name: "Free",
-    price: "$0",
-    blurb: "For early creators validating concepts.",
-    features: ["Basic publishing", "Public profile", "Community feed access"],
-  },
-  {
-    name: "Pro Creator",
-    price: "$12/mo",
-    blurb: "For creators pushing weekly campaigns.",
-    features: [
-      "Advanced mixer tools",
-      "Creator analytics",
-      "Priority discovery slots",
-    ],
-  },
-  {
-    name: "Pro Studio",
-    price: "$29/mo",
-    blurb: "For teams with collaboration and rights workflows.",
-    features: ["Live collaboration rooms", "Team seats", "Priority support"],
-  },
-] as const
+type PricingTier = { id: string; name: string; price: string; cadence: string; blurb: string; features: readonly string[]; cta: string; featured: boolean }
+
+const tiers: readonly PricingTier[] = [
+  { id: "free", name: "Free", price: "$0", cadence: "forever", blurb: "Prove the workflow before you scale it.", features: ["3 campaign drafts each month", "Public profile and discovery", "Draft rights declarations"], cta: "Start free", featured: false },
+  { id: "Pro Creator", name: "Pro Creator", price: "$12", cadence: "per month", blurb: "For creators shipping a campaign every week.", features: ["Unlimited hook candidates", "Signed campaign attribution", "Weekly performance brief", "Creator-safe export presets"], cta: "Choose Creator", featured: true },
+  { id: "Pro Studio", name: "Pro Studio", price: "$29", cadence: "per month", blurb: "For editors, managers, and creator teams.", features: ["Everything in Pro Creator", "Team campaign workspace", "Rights and dispute operations", "Priority collaboration rooms"], cta: "Choose Studio", featured: false },
+]
 
 export default function PricingPage() {
   const router = useRouter()
   const [pendingPlan, setPendingPlan] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => trackProductEvent(PRODUCT_EVENTS.pricingViewed), [])
 
   async function handleCheckout(plan: string) {
+    if (plan === "free") { router.push("/signup"); return }
+    setError(null)
     setPendingPlan(plan)
-    const result = await startCheckout("subscription", plan)
-    setPendingPlan(null)
-    if (result.checkoutUrl) {
-      router.push(result.checkoutUrl)
-    }
+    try {
+      const result = await startCheckout("subscription", plan)
+      if (result.checkoutUrl) router.push(result.checkoutUrl)
+      else setError("Billing is not connected yet. Your campaign drafts remain available on Free.")
+    } finally { setPendingPlan(null) }
   }
 
-  return (
-    <NeonPage>
-      <NeonHero
-        eyebrow="Pricing"
-        title="Plans for creators, studios, and networks."
-        description="Neon-style pricing structure adapted for mashup growth, rights safety, and monetization."
-        actions={
-          <>
-            <Button className="rounded-full" asChild>
-              <Link href="/signup">
-                Start Free
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full border-primary/30 bg-transparent"
-              asChild
-            >
-              <Link href="/enterprise">Talk Enterprise</Link>
-            </Button>
-          </>
-        }
-        aside={
-          <>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Conversion Goal
-            </p>
-            <p className="mt-2 text-3xl font-semibold">Free → Pro in 14 days</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Onboard creators fast, then unlock monetization and analytics.
-            </p>
-          </>
-        }
-      />
-
-      <NeonSectionHeader
-        title="Plan Matrix"
-        description="Tier cards keep the same section rhythm as home."
-      />
-      <NeonGrid className="md:grid-cols-3">
-        {tiers.map((tier) => (
-          <div key={tier.name} className="neon-panel rounded-2xl p-5">
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              {tier.name}
-            </p>
-            <p className="mt-2 text-3xl font-semibold">{tier.price}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{tier.blurb}</p>
-            <ul className="mt-5 space-y-2">
-              {tier.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <Button
-              className="mt-6 w-full rounded-full"
-              variant={tier.name === "Free" ? "outline" : "default"}
-              disabled={tier.name === "Free" || pendingPlan === tier.name}
-              onClick={() => handleCheckout(tier.name)}
-            >
-              {tier.name === "Free"
-                ? "Current Plan"
-                : pendingPlan === tier.name
-                  ? "Redirecting..."
-                  : "Choose Plan"}
-            </Button>
-          </div>
-        ))}
-      </NeonGrid>
-    </NeonPage>
-  )
+  return <div className="pt-28"><section className="mx-auto max-w-[1440px] px-4 pb-24 sm:px-6 lg:px-8"><div className="grid gap-8 border-b border-foreground pb-10 lg:grid-cols-12 lg:items-end"><div className="lg:col-span-8"><p className="signal-label">Pricing</p><h1 className="display-type mt-6 text-6xl leading-[0.84] sm:text-8xl">Pay for velocity.<br /><span className="text-primary">Not empty limits.</span></h1></div><div className="lg:col-span-4"><p className="text-lg leading-relaxed text-muted-foreground">Upgrade when attributed campaigns and rights operations save more time than they cost.</p><div className="mt-6 flex items-center gap-2 font-mono text-xs"><ShieldCheck className="size-4 text-primary" />Cancel or change tier at any time</div></div></div>{error ? <div role="alert" className="mt-6 border border-destructive bg-destructive/10 p-4 text-sm text-destructive">{error}</div> : null}<div className="grid gap-5 pt-7 lg:grid-cols-3">{tiers.map((tier, index) => <article key={tier.name} className={`relative flex min-h-[32rem] flex-col border border-foreground p-6 ${tier.featured ? "bg-foreground text-background shadow-[7px_7px_0_var(--primary)]" : "bg-card shadow-[5px_5px_0_var(--foreground)]"}`}><div className="flex items-center justify-between"><span className="font-mono text-xs">0{index + 1} / {tier.name}</span>{tier.featured ? <span className="bg-secondary px-2 py-1 font-mono text-[10px] font-semibold uppercase text-secondary-foreground">Most useful</span> : null}</div><p className={`mt-9 text-5xl font-semibold ${tier.featured ? "text-secondary" : "text-primary"}`}>{tier.price}</p><p className="mt-1 font-mono text-xs uppercase opacity-60">{tier.cadence}</p><h2 className="display-type mt-7 text-3xl leading-none">{tier.blurb}</h2><ul className="mt-8 space-y-4">{tier.features.map((feature) => <li key={feature} className="flex gap-3 text-sm"><Check className={`mt-0.5 size-4 shrink-0 ${tier.featured ? "text-secondary" : "text-primary"}`} />{feature}</li>)}</ul><Button className="mt-auto" variant={tier.featured ? "secondary" : "default"} onClick={() => void handleCheckout(tier.id)} disabled={pendingPlan === tier.id}>{pendingPlan === tier.id ? <><Loader2 className="animate-spin" />Opening checkout</> : <>{tier.cta}<ArrowRight /></>}</Button></article>)}</div><p className="mt-9 text-center text-sm text-muted-foreground">Need API access, indemnity, or agency workspaces? <Link href="/enterprise" className="font-semibold text-foreground underline underline-offset-4">Talk to enterprise.</Link></p></section></div>
 }
-

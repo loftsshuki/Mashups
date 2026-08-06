@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Music2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { Stem } from "@/lib/data/types"
 
 interface StemCreditsProps {
   mashupId: string

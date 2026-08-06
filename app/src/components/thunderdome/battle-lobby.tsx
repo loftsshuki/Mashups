@@ -1,13 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { useState } from "react"
+import NextImage from "next/image"
 import { Search, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
+export interface BattleOpponent {
+    username: string
+    rank: string
+    avatar: string
+}
+
 interface BattleLobbyProps {
-    onMatchFound: (opponent: any) => void
+    onMatchFound: (opponent: BattleOpponent) => void
 }
 
 export function BattleLobby({ onMatchFound }: BattleLobbyProps) {
@@ -32,7 +38,7 @@ export function BattleLobby({ onMatchFound }: BattleLobbyProps) {
                 {/* User Card */}
                 <Card className="p-8 bg-zinc-900/50 border-zinc-800 flex flex-col items-center gap-4">
                     <div className="w-32 h-32 rounded-full bg-zinc-800 border-4 border-zinc-700 overflow-hidden">
-                        <img src="https://placehold.co/128x128/zinc/white?text=ME" alt="You" />
+                        <NextImage unoptimized width={128} height={128} src="https://placehold.co/128x128/zinc/white?text=ME" alt="You" />
                     </div>
                     <div className="text-center">
                         <h3 className="text-2xl font-bold">You</h3>

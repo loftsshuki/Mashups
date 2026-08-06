@@ -1,13 +1,8 @@
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
+import { primaryNavigation } from "@/lib/navigation/product-map"
 
-const product = [
-  ["/create", "Create"],
-  ["/explore", "Discover"],
-  ["/challenges", "Challenges"],
-  ["/dashboard/analytics", "Analytics"],
-  ["/earnings", "Earnings"],
-] as const
+const product = primaryNavigation.map(({ href, label }) => [href, label] as const)
 
 const company = [
   ["/pricing", "Pricing"],
@@ -30,7 +25,7 @@ export function Footer() {
             <p className="mt-7 max-w-lg text-xl leading-snug text-background/72 sm:text-2xl">
               Turn one track into the clip, proof, link, and feedback loop that grows your next one.
             </p>
-            <Link href="/create" className="mt-8 inline-flex items-center gap-2 border-b border-primary pb-1 font-mono text-xs font-semibold uppercase tracking-widest hover:text-primary">
+            <Link href="/campaigns/new" className="mt-8 inline-flex items-center gap-2 border-b border-primary pb-1 font-mono text-xs font-semibold uppercase tracking-widest hover:text-primary">
               Make the next sound <ArrowUpRight className="size-4" />
             </Link>
           </div>

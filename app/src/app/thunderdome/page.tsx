@@ -1,18 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
-import { Swords, Users, Trophy, Zap } from "lucide-react"
+import { Swords, Users, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { BattleLobby } from "@/components/thunderdome/battle-lobby"
+import { BattleLobby, type BattleOpponent } from "@/components/thunderdome/battle-lobby"
 import { BattleArena } from "@/components/thunderdome/battle-arena"
 
 export default function ThunderdomePage() {
     const [gameState, setGameState] = useState<"lobby" | "battle" | "results">("lobby")
-    const [opponent, setOpponent] = useState<any>(null)
+    const [opponent, setOpponent] = useState<BattleOpponent | null>(null)
 
-    const handleMatchFound = (opponentData: any) => {
+    const handleMatchFound = (opponentData: BattleOpponent) => {
         setOpponent(opponentData)
         setGameState("battle")
     }
@@ -50,7 +48,7 @@ export default function ThunderdomePage() {
                     <BattleLobby onMatchFound={handleMatchFound} />
                 )}
 
-                {gameState === "battle" && (
+                {gameState === "battle" && opponent && (
                     <BattleArena opponent={opponent} onEndGame={() => setGameState("results")} />
                 )}
 

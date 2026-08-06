@@ -11,7 +11,10 @@ if (
   process.env.NEXT_PUBLIC_POSTHOG_KEY
 ) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+    api_host:
+      process.env.NEXT_PUBLIC_POSTHOG_HOST ??
+      process.env.POSTHOG_HOST ??
+      "https://us.i.posthog.com",
     capture_pageview: false, // We capture manually for SPA navigation
     capture_pageleave: true,
   })
@@ -73,4 +76,13 @@ export function identifyUser(
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.identify(userId, properties)
   }
+}
+
+export function captureClientException(
+  error: unknown,
+  context: Record<string, unknown> = {},
+) {
+  if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+  const normalized = error instanceof Error ? error : new Error(String(error))
+  posthog.captureException(normalized, context)
 }

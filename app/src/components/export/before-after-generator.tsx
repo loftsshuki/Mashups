@@ -30,7 +30,7 @@ export function BeforeAfterGenerator({
   mashupTitle,
   creatorName,
   sourceTracks,
-  coverUrl,
+  coverUrl: _coverUrl,
   className,
 }: BeforeAfterGeneratorProps) {
   const [format, setFormat] = useState<ExportFormat>("9:16")

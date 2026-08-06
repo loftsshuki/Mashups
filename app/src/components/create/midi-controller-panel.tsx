@@ -1,9 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -28,7 +26,6 @@ import {
   Square, 
   Volume2, 
   VolumeX,
-  MicOff,
   Trash2,
   Plus,
   AlertCircle,
@@ -64,64 +61,26 @@ export function MIDIControllerPanel({
   const [selectedDevice, setSelectedDevice] = useState<string>("")
   const [mappings, setMappings] = useState<MIDIMapping[]>([])
   const [isLearning, setIsLearning] = useState(false)
-  const [learningTarget, setLearningTarget] = useState<MIDIMapping["target"] | null>(null)
+  const [, setLearningTarget] = useState<MIDIMapping["target"] | null>(null)
   const [lastMessage, setLastMessage] = useState<string>("")
   const [showSettings, setShowSettings] = useState(false)
   const unsubscribeRef = useRef<(() => void) | null>(null)
 
-  // Initialize MIDI
-  useEffect(() => {
-    if (!isSupported) return
-
-    async function init() {
-      const success = await midiManager.init()
-      if (success) {
-        setIsInitialized(true)
-        refreshDevices()
-        setMappings(midiManager.getMappings())
-
-        // Subscribe to all control changes
-        const targets: MIDIMapping["target"][] = ["volume", "pan", "mute", "play", "pause", "stop", "seek"]
-        targets.forEach(target => {
-          const unsubscribe = midiManager.onControlChange(target, (value) => {
-            handleControlChange(target, value)
-          })
-          // Store the last unsubscribe function (simplified for demo)
-          if (target === "volume") {
-            unsubscribeRef.current = unsubscribe
-          }
-        })
-
-        // Listen for all messages
-        midiManager.setOnMessageCallback((message) => {
-          setLastMessage(`Ch${message.channel + 1} CC${message.control}=${message.value}`)
-        })
-      }
-    }
-
-    init()
-
-    return () => {
-      unsubscribeRef.current?.()
-      midiManager.disconnect()
-    }
-  }, [isSupported])
-
-  const refreshDevices = () => {
+  const refreshDevices = useCallback(() => {
     const devs = midiManager.getDevices()
     setDevices(devs)
     if (devs.inputs.length > 0 && !selectedDevice) {
       setSelectedDevice(devs.inputs[0].id)
       midiManager.selectInput(devs.inputs[0].id)
     }
-  }
+  }, [selectedDevice])
 
   const handleDeviceSelect = (deviceId: string) => {
     setSelectedDevice(deviceId)
     midiManager.selectInput(deviceId)
   }
 
-  const handleControlChange = (target: MIDIMapping["target"], value: number) => {
+  const handleControlChange = useCallback((target: MIDIMapping["target"], value: number) => {
     switch (target) {
       case "volume":
         // Apply to first track or master
@@ -147,7 +106,40 @@ export function MIDIControllerPanel({
         onSeek?.(value * 100) // Percentage
         break
     }
-  }
+  }, [onMuteToggle, onPause, onPlay, onSeek, onStop, onVolumeChange, tracks])
+
+  // Initialize MIDI and subscribe to hardware changes.
+  useEffect(() => {
+    if (!isSupported) return
+
+    async function init() {
+      const success = await midiManager.init()
+      if (success) {
+        setIsInitialized(true)
+        refreshDevices()
+        setMappings(midiManager.getMappings())
+
+        const targets: MIDIMapping["target"][] = ["volume", "pan", "mute", "play", "pause", "stop", "seek"]
+        targets.forEach((target) => {
+          const unsubscribe = midiManager.onControlChange(target, (value) => {
+            handleControlChange(target, value)
+          })
+          if (target === "volume") unsubscribeRef.current = unsubscribe
+        })
+
+        midiManager.setOnMessageCallback((message) => {
+          setLastMessage(`Ch${message.channel + 1} CC${message.control}=${message.value}`)
+        })
+      }
+    }
+
+    void init()
+
+    return () => {
+      unsubscribeRef.current?.()
+      midiManager.disconnect()
+    }
+  }, [handleControlChange, isSupported, refreshDevices])
 
   const startLearning = async (target: MIDIMapping["target"]) => {
     setIsLearning(true)
@@ -304,7 +296,7 @@ export function MIDIControllerPanel({
                   
                   {mappings.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No mappings configured. Click "Learn Mapping" and move a control on your device.
+                      No mappings configured. Click &quot;Learn Mapping&quot; and move a control on your device.
                     </p>
                   )}
                 </div>

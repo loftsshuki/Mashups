@@ -43,7 +43,7 @@ export function RiskAssessmentPanel({
       const fingerprint = audioFingerprint || `fp_${mashupId}_${Date.now()}`
       const result = await analyzeContentID(fingerprint, duration)
       setAssessment(result)
-    } catch (err) {
+    } catch {
       setError("Failed to analyze content. Please try again.")
     } finally {
       setIsAnalyzing(false)

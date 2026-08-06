@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Wand2, Music, Drum, Speaker, Mic2, Guitar, ArrowRight, Play, RefreshCw, X } from "lucide-react"
+import { motion } from "framer-motion"
+import { Wand2, Drum, Speaker, Mic2, Guitar, ArrowRight, Play, RefreshCw, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const STEM_TYPES = {
     drums: { icon: Drum, color: "text-yellow-500", bg: "bg-yellow-500/10" },
@@ -28,7 +27,6 @@ export function StemSwapper() {
     const [processState, setProcessState] = useState<"idle" | "analyzing" | "transferring" | "done">("idle")
     const [isPlaying, setIsPlaying] = useState(false)
     const [isOriginal, setIsOriginal] = useState(false)
-    const isProcessing = processState === "analyzing" || processState === "transferring"
 
     const handleSwap = (kitId: string) => {
         if (processState !== "idle" && activeKit !== kitId) return
@@ -73,7 +71,7 @@ export function StemSwapper() {
                         Target Stem
                     </label>
                     <div className="grid grid-cols-4 gap-2">
-                        {(Object.entries(STEM_TYPES) as [keyof typeof STEM_TYPES, any][]).map(([key, config]) => {
+                        {(Object.entries(STEM_TYPES) as [keyof typeof STEM_TYPES, (typeof STEM_TYPES)[keyof typeof STEM_TYPES]][]).map(([key, config]) => {
                             const Icon = config.icon
                             const isSelected = selectedStem === key
                             return (

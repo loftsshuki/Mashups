@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Activity, Radio, Volume2, Save, Download, RefreshCw } from "lucide-react"
+import { Activity, Volume2, Download, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -43,7 +43,7 @@ export function MasteringConsole() {
                     <div
                         key={i}
                         className={`flex-1 rounded-t-sm transition-all duration-500 ${processed ? 'bg-green-500' : 'bg-zinc-700'}`}
-                        style={{ height: `${Math.random() * 100}%` }}
+                        style={{ height: `${20 + ((i * 37) % 80)}%` }}
                     />
                 ))}
                 {/* Overlay text */}

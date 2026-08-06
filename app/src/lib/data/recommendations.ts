@@ -22,7 +22,7 @@ export interface Recommendation {
   target: {
     type: "mashup" | "creator" | "challenge" | "track"
     id: string
-    data: any
+    data: Record<string, unknown>
   }
   actions: Array<{
     label: string
@@ -266,8 +266,8 @@ export async function getTrendingAnalysis(): Promise<TrendingAnalysis> {
 export async function getDailyFeed(userId: string): Promise<{
   recommendations: Recommendation[]
   trending: TrendingAnalysis
-  newFromFollowing: any[]
-  challenges: any[]
+  newFromFollowing: Array<Record<string, unknown>>
+  challenges: Array<Record<string, unknown>>
 }> {
   const [recommendations, trending] = await Promise.all([
     getRecommendations(userId, {

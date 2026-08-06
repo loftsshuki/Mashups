@@ -23,14 +23,12 @@ export function MentionAutocomplete({
 
   useEffect(() => {
     if (!query) {
-      setResults([])
       return
     }
 
     let cancelled = false
-    setIsLoading(true)
-
     const timer = setTimeout(async () => {
+      setIsLoading(true)
       const users = await searchUsers(query)
       if (!cancelled) {
         setResults(users)

@@ -28,6 +28,19 @@ const INSTRUMENT_COLORS: Record<string, string> = {
 }
 
 export function RouletteSpinner({ stems, isSpinning, onSpinComplete, className }: RouletteSpinnerProps) {
+  const resetKey = stems.map((stem) => stem.id).join(":")
+  return (
+    <RouletteSpinnerStateful
+      key={resetKey}
+      stems={stems}
+      isSpinning={isSpinning}
+      onSpinComplete={onSpinComplete}
+      className={className}
+    />
+  )
+}
+
+function RouletteSpinnerStateful({ stems, isSpinning, onSpinComplete, className }: RouletteSpinnerProps) {
   const [revealed, setRevealed] = useState<boolean[]>([false, false, false])
 
   useEffect(() => {
@@ -45,11 +58,6 @@ export function RouletteSpinner({ stems, isSpinning, onSpinComplete, className }
 
     return () => timers.forEach(clearTimeout)
   }, [isSpinning, stems, onSpinComplete])
-
-  // Reset when stems change
-  useEffect(() => {
-    if (stems.length === 0) setRevealed([false, false, false])
-  }, [stems])
 
   return (
     <div className={cn("grid grid-cols-3 gap-4", className)}>

@@ -254,7 +254,7 @@ export class MIDIControllerManager {
     return [...this.mappings]
   }
 
-  learnMode(target: MIDIMapping["target"]): Promise<number> {
+  learnMode(_target: MIDIMapping["target"]): Promise<number> {
     return new Promise((resolve) => {
       const originalCallback = this.onMessageCallback
       

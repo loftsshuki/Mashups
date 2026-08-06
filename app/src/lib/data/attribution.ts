@@ -1,5 +1,7 @@
 // Attribution Watermark System - Audio fingerprinting and attribution
 
+import { createBrowserAudioContext } from "@/lib/audio/browser-audio-context"
+
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -140,7 +142,7 @@ export async function detectWatermark(audioBlob: Blob): Promise<WatermarkDetecti
     
     // Fallback: try audio fingerprint matching
     const arrayBuffer = await audioBlob.arrayBuffer()
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioContext = createBrowserAudioContext()
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0))
     const fingerprint = await generateFingerprint(audioBuffer)
     
@@ -166,7 +168,7 @@ export async function detectWatermark(audioBlob: Blob): Promise<WatermarkDetecti
 
 // Query fingerprint database (mock)
 async function queryFingerprintDatabase(
-  fingerprint: AudioFingerprint
+  _fingerprint: AudioFingerprint
 ): Promise<{ confidence: number; sources: AttributionSource[] }> {
   // Mock database query
   // In production, this would query AcoustID or internal database

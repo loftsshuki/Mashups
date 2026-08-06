@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { getPlatformChallenges, getPlatformChallengeById } from "@/lib/data/platform-challenges"
 import { ChallengeWorkspace } from "@/components/challenges/challenge-workspace"
 import { notFound } from "next/navigation"
+import { getCurrentTimestamp } from "@/lib/time/clock"
 
 export async function generateStaticParams() {
   const challenges = await getPlatformChallenges()
@@ -25,7 +26,7 @@ export default async function ChallengeDetailPage({ params }: ChallengeDetailPag
 
   const isActive = challenge.status === "active"
   const endsAt = challenge.ends_at ? new Date(challenge.ends_at) : null
-  const timeRemaining = endsAt ? Math.max(0, endsAt.getTime() - Date.now()) : null
+  const timeRemaining = endsAt ? Math.max(0, endsAt.getTime() - getCurrentTimestamp()) : null
   const daysRemaining = timeRemaining ? Math.ceil(timeRemaining / (1000 * 60 * 60 * 24)) : null
 
   // Convert challenge stem_ids to workspace format

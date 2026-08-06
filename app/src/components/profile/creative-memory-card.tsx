@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Brain, Music, Clock, Zap } from "lucide-react"
+import { Brain } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { CreativeProfile } from "@/lib/data/creative-profile"
 

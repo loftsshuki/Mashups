@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useRef } from "react"
+import NextImage from "next/image"
 import { generateThumbnail, thumbnailTemplates, socialMediaSizes, downloadThumbnail, mockWaveformData, ThumbnailOptions } from "@/lib/data/thumbnail-generator"
 import { GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Download, RefreshCw, ImageIcon, Check, Sparkles } from "lucide-react"
 
 interface ThumbnailCreatorProps {
@@ -23,7 +24,7 @@ export function ThumbnailCreator({
   mashupTitle = "Untitled Mashup",
   artistName,
   genre,
-  audioBuffer,
+  audioBuffer: _audioBuffer,
   onThumbnailGenerated,
   className,
 }: ThumbnailCreatorProps) {
@@ -113,7 +114,10 @@ export function ThumbnailCreator({
       {/* Preview */}
       <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
         {generatedThumbnail ? (
-          <img
+          <NextImage
+            unoptimized
+            width={640}
+            height={640}
             src={generatedThumbnail.dataUrl}
             alt="Generated thumbnail"
             className="w-full h-full object-contain"

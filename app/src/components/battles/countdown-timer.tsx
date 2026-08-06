@@ -44,27 +44,29 @@ export function CountdownTimer({
   showLabels = true,
   onComplete,
 }: CountdownTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(calculateTimeLeft(targetDate))
-  const [isClient, setIsClient] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
+  const [hasTicked, setHasTicked] = useState(false)
   
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-  
-  useEffect(() => {
-    const timer = setInterval(() => {
+    const update = () => {
       const remaining = calculateTimeLeft(targetDate)
       setTimeLeft(remaining)
+      setHasTicked(true)
       
       if (!remaining && onComplete) {
         onComplete()
       }
-    }, 1000)
+    }
+    const initialTimer = setTimeout(update, 0)
+    const timer = setInterval(update, 1000)
     
-    return () => clearInterval(timer)
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(timer)
+    }
   }, [targetDate, onComplete])
   
-  if (!isClient) {
+  if (!hasTicked) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <div className="animate-pulse bg-muted rounded" />
@@ -153,22 +155,24 @@ export function CountdownCompact({
   className?: string
   prefix?: string
 }) {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(calculateTimeLeft(targetDate))
-  const [isClient, setIsClient] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
+  const [hasTicked, setHasTicked] = useState(false)
   
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-  
-  useEffect(() => {
-    const timer = setInterval(() => {
+    const update = () => {
       setTimeLeft(calculateTimeLeft(targetDate))
-    }, 60000) // Update every minute for compact version
+      setHasTicked(true)
+    }
+    const initialTimer = setTimeout(update, 0)
+    const timer = setInterval(update, 60000)
     
-    return () => clearInterval(timer)
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(timer)
+    }
   }, [targetDate])
   
-  if (!isClient || !timeLeft) {
+  if (!hasTicked || !timeLeft) {
     return <span className={cn("text-xs text-muted-foreground", className)}>{prefix} --</span>
   }
   

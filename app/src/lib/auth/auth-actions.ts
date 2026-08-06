@@ -3,8 +3,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function login(prevState: any, formData: FormData) {
+type AuthActionState = { error?: string; success?: boolean } | null
+
+export async function login(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const supabase = await createClient()
 
   const data = {
@@ -21,8 +22,7 @@ export async function login(prevState: any, formData: FormData) {
   redirect("/")
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function signup(prevState: any, formData: FormData) {
+export async function signup(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const supabase = await createClient()
 
   const email = formData.get("email") as string
@@ -56,13 +56,10 @@ export async function signup(prevState: any, formData: FormData) {
   redirect("/")
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function signInWithGoogle(_formData?: FormData) {
   const supabase = await createClient()
 
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  console.log("[Google OAuth] redirectTo:", `${siteUrl}/auth/callback`)
-
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -130,8 +127,7 @@ export async function getUserProfile() {
   return profile ? { ...profile, email: user.email } : null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function updateProfile(prevState: any, formData: FormData) {
+export async function updateProfile(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

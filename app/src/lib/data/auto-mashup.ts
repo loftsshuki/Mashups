@@ -628,14 +628,14 @@ async function decodeAudioFromUri(ctx: AudioContext, uri: string): Promise<Audio
 }
 
 // Get generation status
-export async function getMashupStatus(id: string): Promise<AIMashupResult | null> {
+export async function getMashupStatus(_id: string): Promise<AIMashupResult | null> {
   return null
 }
 
 // Refine/edit AI result
 export async function refineMashup(
   mashupId: string,
-  adjustments: {
+  _adjustments: {
     segmentIndex: number
     changes: Partial<AIMashupResult["segments"][0]>
   }[]

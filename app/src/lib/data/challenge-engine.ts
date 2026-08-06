@@ -6,6 +6,7 @@ import {
 import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
 import { mockMashups, type MockMashup } from "@/lib/mock-data"
 import { createClient } from "@/lib/supabase/server"
+import { isDemoMode } from "@/lib/config/runtime"
 
 const isSupabaseConfigured = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -109,7 +110,7 @@ async function findChallengeRow(challengeId: string): Promise<ChallengeRow | nul
 }
 
 export async function getChallengesFromBackend(): Promise<Challenge[]> {
-  if (!isSupabaseConfigured()) return mockChallenges
+  if (!isSupabaseConfigured()) return isDemoMode() ? mockChallenges : []
 
   try {
     await seedChallengesIfNeeded()
@@ -121,21 +122,23 @@ export async function getChallengesFromBackend(): Promise<Challenge[]> {
       )
       .order("starts_at", { ascending: true })
 
-    if (error || !data || data.length === 0) return mockChallenges
+    if (error || !data || data.length === 0) return isDemoMode() ? mockChallenges : []
     return (data as ChallengeRow[]).map((row) => toChallenge(row))
   } catch {
-    return mockChallenges
+    return isDemoMode() ? mockChallenges : []
   }
 }
 
 export async function getChallengeEntriesFromBackend(
   challengeId: string,
+  demo = isDemoMode(),
 ): Promise<MockMashup[]> {
-  if (!isSupabaseConfigured()) return getMockChallengeEntries(challengeId)
+  if (demo) return getMockChallengeEntries(challengeId)
+  if (!isSupabaseConfigured()) return []
 
   try {
     const challengeRow = await findChallengeRow(challengeId)
-    if (!challengeRow) return getMockChallengeEntries(challengeId)
+    if (!challengeRow) return demo ? getMockChallengeEntries(challengeId) : []
 
     const supabase = await createClient()
     const { data: entryRows, error: entryError } = await supabase
@@ -146,7 +149,7 @@ export async function getChallengeEntriesFromBackend(
       .limit(24)
 
     if (entryError || !entryRows || entryRows.length === 0) {
-      return getMockChallengeEntries(challengeId)
+      return demo ? getMockChallengeEntries(challengeId) : []
     }
 
     const mashupIds = Array.from(
@@ -157,7 +160,7 @@ export async function getChallengeEntriesFromBackend(
       ),
     )
 
-    if (mashupIds.length === 0) return getMockChallengeEntries(challengeId)
+    if (mashupIds.length === 0) return demo ? getMockChallengeEntries(challengeId) : []
 
     const { data: mashupRows, error: mashupError } = await supabase
       .from("mashups")
@@ -173,7 +176,7 @@ export async function getChallengeEntriesFromBackend(
       .in("id", mashupIds)
 
     if (mashupError || !mashupRows || mashupRows.length === 0) {
-      return getMockChallengeEntries(challengeId)
+      return demo ? getMockChallengeEntries(challengeId) : []
     }
 
     const mashupMap = new Map(
@@ -187,7 +190,7 @@ export async function getChallengeEntriesFromBackend(
       .map((id) => mashupMap.get(id))
       .filter((row): row is MockMashup => Boolean(row))
   } catch {
-    return getMockChallengeEntries(challengeId)
+    return demo ? getMockChallengeEntries(challengeId) : []
   }
 }
 
@@ -208,10 +211,14 @@ export async function enterChallengeFromBackend(input: {
   challengeId: string
   mashupId?: string
   userId: string
+  demo?: boolean
 }) {
-  const { challengeId, mashupId, userId } = input
+  const { challengeId, mashupId, userId, demo = isDemoMode() } = input
 
-  if (!isSupabaseConfigured()) {
+  if (demo || !isSupabaseConfigured()) {
+    if (!demo) {
+      return { ok: false as const, status: 503, error: "Challenge storage is not configured." }
+    }
     const challenge = mockChallenges.find((entry) => entry.id === challengeId)
     if (!challenge) {
       return { ok: false as const, status: 404, error: "Challenge not found." }

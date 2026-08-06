@@ -15,19 +15,15 @@ interface FeedMashupListProps {
 }
 
 export function FeedMashupList({ tab, genre }: FeedMashupListProps) {
+  return <FeedMashupListStateful key={`${tab}:${genre}`} tab={tab} genre={genre} />
+}
+
+function FeedMashupListStateful({ tab, genre }: FeedMashupListProps) {
   const [mashups, setMashups] = useState<Mashup[]>([])
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-
-  // Reset when tab or genre changes
-  useEffect(() => {
-    setMashups([])
-    setPage(0)
-    setHasMore(true)
-    setIsLoading(true)
-  }, [tab, genre])
 
   // Fetch data when page, tab, or genre changes
   useEffect(() => {

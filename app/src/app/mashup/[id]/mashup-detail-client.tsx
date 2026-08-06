@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers, GitBranch, GitCompareArrows } from "lucide-react"
+import { Play, Pause, Music, ShieldCheck, Sparkles, Copy, Repeat2, Layers, GitBranch } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"

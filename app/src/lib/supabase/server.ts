@@ -17,8 +17,9 @@ type NoopQueryChain = {
 export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const configured = Boolean(url && key && !url.includes("placeholder") && key !== "placeholder")
 
-  if (!url || !key) {
+  if (!configured || !url || !key) {
     // Return a minimal no-op client when Supabase is not configured
     const noopResult: NoopResult = { data: null, error: null }
     const chain = {} as NoopQueryChain

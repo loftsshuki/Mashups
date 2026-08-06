@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useCallback, useTransition, Suspense, useEffect, lazy } from "react"
-import { Upload, Sliders, Share2, Check, Music, ArrowLeft, ArrowRight, Wand2, Sparkles, ImageIcon, FileText, Music2, Repeat2, BrainCircuit, Dices, Timer, Play } from "lucide-react"
-import Link from "next/link"
+import { useState, useCallback, useTransition, Suspense, useEffect } from "react"
+import { Upload, Sliders, Share2, Check, ArrowLeft, ArrowRight, Wand2, Sparkles, Repeat2, BrainCircuit, Dices, Timer } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -10,7 +9,7 @@ import { UploadZone } from "@/components/create/upload-zone"
 import { TrackList, type UploadedTrack } from "@/components/create/track-list"
 import { MixerControls } from "@/components/create/mixer-controls"
 import { PublishForm } from "@/components/create/publish-form"
-import { StemUploadZone, StemList, type StemUploadResult, type SeparatedStems } from "@/components/create/stem-upload-zone"
+import { StemUploadZone, type StemUploadResult, type SeparatedStems } from "@/components/create/stem-upload-zone"
 import { StemMixer } from "@/components/create/stem-mixer"
 import { TimelineEditor } from "@/components/create/timeline-editor"
 import { SmartMatchPanel } from "@/components/create/smart-match-panel"
@@ -28,15 +27,6 @@ import { useStemEngine } from "@/lib/hooks/use-stem-engine"
 import { uploadAudio } from "@/lib/storage/upload"
 import { createMashup } from "@/lib/data/mashups-mutations"
 import type { MockMashup } from "@/lib/mock-data"
-
-import type { AttributionSource } from "@/lib/data/attribution"
-import type { GeneratedCaptions } from "@/lib/data/auto-caption"
-import type { GeneratedThumbnail } from "@/lib/data/thumbnail-generator"
-
-// Phase 3: Lazy load export components
-const AttributionEditor = lazy(() => import("@/components/attribution/attribution-editor").then(m => ({ default: m.AttributionEditor })))
-const CaptionEditor = lazy(() => import("@/components/captions/caption-editor").then(m => ({ default: m.CaptionEditor })))
-const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-creator").then(m => ({ default: m.ThumbnailCreator })))
 
 const steps = [
   {
@@ -91,11 +81,6 @@ function CreatePageContent() {
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false)
   const [automationNodes, setAutomationNodes] = useState<AutomationNode[]>([])
 
-  // Phase 3: Export flow state
-  const [attributionSources, setAttributionSources] = useState<AttributionSource[]>([])
-  const [generatedCaptions, setGeneratedCaptions] = useState<GeneratedCaptions | null>(null)
-  const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail | null>(null)
-  const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [ghostOpen, setGhostOpen] = useState(false)
 
@@ -154,7 +139,7 @@ function CreatePageContent() {
         setRemixSource({ title: data.mashupTitle ?? "Remix", creator: data.creatorName ?? "" })
 
         // Convert stems to tracks for the timeline
-        const stemTracks: TrackWithStems[] = data.stems.map((stem, i) => ({
+        const stemTracks: TrackWithStems[] = data.stems.map((stem) => ({
           file: new File([], stem.title),
           name: stem.title,
           size: 0,
@@ -554,7 +539,7 @@ function CreatePageContent() {
     setRouletteTimer(true)
 
     // Load roulette stems into the manual mixer
-    const stemTracks: TrackWithStems[] = rouletteStems.map((stem, i) => ({
+    const stemTracks: TrackWithStems[] = rouletteStems.map((stem) => ({
       file: new File([], stem.title),
       name: stem.title,
       size: 0,

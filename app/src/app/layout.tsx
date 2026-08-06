@@ -8,6 +8,8 @@ import { Header } from "@/components/layout/header"
 import { NowPlayingBar } from "@/components/layout/now-playing-bar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { PostHogPageView, PostHogProvider } from "@/lib/analytics/posthog"
+import { DemoBanner } from "@/components/demo/demo-banner"
+import { WebVitals } from "@/components/observability/web-vitals"
 import { AudioProvider } from "@/lib/audio/audio-context"
 import "./globals.css"
 
@@ -32,13 +34,14 @@ const mono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mashups.agency"),
+  metadataBase: new URL("https://www.mashups.agency"),
   title: {
     default: "Mashups | Turn Tracks Into Campaigns",
     template: "%s | Mashups",
   },
   description:
     "Cut hook-ready shorts, prove usage rights, publish with attribution, and learn what moves your audience.",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Mashups | Turn Tracks Into Campaigns",
     description:
@@ -70,12 +73,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           >
             <AudioProvider>
               <TooltipProvider delayDuration={200}>
+                <a href="#main-content" className="skip-link">Skip to content</a>
                 <Suspense fallback={null}>
                   <PostHogPageView />
+                  <DemoBanner />
                 </Suspense>
+                <WebVitals />
                 <div className="relative flex min-h-screen flex-col">
                   <Header />
-                  <main className="flex-1">{children}</main>
+                  <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
                   <Footer />
                   <NowPlayingBar />
                 </div>

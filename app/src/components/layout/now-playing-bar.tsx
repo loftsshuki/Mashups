@@ -7,18 +7,16 @@ import { ProgressBar } from "@/components/player/progress-bar";
 import { VolumeControl } from "@/components/player/volume-control";
 import { Button } from "@/components/ui/button";
 import { SkipBack, SkipForward, ListMusic } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function NowPlayingBar() {
   const { state, previous, next } = useAudio();
   const hasTrack = !!state.currentTrack;
 
+  if (!hasTrack) return null;
+
   return (
     <div
-      className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 transition-transform duration-300",
-        !hasTrack && "translate-y-full"
-      )}
+      className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 transition-transform duration-300"
     >
       {/* Progress Bar (full width, at top) */}
       <div className="absolute top-0 left-0 right-0 h-0.5 bg-muted">

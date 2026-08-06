@@ -127,8 +127,6 @@ export function useMultiTrackAnalysis(
 
   useEffect(() => {
     if (audioUrls.length === 0) {
-      setAnalyses(new Map())
-      setProgress(0)
       return
     }
 
@@ -166,7 +164,9 @@ export function useMultiTrackAnalysis(
     }
   }, [audioUrls])
 
-  return { analyses, isLoading, progress }
+  return audioUrls.length === 0
+    ? { analyses: new Map(), isLoading: false, progress: 0 }
+    : { analyses, isLoading, progress }
 }
 
 /**

@@ -15,23 +15,9 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { labNavigation, primaryNavigation } from "@/lib/navigation/product-map"
 
-const main = [
-  { href: "/explore", label: "Discover", icon: Compass },
-  { href: "/create", label: "Create", icon: Plus },
-  { href: "/challenges", label: "Challenges", icon: Trophy },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/earnings", label: "Earnings", icon: Coins },
-] as const
-
-const labs = [
-  ["/studio", "Live studio"],
-  ["/packs", "Weekly packs"],
-  ["/momentum", "Momentum feed"],
-  ["/scoreboard", "Scoreboard"],
-  ["/battles", "Beat battles"],
-  ["/tools", "Creator tools"],
-] as const
+const mainIcons = [Compass, Plus, Trophy, BarChart3, Coins] as const
 
 export function MobileNav() {
   const pathname = usePathname()
@@ -47,7 +33,9 @@ export function MobileNav() {
       <nav className="p-4" aria-label="Mobile navigation">
         <p className="mono-label mb-3 text-muted-foreground">Make and grow</p>
         <div className="space-y-1">
-          {main.map(({ href, label, icon: Icon }) => (
+          {primaryNavigation.map(({ href, label }, index) => {
+            const Icon = mainIcons[index] ?? Compass
+            return (
             <SheetClose key={href} asChild>
               <Link
                 href={href}
@@ -61,13 +49,14 @@ export function MobileNav() {
                 <span>{label}</span><Icon className="size-4" />
               </Link>
             </SheetClose>
-          ))}
+            )
+          })}
         </div>
 
         <Separator className="my-5 bg-foreground" />
         <p className="mono-label mb-3 flex items-center gap-2 text-muted-foreground"><FlaskConical className="size-3" /> Labs</p>
         <div className="grid grid-cols-2 gap-px overflow-hidden border border-foreground bg-foreground">
-          {labs.map(([href, label]) => (
+          {labNavigation.map(({ href, label }) => (
             <SheetClose key={href} asChild>
               <Link href={href} className="bg-background p-3 text-sm font-medium hover:bg-accent">{label}</Link>
             </SheetClose>

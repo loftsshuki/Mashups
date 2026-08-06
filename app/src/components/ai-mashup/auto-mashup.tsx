@@ -249,7 +249,7 @@ export function AutoMashupGenerator({
               <label className="text-sm font-medium mb-2 block">Transition Style</label>
               <Select
                 value={transitionStyle}
-                onValueChange={(v) => setTransitionStyle(v as any)}
+                onValueChange={(v) => setTransitionStyle(v as typeof transitionStyle)}
               >
                 <SelectTrigger>
                   <SelectValue />

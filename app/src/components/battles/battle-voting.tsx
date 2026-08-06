@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import NextImage from "next/image"
 import { Play, Heart, Check, AlertCircle, Trophy } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,7 @@ export function BattleVoting({
   const sortedEntries = hasVoted || battle.status === "completed"
     ? [...entries].sort((a, b) => b.votes - a.votes)
     : isBlind 
-      ? [...entries].sort(() => Math.random() - 0.5) // Shuffle for blind voting
+      ? [...entries].sort((a, b) => a.id.localeCompare(b.id))
       : entries
   
   const totalVotes = entries.reduce((sum, e) => sum + e.votes, 0)
@@ -122,7 +123,10 @@ export function BattleVoting({
                     className="relative w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0 cursor-pointer group"
                     onClick={() => handlePlay(entry)}
                   >
-                    <img
+                    <NextImage
+                      unoptimized
+                      width={640}
+                      height={640}
                       src={entry.mashup.coverUrl}
                       alt={entry.mashup.title}
                       className="w-full h-full object-cover"
@@ -244,7 +248,7 @@ export function BattleMatchup({
   hasVoted: boolean
   showResults: boolean
 }) {
-  const { state, playTrack } = useAudio()
+  const { playTrack } = useAudio()
   
   const handlePlay = (entry: BattleEntry) => {
     playTrack({
@@ -270,7 +274,10 @@ export function BattleMatchup({
           entry1.isWinner && "border-yellow-500/50"
         )}>
           <div className="aspect-square bg-muted relative">
-            <img
+            <NextImage
+              unoptimized
+              width={640}
+              height={640}
               src={entry1.mashup.coverUrl}
               alt={entry1.mashup.title}
               className="w-full h-full object-cover"
@@ -320,7 +327,10 @@ export function BattleMatchup({
           entry2.isWinner && "border-yellow-500/50"
         )}>
           <div className="aspect-square bg-muted relative">
-            <img
+            <NextImage
+              unoptimized
+              width={640}
+              height={640}
               src={entry2.mashup.coverUrl}
               alt={entry2.mashup.title}
               className="w-full h-full object-cover"

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import NextImage from "next/image"
 import { Play, Pause, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -39,7 +40,10 @@ export function ChainTimeline({ links, maxLinks, className }: ChainTimelineProps
                 <div className="w-48 rounded-xl border border-border/70 bg-card/70 p-4 space-y-3 shrink-0">
                   {/* Creator */}
                   <div className="flex items-center gap-2">
-                    <img
+                    <NextImage
+                      unoptimized
+                      width={32}
+                      height={32}
                       src={link.creatorAvatar}
                       alt={link.creatorName}
                       className="h-8 w-8 rounded-full object-cover"

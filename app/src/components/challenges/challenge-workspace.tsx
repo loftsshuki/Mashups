@@ -23,7 +23,7 @@ interface ChallengeWorkspaceProps {
 
 export function ChallengeWorkspace({
   challengeId,
-  challengeTitle,
+  challengeTitle: _challengeTitle,
   stems,
   timeLimit,
   className,
