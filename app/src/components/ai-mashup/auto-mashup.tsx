@@ -101,8 +101,12 @@ export function AutoMashupGenerator({
       setProgress(100)
       setResult(mashup)
       onComplete?.(mashup)
-    } catch {
-      setError("Failed to generate mashup. Please try again.")
+    } catch (generationError) {
+      setError(
+        generationError instanceof Error
+          ? generationError.message
+          : "Failed to generate mashup. Please try again.",
+      )
     } finally {
       setIsGenerating(false)
     }
