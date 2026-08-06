@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The business, real-music access, catalog, licensing, rights, and go-to-market strategy for Mashups, the campaign-safe audio network.">
+  <meta name="theme-color" content="#f2efe5">
+  <title>Mashups Business Model and Rights Strategy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f2efe5;
+      --paper-bright: #fbf8ef;
+      --ink: #13130f;
+      --ink-soft: #625f56;
+      --signal: #ff4f1f;
+      --acid: #d7ff3f;
+      --blue: #2458ff;
+      --wash: #e5e0d3;
+      --danger: #c72d19;
+      --line: #1b1b16;
+      --display: "Archivo Black", "Arial Black", sans-serif;
+      --sans: "Space Grotesk", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+      --page: min(1440px, calc(100vw - 2rem));
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 5.5rem;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgb(19 19 15 / 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 7% 5%, rgb(255 79 31 / 0.15), transparent 28rem),
+        radial-gradient(circle at 95% 22%, rgb(36 88 255 / 0.09), transparent 24rem);
+      background-size: 100% 24px, auto, auto;
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.7;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+      color: var(--ink);
+      background: var(--acid);
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: var(--signal);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 0.25em;
+    }
+
+    a:hover {
+      color: var(--signal);
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 4px;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 1000;
+      padding: 0.7rem 1rem;
+      color: var(--paper-bright);
+      background: var(--signal);
+      border: 2px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      transform: translateY(-180%);
+      transition: transform 160ms cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 999;
+      height: 5px;
+      background: var(--wash);
+    }
+
+    .reading-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--signal);
+      transform-origin: left;
+    }
+
+    .masthead {
+      position: sticky;
+      top: 5px;
+      z-index: 100;
+      color: var(--paper-bright);
+      background: rgb(19 19 15 / 0.96);
+      border-bottom: 1px solid var(--ink);
+      backdrop-filter: blur(14px);
+    }
+
+    .masthead-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      width: var(--page);
+      min-height: 4.4rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--paper-bright);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.2rem;
+      height: 2.2rem;
+      place-items: center;
+      color: var(--ink);
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      font-family: var(--display);
+      font-size: 0.9rem;
+      line-height: 1;
+      transform: rotate(-4deg);
+    }
+
+    .brand-word {
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .doc-label {
+      overflow: hidden;
+      color: #aaa597;
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .print-button {
+      min-height: 2.5rem;
+      padding: 0.55rem 0.8rem;
+      color: var(--ink);
+      background: var(--acid);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 3px 3px 0 var(--signal);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .print-button:hover {
+      color: var(--ink);
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--signal);
+    }
+
+    main {
+      width: var(--page);
+      margin: 0 auto;
+    }
+
+    .cover {
+      position: relative;
+      min-height: calc(100vh - 4.4rem);
+      min-height: calc(100svh - 4.4rem);
+      padding: clamp(4rem, 9vw, 8rem) 0 3rem;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .cover::after {
+      position: absolute;
+      right: clamp(0rem, 4vw, 3rem);
+      bottom: -1.45rem;
+      width: clamp(8rem, 18vw, 15rem);
+      height: 2.8rem;
+      content: "RIGHTS / SIGNAL / LIFT";
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 2px solid var(--ink);
+      box-shadow: 5px 5px 0 var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(0.55rem, 1vw, 0.72rem);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      line-height: 2.65rem;
+      text-align: center;
+      transform: rotate(1.5deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 0.65rem;
+      height: 0.65rem;
+      content: "";
+      background: var(--signal);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(255 79 31 / 0.18);
+    }
+
+    .cover h1 {
+      max-width: 13ch;
+      margin: 1.75rem 0 0;
+      font-family: var(--display);
+      font-size: clamp(4rem, 10.5vw, 10.8rem);
+      font-weight: 400;
+      letter-spacing: -0.075em;
+      line-height: 0.79;
+      text-transform: uppercase;
+    }
+
+    .cover h1 span {
+      display: block;
+      color: var(--signal);
+      text-indent: clamp(0rem, 6vw, 7rem);
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(17rem, 3fr);
+      gap: clamp(2rem, 8vw, 9rem);
+      align-items: end;
+      margin-top: clamp(3rem, 8vw, 8rem);
+    }
+
+    .cover-thesis {
+      max-width: 42rem;
+      margin: 0;
+      font-size: clamp(1.3rem, 2.1vw, 2rem);
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 1.28;
+    }
+
+    .cover-meta {
+      border-top: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      line-height: 1.55;
+      text-transform: uppercase;
+    }
+
+    .cover-meta div {
+      display: grid;
+      grid-template-columns: 5rem 1fr;
+      gap: 1rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .cover-meta dt {
+      color: var(--ink-soft);
+    }
+
+    .cover-meta dd {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
+      gap: clamp(2rem, 6vw, 6rem);
+      align-items: start;
+      padding: clamp(5rem, 10vw, 9rem) 0 7rem;
+    }
+
+    .toc {
+      position: sticky;
+      top: 6.4rem;
+      max-height: calc(100vh - 7.6rem);
+      overflow-y: auto;
+      border-top: 5px solid var(--signal);
+      scrollbar-width: thin;
+    }
+
+    .toc h2 {
+      margin: 0;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: toc;
+    }
+
+    .toc li {
+      counter-increment: toc;
+      border-bottom: 1px solid rgb(19 19 15 / 0.25);
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 2rem 1fr;
+      gap: 0.4rem;
+      align-items: center;
+      min-height: 2.75rem;
+      padding: 0.55rem 0.2rem;
+      font-size: 0.77rem;
+      font-weight: 600;
+      line-height: 1.3;
+      text-decoration: none;
+      transition: color 150ms ease, padding-left 150ms ease, background-color 150ms ease;
+    }
+
+    .toc a::before {
+      content: counter(toc, decimal-leading-zero);
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      padding-left: 0.5rem;
+      color: var(--ink);
+      background: var(--acid);
+    }
+
+    .document {
+      min-width: 0;
+    }
+
+    .chapter {
+      position: relative;
+      min-width: 0;
+      padding: 0 0 clamp(5rem, 9vw, 8rem);
+      border-top: 1px solid var(--ink);
+    }
+
+    .chapter::before {
+      display: block;
+      width: 5rem;
+      height: 0.45rem;
+      margin-top: -0.45rem;
+      content: "";
+      background: var(--signal);
+    }
+
+    .chapter-header {
+      display: grid;
+      grid-template-columns: 4rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin: clamp(2rem, 5vw, 4.5rem) 0 2.2rem;
+    }
+
+    .chapter-number {
+      display: grid;
+      width: 3.2rem;
+      height: 3.2rem;
+      place-items: center;
+      color: var(--paper-bright);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      box-shadow: 4px 4px 0 var(--signal);
+    }
+
+    .chapter h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 5.5vw, 5.4rem);
+      font-weight: 400;
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+      text-transform: uppercase;
+    }
+
+    .chapter h3 {
+      margin: 3.2rem 0 0.9rem;
+      font-family: var(--display);
+      font-size: clamp(1.35rem, 2.8vw, 2.2rem);
+      font-weight: 400;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .chapter h4 {
+      margin: 2rem 0 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .chapter p,
+    .chapter ul,
+    .chapter ol {
+      max-width: 52rem;
+    }
+
+    .chapter ul,
+    .chapter ol {
+      padding-left: 1.3rem;
+    }
+
+    .chapter li {
+      margin: 0.45rem 0;
+      padding-left: 0.25rem;
+    }
+
+    .chapter li::marker {
+      color: var(--signal);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    .lead {
+      max-width: 44rem;
+      font-size: clamp(1.2rem, 2vw, 1.65rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.35;
+    }
+
+    .signal-box {
+      max-width: 54rem;
+      margin: 2.2rem 0;
+      padding: clamp(1.2rem, 3vw, 2rem);
+      background: var(--acid);
+      border: 2px solid var(--ink);
+      box-shadow: 7px 7px 0 var(--ink);
+      font-size: clamp(1.15rem, 2.1vw, 1.6rem);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.35;
+    }
+
+    .signal-box.orange {
+      color: var(--paper-bright);
+      background: var(--signal);
+    }
+
+    .signal-box.blue {
+      color: var(--paper-bright);
+      background: var(--blue);
+    }
+
+    .note {
+      max-width: 52rem;
+      padding: 1rem 1.2rem;
+      background: var(--paper-bright);
+      border-left: 5px solid var(--blue);
+      font-size: 0.9rem;
+    }
+
+    .act-break {
+      position: relative;
+      margin: 0 0 clamp(5rem, 9vw, 8rem);
+      padding: clamp(2rem, 5vw, 4rem);
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 2px solid var(--ink);
+      box-shadow: 10px 10px 0 var(--signal);
+      overflow: hidden;
+    }
+
+    .act-break::after {
+      position: absolute;
+      right: -1.2rem;
+      bottom: -3.8rem;
+      color: rgb(251 248 239 / 0.14);
+      content: "REAL";
+      font-family: var(--display);
+      font-size: clamp(7rem, 18vw, 15rem);
+      letter-spacing: -0.08em;
+      line-height: 1;
+    }
+
+    .act-break p {
+      position: relative;
+      z-index: 1;
+      max-width: 43rem;
+      margin: 0;
+    }
+
+    .act-break .act-label {
+      margin-bottom: 1.2rem;
+      color: var(--acid);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .act-break .act-thesis {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 4.8rem);
+      letter-spacing: -0.06em;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .rights-badges {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      max-width: 62rem;
+      margin: 2rem 0 2.8rem;
+      padding: 1px;
+      background: var(--ink);
+    }
+
+    .rights-badge {
+      min-width: 0;
+      padding: 1rem;
+      background: var(--paper-bright);
+    }
+
+    .rights-badge strong {
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      padding: 0.25rem 0.45rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+    }
+
+    .rights-badge:nth-child(1) strong { color: var(--ink); background: var(--acid); }
+    .rights-badge:nth-child(2) strong { background: var(--blue); }
+    .rights-badge:nth-child(3) strong { background: var(--signal); }
+    .rights-badge:nth-child(5) strong { background: var(--danger); }
+
+    .rights-badge span {
+      display: block;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .table-wrap {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      margin: 2rem 0 2.8rem;
+      overflow-x: auto;
+      background: var(--paper-bright);
+      border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    table {
+      width: 100%;
+      min-width: 42rem;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    th,
+    td {
+      padding: 0.85rem 1rem;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--paper-bright);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgb(229 224 211 / 0.65);
+    }
+
+    td:first-child {
+      font-weight: 700;
+    }
+
+    pre {
+      max-width: 52rem;
+      padding: 1.3rem;
+      overflow-x: auto;
+      color: #f6f0df;
+      background: #151510;
+      border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--signal);
+      font-family: var(--mono);
+      font-size: clamp(0.68rem, 1.4vw, 0.82rem);
+      line-height: 1.7;
+    }
+
+    .path {
+      padding: 0.1em 0.25em;
+      background: var(--wash);
+      font-family: var(--mono);
+      font-size: 0.82em;
+      overflow-wrap: anywhere;
+    }
+
+    .sequence {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      max-width: 62rem;
+      margin: 2.2rem 0;
+      background: var(--ink);
+      border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--signal);
+    }
+
+    .sequence li {
+      min-height: 8rem;
+      padding: 1rem;
+      background: var(--paper-bright);
+      list-style: none;
+    }
+
+    .sequence span {
+      display: block;
+      margin-bottom: 1.7rem;
+      color: var(--signal);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+
+    .sequence strong {
+      display: block;
+      font-size: 0.92rem;
+      line-height: 1.25;
+    }
+
+    .decision-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      max-width: 62rem;
+      margin: 2rem 0;
+      padding: 1px;
+      background: var(--ink);
+      list-style: none;
+    }
+
+    .decision-list li {
+      position: relative;
+      min-height: 8rem;
+      margin: 0;
+      padding: 2.8rem 1.2rem 1.2rem;
+      background: var(--paper-bright);
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .decision-list li::before {
+      position: absolute;
+      top: 0.8rem;
+      left: 1.2rem;
+      color: var(--signal);
+      content: attr(data-number);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+    }
+
+    .end-statement {
+      margin-top: 3rem;
+      padding: clamp(2rem, 6vw, 5rem);
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 10px 10px 0 var(--signal);
+    }
+
+    .end-statement p {
+      max-width: 20ch;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 4.8rem);
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+
+    .source-link {
+      font-family: var(--mono);
+      font-size: 0.78em;
+      font-weight: 600;
+    }
+
+    .page-footer {
+      margin-top: 1rem;
+      padding: 2rem 0 3rem;
+      border-top: 2px solid var(--ink);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .footer-title {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      letter-spacing: -0.06em;
+      line-height: 0.86;
+      text-transform: uppercase;
+    }
+
+    .footer-meta {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: reveal 650ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .cover .reveal:nth-child(2) {
+      animation-delay: 80ms;
+    }
+
+    .cover .reveal:nth-child(3) {
+      animation-delay: 170ms;
+    }
+
+    @keyframes reveal {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: relative;
+        top: auto;
+        max-height: none;
+        columns: 2;
+        column-gap: 2rem;
+      }
+
+      .toc h2 {
+        column-span: all;
+      }
+
+      .toc li {
+        break-inside: avoid;
+      }
+
+      .sequence {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .rights-badges {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --page: calc(100vw - 1.25rem);
+      }
+
+      .masthead-inner {
+        grid-template-columns: 1fr auto;
+      }
+
+      .doc-label {
+        display: none;
+      }
+
+      .cover {
+        min-height: auto;
+        padding-top: 4rem;
+      }
+
+      .cover h1 {
+        font-size: clamp(3.2rem, 15.5vw, 5.4rem);
+      }
+
+      .cover h1 span {
+        text-indent: 0;
+      }
+
+      .cover-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        columns: 1;
+        max-height: 24rem;
+        overflow-y: auto;
+        border-bottom: 1px solid var(--ink);
+      }
+
+      .toc h2 {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--paper);
+      }
+
+      .chapter-header {
+        grid-template-columns: 3.2rem minmax(0, 1fr);
+      }
+
+      .chapter h2 {
+        font-size: clamp(1.9rem, 9.5vw, 3rem);
+        overflow-wrap: anywhere;
+      }
+
+      .sequence,
+      .decision-list,
+      .rights-badges {
+        grid-template-columns: 1fr;
+      }
+
+      .sequence li,
+      .decision-list li {
+        min-height: auto;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-meta {
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.65in;
+      }
+
+      body {
+        color: #13130f;
+        background: #fff;
+        font-size: 10pt;
+      }
+
+      .reading-progress,
+      .masthead,
+      .toc,
+      .skip-link,
+      .print-button {
+        display: none !important;
+      }
+
+      main {
+        width: 100%;
+      }
+
+      .cover {
+        min-height: 9.4in;
+        break-after: page;
+      }
+
+      .cover h1 {
+        font-size: 68pt;
+      }
+
+      .layout {
+        display: block;
+        padding: 0;
+      }
+
+      .chapter {
+        padding-bottom: 0.5in;
+        break-before: page;
+      }
+
+      .chapter h2 {
+        font-size: 34pt;
+      }
+
+      .table-wrap,
+      .signal-box,
+      pre,
+      .end-statement,
+      .act-break {
+        box-shadow: none;
+      }
+
+      .table-wrap {
+        overflow: visible;
+      }
+
+      table {
+        min-width: 0;
+        font-size: 7.8pt;
+      }
+
+      a {
+        color: #13130f;
+        text-decoration: none;
+      }
+
+      a[href^="http"]::after {
+        content: " (" attr(href) ")";
+        font-family: var(--mono);
+        font-size: 7pt;
+        font-weight: 400;
+        overflow-wrap: anywhere;
+      }
+
+      .page-footer {
+        break-before: page;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to strategy</a>
+  <div class="reading-progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="brand" href="#top" aria-label="Mashups business strategy home">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        <span class="brand-word">Mashups</span>
+      </a>
+      <div class="doc-label">Business model / real music / licensing / rights / growth</div>
+      <button class="print-button" type="button" onclick="window.print()">Print / PDF</button>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="cover" id="top" aria-labelledby="cover-title">
+      <p class="eyebrow reveal">Strategy dossier / August 2026</p>
+      <h1 class="reveal" id="cover-title">Campaign-safe <span>audio network</span></h1>
+      <div class="cover-grid reveal">
+        <p class="cover-thesis">The business, catalog, licensing, rights, claims, artist compensation, and go-to-market system for turning tracks into measurable creator campaigns.</p>
+        <dl class="cover-meta">
+          <div><dt>Thesis</dt><dd>Confidence + performance</dd></div>
+          <div><dt>Wedge</dt><dd>Commercial short-form</dd></div>
+          <div><dt>Supply</dt><dd>Curated one-stop music</dd></div>
+          <div><dt>Model</dt><dd>B2B2C marketplace</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="layout">
+      <nav class="toc" aria-label="Document sections">
+        <h2>Signal map</h2>
+        <ol>
+          <li><a href="#bottom-line">Bottom line</a></li>
+          <li><a href="#opportunity">Why the opportunity exists</a></li>
+          <li><a href="#strategic-model">Strategic model</a></li>
+          <li><a href="#customers">Customer segments</a></li>
+          <li><a href="#revenue">Revenue model</a></li>
+          <li><a href="#existing-math">Existing revenue math</a></li>
+          <li><a href="#brand-campaigns">Brand campaigns</a></li>
+          <li><a href="#acquire-tracks">How to acquire tracks</a></li>
+          <li><a href="#founding-catalog">Founding catalog</a></li>
+          <li><a href="#artist-compensation">Artist compensation</a></li>
+          <li><a href="#rights-reality">Rights reality</a></li>
+          <li><a href="#catalog-lanes">Catalog rights lanes</a></li>
+          <li><a href="#supplier-contracts">Supplier contracts</a></li>
+          <li><a href="#contract-stack">Contract stack</a></li>
+          <li><a href="#license-design">License product design</a></li>
+          <li><a href="#usage-categories">Usage categories</a></li>
+          <li><a href="#sensitive-use">Sensitive-use permissions</a></li>
+          <li><a href="#content-id">Content ID strategy</a></li>
+          <li><a href="#claims">Claims operations</a></li>
+          <li><a href="#indemnity">Indemnity</a></li>
+          <li><a href="#ai-policy">AI music policy</a></li>
+          <li><a href="#distribution">Distribution strategy</a></li>
+          <li><a href="#data-ar">Data-driven A&amp;R</a></li>
+          <li><a href="#flywheel">The flywheel</a></li>
+          <li><a href="#go-to-market">Go-to-market</a></li>
+          <li><a href="#referrals">Referral economics</a></li>
+          <li><a href="#trust">Trust and legal operations</a></li>
+          <li><a href="#data-model">Product and data model</a></li>
+          <li><a href="#ninety-days">90-day business launch</a></li>
+          <li><a href="#metrics">Core metrics</a></li>
+          <li><a href="#failure-modes">Failure modes</a></li>
+          <li><a href="#decisions">Decisions to make now</a></li>
+          <li><a href="#real-music-verdict">Real music verdict</a></li>
+          <li><a href="#market-proof">Market proof</a></li>
+          <li><a href="#demand-network">Music demand network</a></li>
+          <li><a href="#access-ladder">Music access ladder</a></li>
+          <li><a href="#five-rails">Five access rails</a></li>
+          <li><a href="#release-campaigns">Release launch campaigns</a></li>
+          <li><a href="#additional-supply">Additional music supply</a></li>
+          <li><a href="#rights-product">Rights product</a></li>
+          <li><a href="#partner-reality">Partner reality</a></li>
+          <li><a href="#blanket-reality">Blanket-license reality</a></li>
+          <li><a href="#deal-readiness">Deal readiness</a></li>
+          <li><a href="#partner-order">Partner order</a></li>
+          <li><a href="#partner-rfp">Partner RFP</a></li>
+          <li><a href="#access-plan">90-day access plan</a></li>
+        </ol>
+      </nav>
+
+      <article class="document">
+        <section class="chapter" id="bottom-line">
+          <div class="chapter-header"><span class="chapter-number">01</span><h2>Bottom line</h2></div>
+          <p class="lead">Mashups should not become another royalty-free music library or another open remix community.</p>
+          <p>It should become a <strong>managed marketplace and campaign operating system for commercially usable short-form audio</strong>.</p>
+          <div class="signal-box">Creators buy speed, confidence, measurable performance, and claims support.<br><br>Artists provide one-stop music and receive licensing income, usage bonuses, exposure, and performance data.<br><br>Brands fund campaigns, challenges, creators, and custom tracks.</div>
+          <p>The strongest business model is:</p>
+          <ol>
+            <li>Creator and studio subscriptions for workflow.</li>
+            <li>Scoped commercial licenses for higher-risk uses.</li>
+            <li>Sponsored challenges and managed campaigns for meaningful revenue.</li>
+            <li>A curated, directly contracted music catalog.</li>
+            <li>Artist payouts combining usage pools, premium license revenue, and selective upfront commissions.</li>
+          </ol>
+          <p class="note"><strong>Legal scope:</strong> This should be treated as a US-first strategy and reviewed by a music-licensing attorney before live agreements are issued.</p>
+        </section>
+
+        <section class="chapter" id="opportunity">
+          <div class="chapter-header"><span class="chapter-number">02</span><h2>Why the opportunity exists</h2></div>
+          <p class="lead">Creators currently choose between familiar music they may not be allowed to use and safe music that often does not perform.</p>
+          <ul>
+            <li>Use popular music and hope platform licenses cover them.</li>
+            <li>Use generic stock music that does not perform.</li>
+            <li>Buy a license that only works on one platform or one video.</li>
+            <li>Use platform music that cannot be remixed, exported, sponsored, or reused.</li>
+            <li>Receive a copyright claim despite having purchased a license.</li>
+            <li>Spend hours searching for music rather than creating content.</li>
+          </ul>
+          <h3>The platform gap</h3>
+          <p>YouTube Creator Music licenses generally apply to one long-form YouTube video, cannot transfer to other platforms, do not cover Shorts, prohibit remixing, and restrict brand-promotional content. <a class="source-link" href="https://support.google.com/youtube/answer/11611019?hl=en">YouTube usage details</a>, <a class="source-link" href="https://support.google.com/youtube/answer/11623091?hl=en">YouTube restrictions</a></p>
+          <p>TikTok says commercial users should use its Commercial Music Library because licenses outside that library generally do not cover commercial posts. Its library is large, but the permission is fundamentally TikTok-centric. <a class="source-link" href="https://support.tiktok.com/en/business-and-creator/creator-and-business-accounts/commercial-use-of-music-on-tiktok?lang=en">TikTok music guidance</a>, <a class="source-link" href="https://ads.tiktok.com/help/article/commercial-music-library?lang=en&amp;redirected=1">TikTok Commercial Music Library</a></p>
+          <p>Instagram says its normal licensed music library is intended for personal, non-commercial use. <a class="source-link" href="https://www.facebook.com/help/instagram/402084904469945">Instagram music guidance</a></p>
+          <div class="signal-box orange">One track. Multiple platforms. Permitted edits. Commercial clarity. Campaign attribution. A human claims desk.</div>
+          <p>That is substantially more valuable than "50,000 royalty-free tracks."</p>
+        </section>
+
+        <section class="chapter" id="strategic-model">
+          <div class="chapter-header"><span class="chapter-number">03</span><h2>Strategic model</h2></div>
+          <section class="table-wrap" aria-label="Strategic model comparison" tabindex="0">
+            <table>
+              <thead><tr><th>Model</th><th>Advantage</th><th>Fatal weakness</th><th>Recommendation</th></tr></thead>
+              <tbody>
+                <tr><td>Generic stock subscription</td><td>Simple recurring revenue</td><td>Crowded, weak differentiation, price competition</td><td>Do not pursue</td></tr>
+                <tr><td>Open upload marketplace</td><td>Cheap catalog growth</td><td>Severe chain-of-title and quality problems</td><td>Do not make public catalog open</td></tr>
+                <tr><td>Major-label licensing marketplace</td><td>Recognizable music</td><td>Expensive, slow negotiations, restrictive terms</td><td>Revisit after traction</td></tr>
+                <tr><td>Platform-native sound library</td><td>Excellent native distribution</td><td>Rights usually stop at platform boundaries</td><td>Use as a distribution channel, not the business</td></tr>
+                <tr><td>Full record label</td><td>Strong rights control</td><td>Capital intensive and operationally complex</td><td>Avoid initially</td></tr>
+                <tr><td>Managed one-stop campaign network</td><td>Strong rights, measurable results, differentiated workflow</td><td>Requires careful A&amp;R and rights operations</td><td><strong>Recommended</strong></td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p class="lead">A curated catalog of 100 excellent masters that produces 300 tested hook cuts is more useful than 50,000 interchangeable tracks.</p>
+        </section>
+
+        <section class="chapter" id="customers">
+          <div class="chapter-header"><span class="chapter-number">04</span><h2>Customer segments</h2></div>
+          <h3>1. Monetized creators</h3>
+          <p>These creators make money from audiences, memberships, subscriptions, affiliate links, products, or platform monetization. Their music use may be commercial even when they are not being paid by a third-party brand. Mashups should call this <strong>commercial self-promotion</strong>, not ordinary personal use.</p>
+          <p>Examples include fitness, beauty, fashion, gaming, nightlife, coaching, education, OnlyFans and subscription creators, and musicians promoting releases.</p>
+          <h3>2. Sponsored creators</h3>
+          <p>These creators are being paid to promote someone else's product or service. They need sponsor-safe licenses, proof that can be sent to a brand, paid amplification options, claims response, and usage tied to a specific campaign. This use should cost more than ordinary creator content.</p>
+          <h3>3. Editors, managers, and agencies</h3>
+          <p>They need client-specific licenses, multiple seats, transferable project coverage, campaign templates, claims records, API access, central billing, and indemnity at higher tiers. This is likely to become the healthiest recurring SaaS segment.</p>
+          <h3>4. Brands</h3>
+          <p>Brands should not merely subscribe to the catalog. They should buy productized campaigns that combine a custom or curated track, creator cohort, campaign brief, licensed edits, challenge, attribution links, performance dashboard, paid-media rights, and claims operations.</p>
+          <h3>5. Producers and artists</h3>
+          <p>The supplier promise should be simple:</p>
+          <ul>
+            <li>Keep ownership of your music.</li>
+            <li>Keep your PRO and ordinary streaming income where contracts permit.</li>
+            <li>Receive premium license revenue.</li>
+            <li>Participate in a transparent usage pool.</li>
+            <li>Receive performance data you cannot get from a conventional stock library.</li>
+            <li>Get your music used by creators before or alongside DSP release.</li>
+            <li>No AI training without a separate opt-in agreement.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="revenue">
+          <div class="chapter-header"><span class="chapter-number">05</span><h2>Revenue model</h2></div>
+          <p class="lead">Mashups should separate software value from rights value.</p>
+          <p>A subscription pays for workflow and an allowance of low-risk campaign licenses. Higher-risk use requires a separate entitlement or add-on.</p>
+          <h3>Recommended pricing architecture</h3>
+          <section class="table-wrap" aria-label="Recommended pricing architecture" tabindex="0">
+            <table>
+              <thead><tr><th>Plan</th><th>Illustrative price</th><th>Included rights</th></tr></thead>
+              <tbody>
+                <tr><td>Free</td><td>$0</td><td>Streaming previews, campaign drafts, one attributed organic trial license</td></tr>
+                <tr><td>Creator</td><td>$24/month</td><td>10 organic or commercial self-promo campaign licenses, three registered channels</td></tr>
+                <tr><td>Creator Pro</td><td>$59/month</td><td>30 campaign licenses, limited sponsored uses, performance briefs, priority claims</td></tr>
+                <tr><td>Studio</td><td>$149/month</td><td>Five seats, client projects, 100 campaign licenses, shared rights vault</td></tr>
+                <tr><td>Agency</td><td>$499+/month</td><td>More seats, client workspaces, API, reporting, negotiated indemnity</td></tr>
+                <tr><td>Enterprise</td><td>Custom</td><td>Global brands, paid media, custom terms, SLAs, insurance-backed indemnity</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>These are starting hypotheses, not final prices. Test willingness to pay with real checkout pages and interviews.</p>
+          <p>The current $12 and $29 tiers are probably too low if they include meaningful licensing and claims operations. They could remain as grandfathered founding plans or become software-only plans.</p>
+          <h3>Per-project rights add-ons</h3>
+          <section class="table-wrap" aria-label="Rights add-on pricing" tabindex="0">
+            <table>
+              <thead><tr><th>Usage</th><th>Illustrative price</th></tr></thead>
+              <tbody>
+                <tr><td>Additional organic creator project</td><td>$9-$15</td></tr>
+                <tr><td>Commercial self-promotion</td><td>$19-$39</td></tr>
+                <tr><td>Sponsored organic post</td><td>$49-$99</td></tr>
+                <tr><td>Paid social up to $25,000 media spend</td><td>$149</td></tr>
+                <tr><td>Paid social up to $100,000 media spend</td><td>$399</td></tr>
+                <tr><td>National or global campaign</td><td>Custom</td></tr>
+                <tr><td>Standalone music release or DSP distribution</td><td>Separate negotiated release license</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>Paid-ad pricing should be tied to campaign value or media spend, not merely clip duration. A 15-second advertisement with a $500,000 media budget is more valuable and risky than a 60-second organic post with 200 views.</p>
+        </section>
+
+        <section class="chapter" id="existing-math">
+          <div class="chapter-header"><span class="chapter-number">06</span><h2>Existing revenue math</h2></div>
+          <p>The repo currently targets 100 seeded creators and at least $5,000 in weekly recurring revenue at <span class="path">app/docs/of-creator-growth-plan.md:13</span> and <span class="path">app/docs/of-creator-growth-plan.md:20</span>.</p>
+          <p>Current prices are $12 and $29 per month at <span class="path">app/src/app/pricing/page.tsx:16</span> and <span class="path">app/src/app/pricing/page.tsx:17</span>.</p>
+          <p>Even if all 100 creators chose the $29 plan:</p>
+          <pre><code>100 creators x $29 = $2,900 monthly revenue</code></pre>
+          <p>The target of $5,000 per week is approximately $21,667 per month. Subscriptions from 100 creators cannot reach it without an average revenue per creator of roughly $217 per month.</p>
+          <div class="signal-box blue">The plan needs B2B revenue.</div>
+          <p>One illustrative monthly mix could be:</p>
+          <pre><code>60 Creator accounts x $24       = $1,440
+30 Creator Pro accounts x $59   = $1,770
+10 Studio accounts x $149       = $1,490
+One brand campaign retainer     = $15,000
+Premium project licenses        = $2,000
+------------------------------------------------
+Total                           = $21,700/month</code></pre>
+          <p>This makes the original target plausible, but only if brand campaigns or agencies are part of the model.</p>
+        </section>
+
+        <section class="chapter" id="brand-campaigns">
+          <div class="chapter-header"><span class="chapter-number">07</span><h2>Brand campaign business</h2></div>
+          <p class="lead">Brand campaigns can become the primary revenue engine while subscriptions build recurring product adoption.</p>
+          <section class="table-wrap" aria-label="Brand campaign packages" tabindex="0">
+            <table>
+              <thead><tr><th>Package</th><th>Price</th><th>Product</th></tr></thead>
+              <tbody>
+                <tr><td>Spark</td><td>$7,500</td><td>One track, five creators, 15-20 posts, organic branded rights</td></tr>
+                <tr><td>Signal</td><td>$15,000</td><td>10-15 creators, 40-60 posts, challenge, analytics, limited paid amplification</td></tr>
+                <tr><td>Breakout</td><td>$30,000+</td><td>Custom music, larger creator cohort, paid media, extended term</td></tr>
+                <tr><td>Network</td><td>$75,000+</td><td>Multiple tracks, creator verticals, longer campaign, API and reporting</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>A reasonable campaign-budget allocation might be:</p>
+          <ul>
+            <li>45-55% creator compensation</li>
+            <li>10-15% music and producer compensation</li>
+            <li>10-15% prizes or performance bonuses</li>
+            <li>25-30% Mashups software, operations, sales, and margin</li>
+          </ul>
+          <p>These should be standardized packages, not open-ended agency engagements. Otherwise Mashups becomes a labor-heavy marketing agency instead of a scalable product.</p>
+        </section>
+
+        <section class="chapter" id="acquire-tracks">
+          <div class="chapter-header"><span class="chapter-number">08</span><h2>How to acquire tracks</h2></div>
+          <p class="lead">Build supply through four distinct lanes.</p>
+          <h3>1. Commissioned originals</h3>
+          <p>Commission producers against specific creator-content briefs: fitness transformation, beauty reveal, nightlife transition, gaming montage, luxury lifestyle, comedy misdirection, product unboxing, sports highlight, fashion walk, or mature-audience self-promotion.</p>
+          <p>Do not brief producers with vague genres such as "make a trap song." A better brief is:</p>
+          <div class="signal-box">Produce a 75-second track with a clean 15-second escalation, an unmistakable transition at second 8, no lyrical conflict, and stems suitable for fitness transformation videos.</div>
+          <p>Initial commission economics could be:</p>
+          <ul>
+            <li>$500-$1,500 per accepted 60-90 second master</li>
+            <li>Non-recoupable fee</li>
+            <li>Artist retains ownership</li>
+            <li>Mashups receives broad sync, editing, and sublicensing rights</li>
+            <li>Mashups receives a 6-12 month exclusive UGC administration window</li>
+            <li>Artist continues participating in license and usage payouts</li>
+          </ul>
+          <p>A mature competitor such as Epidemic Sound reports paying $2,000-$8,000 per commissioned track, plus streaming splits and a usage bonus. Mashups cannot initially compete on upfront fees, so it must compete on ownership retention, flexibility, transparent upside, and direct performance data. <a class="source-link" href="https://corporate.epidemicsound.com/about-us/how-we-work-with-artists/">Epidemic Sound artist model</a></p>
+          <h3>2. Existing one-stop catalogs</h3>
+          <p>Recruit independent producers who control both the master and composition. The ideal catalog partner has 20-100 original tracks, no uncleared samples, few co-writers, control over publishing, clear distributor and Content ID status, stems, interest in creator distribution, and music that is good but under-monetized.</p>
+          <p>This lane can have little or no upfront payment, but a more generous revenue split.</p>
+          <h3>3. Sponsored commissions</h3>
+          <p>Brands fund custom tracks or packs. Mashups avoids financing all supply, producers receive better upfront compensation, brands receive campaign-specific sound, and tracks can later enter the broader catalog if contracts permit.</p>
+          <h3>4. Curated open submissions</h3>
+          <p>Open submissions can become an acquisition funnel, but should not automatically populate the catalog. Use monthly briefs, referral-only submissions initially, a clear acceptance rate, rights documentation before audio review, and payments only for accepted inventory.</p>
+          <p><strong>No "upload anything and declare you own it" public licensing.</strong></p>
+        </section>
+
+        <section class="chapter" id="founding-catalog">
+          <div class="chapter-header"><span class="chapter-number">09</span><h2>Founding catalog plan</h2></div>
+          <ul>
+            <li>25 founding producers</li>
+            <li>4 accepted masters per producer</li>
+            <li>100 total masters</li>
+            <li>3 hook cuts per master</li>
+            <li>300 campaign-ready clips</li>
+            <li>Instrumental and clean versions for top tracks</li>
+            <li>Stems for the best 30-40 tracks</li>
+            <li>10 content archetypes</li>
+            <li>8-12 musical styles</li>
+          </ul>
+          <p>A weekly 20-clip pack does not need 20 new masters. It can contain six new masters, three cuts from each master, and two returning winners. This reduces supply costs while still feeling fresh.</p>
+          <h3>Lean starting budget</h3>
+          <section class="table-wrap" aria-label="Founding catalog budget" tabindex="0">
+            <table>
+              <thead><tr><th>Cost</th><th>Illustrative budget</th></tr></thead>
+              <tbody>
+                <tr><td>40 commissioned tracks averaging $750</td><td>$30,000</td></tr>
+                <tr><td>60 catalog tracks with onboarding guarantees</td><td>$6,000-$10,000</td></tr>
+                <tr><td>Music attorney and contract stack</td><td>$10,000-$20,000</td></tr>
+                <tr><td>Rights review, metadata, fingerprint testing</td><td>$5,000-$10,000</td></tr>
+                <tr><td>Initial producer bonuses</td><td>$5,000</td></tr>
+                <tr><td>Total</td><td>Approximately $56,000-$75,000</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>A smaller proof could start with 40-50 masters, but catalog variety will become a problem quickly.</p>
+        </section>
+
+        <section class="chapter" id="artist-compensation">
+          <div class="chapter-header"><span class="chapter-number">10</span><h2>Artist compensation</h2></div>
+          <p class="lead">A strong artist deal combines predictable and performance-based compensation.</p>
+          <h3>Commissioned tracks</h3>
+          <ul>
+            <li>Upfront non-recoupable fee</li>
+            <li>50-60% of premium license net revenue</li>
+            <li>Share of subscription usage pool</li>
+            <li>Artist retains DSP and applicable PRO royalties</li>
+            <li>Artist retains ownership</li>
+          </ul>
+          <h3>Existing catalog tracks</h3>
+          <ul>
+            <li>Little or no upfront fee</li>
+            <li>65-70% of premium license net revenue</li>
+            <li>Share of subscription usage pool</li>
+            <li>Artist retains ownership and outside exploitation rights</li>
+          </ul>
+          <h3>Sponsored custom tracks</h3>
+          <ul>
+            <li>Larger upfront production fee</li>
+            <li>Campaign sync payment</li>
+            <li>Bonus for performance or expanded usage</li>
+            <li>Negotiated rights for broader catalog reuse</li>
+          </ul>
+          <h3>Subscription usage pool</h3>
+          <p>Allocate approximately 15-25% of net music-bearing subscription revenue into an artist pool. Do not distribute it based on downloads. Downloads are easy to manipulate and do not demonstrate actual value.</p>
+          <section class="table-wrap" aria-label="Artist usage pool formula" tabindex="0">
+            <table>
+              <thead><tr><th>Weight</th><th>Signal</th></tr></thead>
+              <tbody>
+                <tr><td>50%</td><td>Unique issued campaign licenses</td></tr>
+                <tr><td>30%</td><td>Verified published posts</td></tr>
+                <tr><td>20%</td><td>Normalized performance</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>Normalize performance against the creator's historical baseline. Use a logarithmic cap on views so that 100,000 views is more valuable than 10,000 but not automatically worth ten times as much. Publish the formula. Opaque royalty formulas destroy supplier trust.</p>
+        </section>
+
+        <section class="chapter" id="rights-reality">
+          <div class="chapter-header"><span class="chapter-number">11</span><h2>The rights reality</h2></div>
+          <p class="lead">A song contains at least two distinct copyright interests: the musical composition and the sound recording.</p>
+          <p>They may have different owners. The U.S. Copyright Office explicitly treats them as separate works. <a class="source-link" href="https://www.copyright.gov/register/pa-sr.html">U.S. Copyright Office</a></p>
+          <p>For video use, Mashups needs synchronization authority for the composition and master-use authority for the recording. The MLC's blanket license is audio-only and does not cover audiovisual synchronization. <a class="source-link" href="https://blog.themlc.com/resources/what-types-of-licenses-does-the-mlc-administer">The MLC licensing scope</a></p>
+          <p>Performing-rights organizations are not a substitute for sync clearance. SESAC states that sync rights generally require all publishers, while use of an existing recording also requires the recording owner. <a class="source-link" href="https://www.sesac.com/frequently-asked-questions/">SESAC licensing FAQ</a></p>
+          <p>Remixing creates another problem. The Copyright Office states that the copyright owner controls derivative versions, and changing someone else's work does not make it yours without permission. <a class="source-link" href="https://www.copyright.gov/help/faq/faq-fairuse.html">Copyright Office fair-use FAQ</a></p>
+          <div class="signal-box orange">A checkbox saying "I own this" is not a rights system.</div>
+        </section>
+
+        <section class="chapter" id="catalog-lanes">
+          <div class="chapter-header"><span class="chapter-number">12</span><h2>Catalog rights lanes</h2></div>
+          <section class="table-wrap" aria-label="Catalog rights lanes" tabindex="0">
+            <table>
+              <thead><tr><th>Lane</th><th>Meaning</th><th>Public availability</th></tr></thead>
+              <tbody>
+                <tr><td>Mashups Managed</td><td>One-stop rights plus Mashups-managed UGC administration</td><td>Fully discoverable</td></tr>
+                <tr><td>One-Stop Partner</td><td>One-stop rights, but partner manages claims or Content ID</td><td>Discoverable with restrictions</td></tr>
+                <tr><td>Creator-Owned</td><td>User supplies and documents their own music</td><td>Private workspace by default</td></tr>
+                <tr><td>Unverified</td><td>Incomplete chain of title, known copyrighted source, or unclear samples</td><td>No licensed export</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>Only the first two should receive a green commercial-license badge. The Creator-Owned lane can still use hook generation and campaign tools, but Mashups should not warrant those rights.</p>
+        </section>
+
+        <section class="chapter" id="supplier-contracts">
+          <div class="chapter-header"><span class="chapter-number">13</span><h2>Supplier contract requirements</h2></div>
+          <h3>The agreement should let Mashups</h3>
+          <ul>
+            <li>Host and stream previews.</li>
+            <li>Reproduce and deliver licensed files.</li>
+            <li>Sublicense tracks to creators, agencies, and brands.</li>
+            <li>Synchronize tracks with audiovisual content.</li>
+            <li>Cut, loop, fade, normalize, time-shift, and create platform-length versions.</li>
+            <li>Provide instrumental, clean, and stem versions.</li>
+            <li>Permit defined remix and fork behavior.</li>
+            <li>Use track and artist metadata for promotion.</li>
+            <li>Issue immutable end-user license certificates.</li>
+            <li>Resolve claims and communicate with distributors.</li>
+            <li>Keep already-published licensed projects valid after the supply term ends.</li>
+          </ul>
+          <h3>The supplier should warrant</h3>
+          <ul>
+            <li>Control of 100% of the master.</li>
+            <li>Control or valid authority over 100% of the composition.</li>
+            <li>Approval from every co-writer, publisher, performer, producer, and featured artist.</li>
+            <li>No undisclosed samples or interpolations.</li>
+            <li>No conflicting beat lease.</li>
+            <li>No conflicting sync representation.</li>
+            <li>Accurate PRO, publisher, ISRC, ISWC, and distributor information.</li>
+            <li>No unauthorized voice or likeness replicas.</li>
+            <li>Disclosure of materially AI-generated elements.</li>
+            <li>No conflicting Content ID registration or claim policy.</li>
+          </ul>
+          <p>The contract should include an explicit sample manifest, even when the answer is "no samples."</p>
+        </section>
+
+        <section class="chapter" id="contract-stack">
+          <div class="chapter-header"><span class="chapter-number">14</span><h2>Contract stack</h2></div>
+          <p class="lead">Mashups needs more than one generic Terms of Service document.</p>
+          <ol>
+            <li>Music Supplier Agreement</li>
+            <li>Track Schedule and Rights Disclosure</li>
+            <li>Co-writer and Contributor Confirmations</li>
+            <li>Creator End-User License</li>
+            <li>Brand Campaign Order</li>
+            <li>Challenge Participation Terms</li>
+            <li>Paid Media Addendum</li>
+            <li>Claims and Takedown Policy</li>
+            <li>Repeat Infringer Policy</li>
+            <li>AI and Synthetic Media Policy</li>
+            <li>Producer Payout Policy</li>
+            <li>Enterprise Indemnity Addendum</li>
+          </ol>
+          <p class="note"><strong>Guardrail:</strong> Do not provide enterprise indemnity through ordinary click-through consumer terms.</p>
+        </section>
+
+        <section class="chapter" id="license-design">
+          <div class="chapter-header"><span class="chapter-number">15</span><h2>License product design</h2></div>
+          <p class="lead">Licenses should be project-specific and immutable.</p>
+          <p>Each issued license should record:</p>
+          <ul>
+            <li>License ID</li>
+            <li>Exact track and version</li>
+            <li>Master owner</li>
+            <li>Composition owner or administrator</li>
+            <li>Creator or company</li>
+            <li>Registered social channels</li>
+            <li>Platforms</li>
+            <li>Project type</li>
+            <li>Sponsor or client, when applicable</li>
+            <li>Organic, sponsored, or paid-media status</li>
+            <li>Paid-media spend cap</li>
+            <li>Territory</li>
+            <li>Start date</li>
+            <li>Publication deadline</li>
+            <li>Whether existing posts survive cancellation</li>
+            <li>Permitted edits</li>
+            <li>Prohibited contexts</li>
+            <li>Attribution requirement</li>
+            <li>Claim contact</li>
+            <li>Immutable terms snapshot</li>
+            <li>Hash of the licensed audio file</li>
+          </ul>
+          <p>The public verification page should expose enough to prove validity without exposing addresses, private contracts, or payment records.</p>
+          <h3>Important survival rule</h3>
+          <p>Projects lawfully created and published while a subscription or project license is active should generally remain licensed after cancellation. The customer should lose the ability to create new projects, not wake up to claims on old videos.</p>
+          <p>Both Artlist and Soundstripe describe versions of this active-subscription/project-survival approach, so customers increasingly expect it. <a class="source-link" href="https://help.artlist.io/hc/en-us/articles/29490991524253-Understanding-Artlist-s-license/">Artlist license explanation</a>, <a class="source-link" href="https://www.soundstripe.com/knowledge/licensing-usage/what-can-i-do-with-license">Soundstripe licensing guide</a></p>
+        </section>
+
+        <section class="chapter" id="usage-categories">
+          <div class="chapter-header"><span class="chapter-number">16</span><h2>Usage categories</h2></div>
+          <p>Mashups needs a more detailed rights matrix than only <span class="path">organic_shorts</span> and <span class="path">paid_ads_shorts</span>, currently defined at <span class="path">app/supabase/migrations/004_billing_and_creator_licenses.sql:30</span>.</p>
+          <section class="table-wrap" aria-label="Recommended usage categories" tabindex="0">
+            <table>
+              <thead><tr><th>Category</th><th>Example</th></tr></thead>
+              <tbody>
+                <tr><td>Personal organic</td><td>Non-commercial personal post</td></tr>
+                <tr><td>Monetized organic</td><td>Platform monetization or affiliate content</td></tr>
+                <tr><td>Commercial self-promotion</td><td>Creator promoting their own business or subscription</td></tr>
+                <tr><td>Sponsored organic</td><td>Creator paid by a third-party brand</td></tr>
+                <tr><td>Paid social</td><td>Advertisement with media spend</td></tr>
+                <tr><td>Client work</td><td>Editor or agency producing for a client</td></tr>
+                <tr><td>Challenge entry</td><td>Use within a Mashups challenge</td></tr>
+                <tr><td>Livestream</td><td>Live audience use</td></tr>
+                <tr><td>Remix or fork</td><td>Transformation using stems or catalog material</td></tr>
+                <tr><td>Standalone release</td><td>Spotify, Apple Music, or SoundCloud release</td></tr>
+                <tr><td>Broadcast or out-of-home</td><td>TV, radio, cinema, venue, or billboard</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p><strong>Standalone release should never be silently included in a short-form creator subscription.</strong></p>
+        </section>
+
+        <section class="chapter" id="sensitive-use">
+          <div class="chapter-header"><span class="chapter-number">17</span><h2>Sensitive-use permissions</h2></div>
+          <p>The product should support track-level opt-ins for mature or adult-adjacent content, alcohol, gambling, cannabis, politics, religion, weapons, cryptocurrency, medical products, dating, and advocacy.</p>
+          <p>This matters particularly if OnlyFans creators remain an acquisition wedge. YouTube Creator Music explicitly restricts adult content and brand-focused promotional use, which creates opportunity, but artists must knowingly opt into those contexts. <a class="source-link" href="https://support.google.com/youtube/answer/11623091?hl=en">YouTube restrictions</a></p>
+          <p>Mashups must distinguish lawful mature-audience creator promotion, explicit audiovisual content, content prohibited by the destination platform, and content an artist does not want associated with their identity.</p>
+          <div class="signal-box">A music license does not override TikTok, Instagram, or YouTube content policies.</div>
+        </section>
+
+        <section class="chapter" id="content-id">
+          <div class="chapter-header"><span class="chapter-number">18</span><h2>Content ID strategy</h2></div>
+          <p class="lead">Content ID is both a defense mechanism and a major source of accidental claims.</p>
+          <p>YouTube requires exclusive rights for Content ID references and says mashups, remixes, and non-exclusively licensed material commonly do not qualify. <a class="source-link" href="https://support.google.com/youtube/answer/1311402?hl=en">YouTube Content ID eligibility</a></p>
+          <p>Therefore Mashups should not indiscriminately register everything in Content ID.</p>
+          <h3>Mashups Managed</h3>
+          <p>Mashups or its rights-administration partner receives exclusive UGC administration authority for specific tracks and territories. Mashups manages allowlisting, claims, and release policies.</p>
+          <h3>Partner Managed</h3>
+          <p>The original artist, label, or distributor keeps Content ID administration but signs a claims SLA and provides allowlisting or rapid release support.</p>
+          <h3>Claim canary</h3>
+          <ol>
+            <li>Generate private test videos using each planned hook cut.</li>
+            <li>Upload them to test channels.</li>
+            <li>Wait for automated claims.</li>
+            <li>Identify distributors, publishers, and third parties claiming the track.</li>
+            <li>Resolve conflicts before issuing green licenses.</li>
+            <li>Re-run tests after distributor or ownership changes.</li>
+          </ol>
+          <p>Do not register creator-made forks or mashups as Content ID references unless exclusive rights in every element are proven.</p>
+        </section>
+
+        <section class="chapter" id="claims">
+          <div class="chapter-header"><span class="chapter-number">19</span><h2>Claims operations</h2></div>
+          <p class="lead">Do not promise "claim-free." Even correctly licensed tracks can trigger automated systems.</p>
+          <p>Promise clear license evidence, fast response, claim release support, transparent status, escalation, and a replacement track when necessary.</p>
+          <section class="table-wrap" aria-label="Claims service levels" tabindex="0">
+            <table>
+              <thead><tr><th>Tier</th><th>First response</th><th>Target resolution</th></tr></thead>
+              <tbody>
+                <tr><td>Free</td><td>2 business days</td><td>Best effort</td></tr>
+                <tr><td>Creator</td><td>24 hours</td><td>72 hours</td></tr>
+                <tr><td>Creator Pro</td><td>12 hours</td><td>48 hours</td></tr>
+                <tr><td>Studio</td><td>4 business hours</td><td>24 hours</td></tr>
+                <tr><td>Enterprise</td><td>Contracted</td><td>Contracted</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>Every dispute package should contain the license certificate, audio hash, ISRC, ownership record, permitted-use summary, channel and project ID, publication date, supplier contact, Content ID administrator, and supporting contract reference.</p>
+          <p>Quarantine a track automatically when multiple unrelated creators receive claims, ownership becomes disputed, contributor approval fails, sample conflicts appear, a distributor refuses allowlisting, or rights metadata no longer reconciles.</p>
+          <p>Hold a small royalty reserve for chargebacks, reversals, and unresolved supplier claims.</p>
+        </section>
+
+        <section class="chapter" id="indemnity">
+          <div class="chapter-header"><span class="chapter-number">20</span><h2>Indemnity</h2></div>
+          <p>Indemnity can be valuable, but it should be sold carefully.</p>
+          <p>Soundstripe currently advertises business and enterprise coverage including indemnification, with enterprise coverage up to $1 million. That is a useful market anchor, but it requires contracts, operational controls, and insurance. <a class="source-link" href="https://www.soundstripe.com/library/pricing">Soundstripe pricing and licensing</a></p>
+          <ol>
+            <li>No broad indemnity during closed beta.</li>
+            <li>Limited contractual warranty for properly licensed uses.</li>
+            <li>Liability capped to a multiple of fees on creator plans.</li>
+            <li>Higher negotiated caps for agencies.</li>
+            <li>Media liability or errors-and-omissions insurance before major brand work.</li>
+            <li>Insurance-backed enterprise indemnity only after claims history is known.</li>
+          </ol>
+          <div class="signal-box orange">Never offer unlimited indemnity.</div>
+        </section>
+
+        <section class="chapter" id="ai-policy">
+          <div class="chapter-header"><span class="chapter-number">21</span><h2>AI music policy</h2></div>
+          <p class="lead">Do not use AI-generated music as cheap catalog filler.</p>
+          <p>The Copyright Office says AI-assisted work can be protected, but purely AI-generated material or material without sufficient human control may not be. Prompts alone generally do not establish authorship. <a class="source-link" href="https://www.copyright.gov/newsnet/2025/1060.html?loclr=licop">Copyright Office AI report</a></p>
+          <ul>
+            <li>Human-made and human-controlled catalog by default.</li>
+            <li>Mandatory disclosure of AI tools.</li>
+            <li>No cloned voices or identifiable artist imitation.</li>
+            <li>No unlicensed training representations.</li>
+            <li>No AI training on supplier tracks without separate opt-in and compensation.</li>
+            <li>Store tool name, model, date, source inputs, and human contribution description.</li>
+            <li>Give brands and creators an "AI-free catalog" filter.</li>
+            <li>Keep AI-adapted versions in a separate rights and compensation program.</li>
+          </ul>
+          <p>Artist trust can become a differentiator.</p>
+        </section>
+
+        <section class="chapter" id="distribution">
+          <div class="chapter-header"><span class="chapter-number">22</span><h2>Distribution strategy</h2></div>
+          <p class="lead">Mashups should not become a record distributor immediately.</p>
+          <ol>
+            <li>Acquire direct campaign and UGC rights.</li>
+            <li>Let artists retain ordinary DSP distribution.</li>
+            <li>Require disclosure of distributor and Content ID administrator.</li>
+            <li>Establish allowlisting procedures.</li>
+            <li>Consider one distribution partner after the catalog proves demand.</li>
+            <li>Offer optional release services later.</li>
+          </ol>
+          <h3>Launch pattern</h3>
+          <ul class="sequence" aria-label="Track launch sequence">
+            <li><span>DAY -21</span><strong>Track delivered and rights reviewed</strong></li>
+            <li><span>DAY -14</span><strong>Private creator testing</strong></li>
+            <li><span>DAY -7</span><strong>Hook cuts and claims testing</strong></li>
+            <li><span>DAY 0</span><strong>Weekly Pack release</strong></li>
+            <li><span>DAY +7</span><strong>Winning cut gets challenge support</strong></li>
+            <li><span>DAY +14</span><strong>Expanded creator seeding</strong></li>
+            <li><span>DAY +30</span><strong>DSP release or broader promotion</strong></li>
+          </ul>
+          <p>This gives creators early access while helping artists build streaming demand.</p>
+        </section>
+
+        <section class="chapter" id="data-ar">
+          <div class="chapter-header"><span class="chapter-number">23</span><h2>A&amp;R should be data-driven</h2></div>
+          <p>Do not rank music by total views. Large creators would dominate.</p>
+          <pre><code>Track audition
+-> campaign selection
+-> hook export
+-> published post
+-> claim-free after seven days
+-> view lift against creator baseline
+-> saves and shares
+-> profile visits
+-> attributed signups
+-> repeat use</code></pre>
+          <p>The most useful track score is not "plays." It is closer to:</p>
+          <pre><code>Expected creator lift
+x export-to-post probability
+x rights reliability
+x audience fit</code></pre>
+          <p>Use creator-normalized performance:</p>
+          <pre><code>Post performance / creator's trailing baseline</code></pre>
+          <p>This is also how the Momentum Feed and Creator Scoreboard should work.</p>
+        </section>
+
+        <section class="chapter" id="flywheel">
+          <div class="chapter-header"><span class="chapter-number">24</span><h2>The flywheel</h2></div>
+          <ol>
+            <li>Mashups commissions or acquires a one-stop track.</li>
+            <li>The track becomes three campaign-ready hooks.</li>
+            <li>Creators receive a clear license and campaign package.</li>
+            <li>Creators publish with attribution.</li>
+            <li>Mashups measures normalized performance.</li>
+            <li>Winning tracks rise in the Momentum Feed.</li>
+            <li>Producers earn more and submit better music.</li>
+            <li>Brands fund challenges around proven tracks.</li>
+            <li>Creator results improve.</li>
+            <li>More creators and producers join.</li>
+          </ol>
+          <div class="signal-box blue">The moat is not the audio file.</div>
+          <p>The moat is the combined rights graph, claims history, hook-performance data, creator-track matching model, attribution graph, producer relationship network, and brand campaign results.</p>
+        </section>
+
+        <section class="chapter" id="go-to-market">
+          <div class="chapter-header"><span class="chapter-number">25</span><h2>Go-to-market</h2></div>
+          <h3>Creator wedge</h3>
+          <p>Start with high-frequency creators who already spend money to acquire audiences. A mixed founding cohort is safer than making the company synonymous with one vertical:</p>
+          <ul>
+            <li>15 fitness creators</li>
+            <li>10 beauty or fashion creators</li>
+            <li>10 gaming creators</li>
+            <li>5 nightlife creators</li>
+            <li>5 mature-audience subscription creators</li>
+            <li>5 editors or managers</li>
+          </ul>
+          <p>OnlyFans and mature creators can be a valuable vertical because their posts are commercially motivated and mainstream libraries may have restrictions. Use a separately opted-in catalog rather than forcing every artist into that association.</p>
+          <h3>Producer wedge</h3>
+          <p>Recruit the Founding 25 through direct outreach to independent sync producers, music schools, producer Discord communities, small labels, beatmakers with one-stop catalogs, creator-producers, referrals, and monthly paid briefs.</p>
+          <div class="signal-box">Keep your masters. Keep your streaming income. Earn when creators license and publish your music. See which hooks actually perform. No AI training without your permission.</div>
+          <h3>Agency wedge</h3>
+          <p>Recruit five small creator-management or editing agencies. One agency with 20 active creators is operationally more valuable than 20 unrelated consumer accounts because it creates lower acquisition cost, higher retention, more predictable volume, better campaign data, easier rights education, and higher willingness to pay.</p>
+        </section>
+
+        <section class="chapter" id="referrals">
+          <div class="chapter-header"><span class="chapter-number">26</span><h2>Referral economics</h2></div>
+          <p class="lead">The recurring referral concept should be bounded.</p>
+          <ul>
+            <li>20% of net subscription revenue</li>
+            <li>Maximum 12 paid months</li>
+            <li>60-day chargeback hold</li>
+            <li>No self-referrals</li>
+            <li>No referral payout on taxes, refunds, or premium music pass-through</li>
+            <li>Agency partners receive negotiated volume discounts instead</li>
+            <li>Producer referrals can receive one-time accepted-track bounties</li>
+          </ul>
+          <p>An uncapped lifetime recurring percentage can become a permanent margin problem and attract fraud.</p>
+        </section>
+
+        <section class="chapter" id="trust">
+          <div class="chapter-header"><span class="chapter-number">27</span><h2>Trust and legal operations</h2></div>
+          <p>Because Mashups stores user-uploaded material, it should implement formal DMCA operations.</p>
+          <p>The Copyright Office says relevant online service providers seeking safe-harbor protection must register a designated agent, publish that contact information, respond expeditiously, and maintain required policies. <a class="source-link" href="https://www.copyright.gov/dmca-directory/">Copyright Office DMCA directory</a>, <a class="source-link" href="https://www.copyright.gov/512/index.html">Section 512 guidance</a></p>
+          <ul>
+            <li>Register a DMCA agent.</li>
+            <li>Publish a valid takedown address.</li>
+            <li>Maintain counter-notice procedures.</li>
+            <li>Implement a repeat-infringer policy.</li>
+            <li>Record every moderation action.</li>
+            <li>Keep rights and enforcement teams separate from ordinary support.</li>
+            <li>Establish emergency track quarantine.</li>
+            <li>Retain immutable notice and response records.</li>
+          </ul>
+          <p>The existing schema has useful beginnings, but contracts and operating procedures are more important than database tables.</p>
+        </section>
+
+        <section class="chapter" id="data-model">
+          <div class="chapter-header"><span class="chapter-number">28</span><h2>Product and data model changes</h2></div>
+          <p>The current rights schema is too centered on a single uploader declaration and <span class="path">mashup_id</span>.</p>
+          <p>A full rights graph should include:</p>
+          <pre><code>rights_parties
+musical_works
+sound_recordings
+recording_versions
+contributors
+ownership_shares
+publishing_administrators
+rights_mandates
+supplier_contracts
+track_schedules
+territory_sets
+usage_policies
+platform_restrictions
+content_id_administrators
+issued_licenses
+licensed_projects
+registered_channels
+claims
+claim_events
+royalty_statements
+payout_ledger</code></pre>
+          <p>A recording should not receive green status unless:</p>
+          <pre><code>Master control = 100%
+Composition sync authority = 100%
+Contributor approvals = complete
+Sample status = clear
+Territory = sufficient
+Permitted use = compatible
+Content ID administrator = known
+Contract = active</code></pre>
+          <p>The existing <span class="path">US</span> default territory at <span class="path">app/supabase/migrations/004_billing_and_creator_licenses.sql:31</span> is probably insufficient because social posts are globally accessible.</p>
+          <p>The public RLS policy at <span class="path">app/supabase/migrations/004_billing_and_creator_licenses.sql:71</span> also appears to make all license rows selectable rather than only exposing a limited verification result. That should eventually become a controlled verification endpoint.</p>
+        </section>
+
+        <section class="chapter" id="ninety-days">
+          <div class="chapter-header"><span class="chapter-number">29</span><h2>90-day business launch</h2></div>
+          <h3>Days 1-30: Legal and supply foundation</h3>
+          <ul>
+            <li>Hire a music-licensing attorney.</li>
+            <li>Finalize supplier, creator, brand, and paid-media agreements.</li>
+            <li>Define the rights matrix and prohibited-use matrix.</li>
+            <li>Register the DMCA agent.</li>
+            <li>Recruit the Founding 25 producers.</li>
+            <li>Accept the first 50-100 masters.</li>
+            <li>Run chain-of-title and claim-canary reviews.</li>
+            <li>Build artist payout statements.</li>
+            <li>Recruit 20 closed-beta creators.</li>
+          </ul>
+          <p class="note"><strong>Gate:</strong> No public "commercially licensed" badge until contract and claims testing are complete.</p>
+          <h3>Days 31-60: Closed campaign pilot</h3>
+          <ul>
+            <li>Produce four Weekly Packs.</li>
+            <li>Issue at least 250 licenses.</li>
+            <li>Generate at least 150 published posts.</li>
+            <li>Test $24 and $59 creator pricing.</li>
+            <li>Test commercial self-promotion versus sponsored-use pricing.</li>
+            <li>Operate the claims desk manually.</li>
+            <li>Measure export-to-post conversion.</li>
+            <li>Measure creator-normalized lift.</li>
+            <li>Recruit five agencies.</li>
+          </ul>
+          <p class="note"><strong>Gate:</strong> Do not scale acquisition if harmful claims exceed 1% of published uses.</p>
+          <h3>Days 61-90: Revenue validation</h3>
+          <ul>
+            <li>Launch the first $7,500-$15,000 brand campaign.</li>
+            <li>Reach 100-150 creators.</li>
+            <li>Expand to 100-150 masters.</li>
+            <li>Publish producer earnings dashboards.</li>
+            <li>Introduce sponsored challenges.</li>
+            <li>Sign the first studio or agency annual contracts.</li>
+            <li>Establish a rights-administration partner.</li>
+            <li>Decide whether a distribution partnership is justified.</li>
+          </ul>
+          <p class="note"><strong>Gate:</strong> Do not expand the catalog broadly unless at least 20-30% of accepted tracks receive a verified published use within 60 days.</p>
+        </section>
+
+        <section class="chapter" id="metrics">
+          <div class="chapter-header"><span class="chapter-number">30</span><h2>Core metrics</h2></div>
+          <p>The north-star metric should be:</p>
+          <div class="signal-box orange">Qualified campaigns shipped per week</div>
+          <p>A qualified campaign is properly licensed, exported, actually published, attributed or otherwise verifiable, free of unresolved harmful claims after seven days, and reporting performance data.</p>
+          <section class="table-wrap" aria-label="Core business metrics" tabindex="0">
+            <table>
+              <thead><tr><th>Area</th><th>Metric</th></tr></thead>
+              <tbody>
+                <tr><td>Activation</td><td>Median time to first qualified campaign</td></tr>
+                <tr><td>Creator value</td><td>Export-to-published-post conversion</td></tr>
+                <tr><td>Retention</td><td>Creators publishing weekly</td></tr>
+                <tr><td>Rights</td><td>Claims per 1,000 published posts</td></tr>
+                <tr><td>Rights</td><td>Unresolved claims per 1,000 posts</td></tr>
+                <tr><td>Operations</td><td>Median claim-resolution time</td></tr>
+                <tr><td>Supply</td><td>Percentage of catalog used in 60 days</td></tr>
+                <tr><td>Supply</td><td>Median artist earnings</td></tr>
+                <tr><td>Quality</td><td>Lift versus creator baseline</td></tr>
+                <tr><td>Marketplace</td><td>Premium license GMV</td></tr>
+                <tr><td>Economics</td><td>Music cost as percentage of revenue</td></tr>
+                <tr><td>Economics</td><td>Gross margin by product</td></tr>
+                <tr><td>Growth</td><td>Attributed creator signups per campaign</td></tr>
+                <tr><td>Brands</td><td>Cost per qualified creator post</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="chapter" id="failure-modes">
+          <div class="chapter-header"><span class="chapter-number">31</span><h2>Failure modes</h2></div>
+          <h3>Creators only want famous music</h3>
+          <p>Sell outcomes, not catalog size. Use emerging artists with distinctive hooks, prove performance with normalized data, offer custom creator sounds, and pursue recognizable label catalogs only after demand is proven.</p>
+          <h3>Tracks trigger claims</h3>
+          <p>Use a one-stop catalog, claim-canary testing, known Content ID administrators, automatic quarantine, strong evidence packages, and a claims SLA.</p>
+          <h3>Producers do not trust the platform</h3>
+          <p>Let artists retain ownership, publish the payout formula, pay non-recoupable commissions, prohibit AI training without opt-in, provide monthly statements and audit rights, and keep existing projects valid after catalog removal.</p>
+          <h3>Subscription margins collapse</h3>
+          <p>Limit included legal entitlements, keep paid ads separate, allocate a fixed royalty pool, use project credits rather than unlimited commercial rights, push studios and agencies, and fund custom supply through brands.</p>
+          <h3>Rights operations become an agency</h3>
+          <p>Standardize license SKUs and campaign packages. Do not provide bespoke legal review on creator plans. Enterprise customers pay for custom terms. Automate evidence collection, not legal judgment.</p>
+          <h3>The Mashups brand suggests infringement</h3>
+          <p>Keep the company name, but reframe it around creators, campaigns, and sounds. Use "licensed edits," "forks," and "original flips." Never market unauthorized combinations as safe. Place classic copyrighted-song mashups in an unmonetized experimental lane or remove them.</p>
+        </section>
+
+        <section class="chapter" id="decisions">
+          <div class="chapter-header"><span class="chapter-number">32</span><h2>Decisions to make now</h2></div>
+          <ol class="decision-list">
+            <li data-number="01">Position Mashups as a campaign-safe audio network, not a stock library.</li>
+            <li data-number="02">Launch with only directly contracted one-stop tracks.</li>
+            <li data-number="03">Let artists retain ownership.</li>
+            <li data-number="04">Pay artists through upfront commissions, premium splits, and a transparent usage pool.</li>
+            <li data-number="05">Keep ordinary organic rights in subscriptions.</li>
+            <li data-number="06">Charge separately for sponsorships, paid media, client work, and standalone releases.</li>
+            <li data-number="07">Make studios, agencies, and brands the economic engine.</li>
+            <li data-number="08">Use mature-audience licensing only through explicit artist opt-in.</li>
+            <li data-number="09">Promise fast claim resolution, not impossible "claim-free" guarantees.</li>
+            <li data-number="10">Start with 100 masters and 300 hooks, not thousands of tracks.</li>
+            <li data-number="11">Treat rights completeness and performance data as the moat.</li>
+            <li data-number="12">Do not scale paid creator acquisition until claims and publishing conversion meet hard gates.</li>
+          </ol>
+          <div class="end-statement"><p>Mashups finds or commissions music designed to perform in short-form content, contracts every relevant right, packages the best hooks into ready-to-publish campaigns, protects creators when claims occur, measures the resulting lift, and shares the revenue with the people who made the music.</p></div>
+        </section>
+
+        <aside class="act-break" aria-label="Real music access strategy">
+          <p class="act-label">Act II / Recognizable music</p>
+          <p class="act-thesis">Real music is not the pipe dream. Asking for every right to every hit is.</p>
+        </aside>
+
+        <section class="chapter" id="real-music-verdict">
+          <div class="chapter-header"><span class="chapter-number">33</span><h2>Real music verdict</h2></div>
+          <p class="lead">Commercially released, recognizable music is accessible. The winning strategy is to narrow the permission, not lower the ambition.</p>
+          <p>Mashups should not try to purchase an unlimited blanket catalog of current hits. It should become the rights and campaign infrastructure connecting artists who need distribution, creators who need effective music, and brands that need measurable cultural reach.</p>
+          <div class="signal-box">The music does not always need to be purchased. Artists and labels can grant the rights and fund the campaign because Mashups is helping break their records.</div>
+          <h3>What is achievable</h3>
+          <ul>
+            <li>Human-made original music from credible independent artists.</li>
+            <li>Recognizable emerging artists with real listeners and social momentum.</li>
+            <li>Selected established and back-catalog tracks through a commercial licensing partner.</li>
+            <li>Major-label clips inside a tightly controlled app and sharing workflow.</li>
+            <li>Individually cleared mainstream songs for specific brand campaigns.</li>
+            <li>Famous music used through platform-native sound workflows without Mashups distributing the audio.</li>
+          </ul>
+          <h3>What is unrealistic initially</h3>
+          <p>Every popular song, every territory, every platform, unlimited remixing, permanent downloadable exports, creator monetization, paid advertising, broad sublicensing, and no minimum guarantee under one inexpensive blanket license.</p>
+          <p class="note"><strong>Operating principle:</strong> Sell narrow, auditable permission units. Do not ask rightsholders for every conceivable use before Mashups has demonstrated demand.</p>
+        </section>
+
+        <section class="chapter" id="market-proof">
+          <div class="chapter-header"><span class="chapter-number">34</span><h2>Market proof</h2></div>
+          <p class="lead">The market has already proven that recognized music can be licensed into creator products. Mashups does not need to invent the legal category; it needs to assemble the right commercial model.</p>
+          <section class="table-wrap" aria-label="Commercial music access precedents" tabindex="0">
+            <table>
+              <thead><tr><th>Precedent</th><th>What it demonstrates</th><th>Mashups implication</th></tr></thead>
+              <tbody>
+                <tr><td>Feed Clips</td><td>Pre-cleared short clips from major-label and independent artists can be delivered through an app API for UGC.</td><td>Evaluate an embedded commercial-music rail rather than negotiating every catalog directly.</td></tr>
+                <tr><td>Lickd for Brands</td><td>Universal, Sony, BMG, and Warner tracks can be licensed for scoped social campaigns.</td><td>Offer premium mainstream-music checkout for high-value projects.</td></tr>
+                <tr><td>UnitedMasters Sync</td><td>Brands can license music from established independent artists individually or in bulk.</td><td>Pursue bulk sync and release-campaign partnerships with artist-services companies.</td></tr>
+                <tr><td>TikTok Artist Impact Program</td><td>Artists and distributors will opt music into commercial creator use to access brand budgets.</td><td>Build an opt-in campaign feed where promotion and licensing are one transaction.</td></tr>
+                <tr><td>Merlin</td><td>A qualifying digital partner can establish a single relationship with a large independent-rightsholder network.</td><td>Approach after Mashups proves reporting, controls, usage, and economics.</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Feed Clips</h3>
+          <p><a class="source-link" href="https://www.feed.fm/clips/global-music-solution">Feed Clips</a> markets pre-cleared major-label clips for app-based UGC and social sharing. Feed.fm's 2026 launch materials identify Warner Music Group and Warner Chappell as initial catalog partners. <a class="source-link" href="https://blog.feed.fm/introducing-clips-studio-the-control-center-for-music-clips-in-apps">Feed Clips Studio announcement</a></p>
+          <h3>Lickd</h3>
+          <p><a class="source-link" href="https://lickd.co/lickd-for-brands/">Lickd for Brands</a> says it works directly with Universal, Sony, BMG, and Warner. Its public Social Sync terms describe short-form licenses across TikTok, Instagram Reels, Snapchat, and YouTube Shorts, including scoped paid boosting.</p>
+          <h3>Independent artist networks</h3>
+          <p><a class="source-link" href="https://comms.unitedmasters.com/en/brands/sync">UnitedMasters Sync</a> offers direct and bulk licensing from a large independent-artist catalog, including artists with meaningful audiences. This is the useful middle between anonymous stock and major-label hits.</p>
+          <p>TikTok's <a class="source-link" href="https://newsroom.tiktok.com/turning-up-the-volume-on-the-tiktok-commercial-music-library-with-the-artist-impact-program-ca?lang=en-CA">Artist Impact Program</a> names Believe, DistroKid, Vydia, Downtown, Songtradr, Kobalt, Sub Pop, and other label, publisher, and distributor partners. The program gives artists a way to monetize brand use while helping brands obtain pre-cleared music.</p>
+          <h3>A later aggregation path</h3>
+          <p><a class="source-link" href="https://merlinnetwork.org/es/becoming-a-partner/">Merlin's partner program</a> presents a single licensing and reporting point for members representing approximately 15% of the global recorded-music market. It is a scale-stage target, not the first call.</p>
+        </section>
+
+        <section class="chapter" id="demand-network">
+          <div class="chapter-header"><span class="chapter-number">35</span><h2>Music demand network</h2></div>
+          <p class="lead">Mashups should be a creator distribution network for music campaigns, supported by a rights operating system.</p>
+          <p>Catalog is supply. The defensible asset is demand: creators who reliably publish, measurable campaign outcomes, and the infrastructure that makes every use auditable.</p>
+          <section class="table-wrap" aria-label="Music demand network customers" tabindex="0">
+            <table>
+              <thead><tr><th>Customer</th><th>What they contribute</th><th>What they buy</th></tr></thead>
+              <tbody>
+                <tr><td>Creators</td><td>Attention, content, cultural interpretation, and distribution</td><td>Creation tools, safe music, growth insights, campaigns, and payouts</td></tr>
+                <tr><td>Artists and labels</td><td>Music rights, releases, stems, brand identity, and campaign budgets</td><td>Creator distribution, measurable promotion, content volume, and performance data</td></tr>
+                <tr><td>Brands and agencies</td><td>Campaign budgets, briefs, products, and paid amplification</td><td>Licensed music, creators, operations, attribution, and reporting</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Revenue stack</h3>
+          <ol>
+            <li>Creator Pro subscriptions.</li>
+            <li>Studio and agency subscriptions.</li>
+            <li>Label campaign setup and management fees.</li>
+            <li>A percentage of managed creator campaign budgets.</li>
+            <li>Brand campaign management fees.</li>
+            <li>License facilitation margins.</li>
+            <li>Premium analytics and campaign reporting.</li>
+            <li>API access for agencies and creator platforms.</li>
+            <li>White-label campaign infrastructure.</li>
+            <li>Optional catalog administration for participating artists.</li>
+          </ol>
+          <div class="signal-box blue">Label-funded campaigns can turn music acquisition from a cost center into revenue.</div>
+          <h3>The compounding loop</h3>
+          <ol class="sequence">
+            <li><span>01</span><strong>Broad-rights music supplies daily creator utility.</strong></li>
+            <li><span>02</span><strong>Recognizable releases attract more creators.</strong></li>
+            <li><span>03</span><strong>Creator output produces performance evidence.</strong></li>
+            <li><span>04</span><strong>Evidence attracts label and brand budgets.</strong></li>
+            <li><span>05</span><strong>Budgets fund better music and creator rewards.</strong></li>
+          </ol>
+        </section>
+
+        <section class="chapter" id="access-ladder">
+          <div class="chapter-header"><span class="chapter-number">36</span><h2>Music access ladder</h2></div>
+          <p class="lead">Pursue four levels at once, but never pretend they carry identical rights.</p>
+          <section class="table-wrap" aria-label="Real music access ladder" tabindex="0">
+            <table>
+              <thead><tr><th>Level</th><th>Music</th><th>Feasibility</th><th>Best route</th></tr></thead>
+              <tbody>
+                <tr><td>Open catalog</td><td>Artist-owned, fully cleared tracks and stems</td><td>Immediately achievable</td><td>Direct one-stop artist agreements and commissions</td></tr>
+                <tr><td>Rising catalog</td><td>Recognizable independent artists and micro-labels</td><td>Highly achievable</td><td>Release campaigns, managers, distributors, and bulk sync</td></tr>
+                <tr><td>Premium catalog</td><td>Selected established artists and back catalog</td><td>Achievable selectively</td><td>Embedded partners, premium checkout, and bespoke clearances</td></tr>
+                <tr><td>Current hits</td><td>Major-label chart music with broad remix rights</td><td>Selective, expensive, and restrictive</td><td>Partner catalog, individual campaign license, or platform-native handoff</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>"Independent" should not be treated as a synonym for amateur. Mashups can define credible real music by audience and momentum: monthly listeners, streaming velocity, UGC creation rate, save rate, fan engagement, live audience, and creator affinity.</p>
+          <p>The acquisition score should combine commercial signal with clearability:</p>
+          <pre><code>Track opportunity score =
+  hook performance potential
+  + audience growth velocity
+  + creator-category fit
+  + master control confidence
+  + publishing control confidence
+  + edit and stem flexibility
+  + claim-operability
+  - brand-safety risk
+  - rights fragmentation</code></pre>
+        </section>
+
+        <section class="chapter" id="five-rails">
+          <div class="chapter-header"><span class="chapter-number">37</span><h2>Five access rails</h2></div>
+          <p class="lead">The catalog should be a routing system. Each track enters through the rail that matches its rights and economics.</p>
+          <h3>1. Mashups Open</h3>
+          <p>Build a direct catalog where one party controls the recording and composition. These artists grant permission to cut approved portions, export music inside videos, post organically across approved platforms, monetize eligible posts, create approved loops and transitions, keep published posts live after campaign expiration, participate in challenges, and use approved stems.</p>
+          <p>This is the highest-margin catalog and should power Weekly Viral Packs, the Hook Generator, Challenge Engine, templates, and Remix Forks.</p>
+          <h3>2. Release Launch</h3>
+          <p>Labels, managers, distributors, and artists provide selected new releases under a short campaign schedule. Mashups provides the creator cohort, campaign workflow, incentives, publishing verification, and performance reporting. The rightsholder can become a paying customer rather than a royalty recipient.</p>
+          <h3>3. Embedded Commercial Clips</h3>
+          <p>Use a partner such as Feed Clips to surface pre-cleared commercial clips within Mashups. This could provide major-label familiarity without Mashups negotiating every rightsholder separately, but the integration must enforce the partner's territories, platforms, reporting, fingerprinting, withdrawal, and editing rules.</p>
+          <h3>4. Premium Campaign Checkout</h3>
+          <p>Offer a visible upgrade for individually licensed recognizable music. Possible implementations include an embedded partner integration, referral checkout, agency-assisted clearance, Mashups purchasing a scoped campaign license, or passing the license through as a brand campaign line item.</p>
+          <p>Lickd's public product shape fits high-value social campaigns better than an unlimited creator subscription: defined videos, platforms, duration, territory, term, and paid-boost scope.</p>
+          <h3>5. Platform-Native Handoff</h3>
+          <p>Mashups can help creators work with songs available in a destination platform without distributing those audio files.</p>
+          <ol>
+            <li>The creator selects a song for timing and creative planning.</li>
+            <li>Mashups generates the beat map, captions, edit points, and visual cut plan.</li>
+            <li>Mashups exports the video without copyrighted audio.</li>
+            <li>The creator opens the destination platform.</li>
+            <li>The creator adds the official sound from that platform's library.</li>
+            <li>Mashups records the resulting post URL for attribution.</li>
+          </ol>
+          <p class="note"><strong>Important:</strong> Platform-native handoff creates no new rights. It cannot promise commercial use, paid advertising, cross-platform reuse, or continuing availability. It must be labeled <span class="path">NATIVE</span>, never <span class="path">OPEN</span>.</p>
+        </section>
+
+        <section class="chapter" id="release-campaigns">
+          <div class="chapter-header"><span class="chapter-number">38</span><h2>Release launch campaigns</h2></div>
+          <p class="lead">Do not open with "Can we license your whole catalog?" Open with "Which five releases need 500 high-quality creator posts next month?"</p>
+          <h3>Standard campaign grant</h3>
+          <ul>
+            <li>Five selected tracks.</li>
+            <li>Approved 15- and 30-second clips.</li>
+            <li>A 60- or 90-day creation window.</li>
+            <li>TikTok, Instagram Reels, and YouTube Shorts.</li>
+            <li>Organic creator posts from a defined creator cohort.</li>
+            <li>Master and publishing clearance supplied or warranted by the rightsholder.</li>
+            <li>Content ID allowlisting or documented claim-release procedures.</li>
+            <li>Permission for existing posts to survive after the creation window.</li>
+            <li>Paid media offered through a separate addendum.</li>
+            <li>Creator incentives funded by the label or artist team.</li>
+            <li>Track-level attribution and performance reporting.</li>
+          </ul>
+          <h3>Illustrative $25,000 campaign</h3>
+          <section class="table-wrap" aria-label="Illustrative release launch campaign budget" tabindex="0">
+            <table>
+              <thead><tr><th>Allocation</th><th>Amount</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td>Creator incentives</td><td>$14,000</td><td>Reward qualified, verified posts instead of vanity submissions</td></tr>
+                <tr><td>Mashups platform and operations</td><td>$5,000</td><td>Brief, matching, rights workflow, support, and reporting</td></tr>
+                <tr><td>Paid amplification</td><td>$3,000</td><td>Boost validated creator posts where separately permitted</td></tr>
+                <tr><td>Creative production</td><td>$2,000</td><td>Templates, hook edits, captions, and launch assets</td></tr>
+                <tr><td>Claims and contingency reserve</td><td>$1,000</td><td>Operational exception handling</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p>These figures are illustrative. The principle is that the artist or label grants campaign rights because it is buying promotion, while Mashups earns software and campaign revenue and creators receive most of the activation budget.</p>
+          <h3>Disclosure controls</h3>
+          <p>Compensated campaigns need explicit disclosure workflows. The FTC says a creator must clearly disclose a financial or other material relationship with a brand and place that disclosure where people will notice it. <a class="source-link" href="https://www.ftc.gov/business-guidance/resources/disclosures-101-social-media-influencers">FTC influencer disclosure guidance</a></p>
+          <p>Mashups should inject the required disclosure into campaign briefs, generated captions, export checklists, and post-verification review.</p>
+        </section>
+
+        <section class="chapter" id="additional-supply">
+          <div class="chapter-header"><span class="chapter-number">39</span><h2>Additional music supply</h2></div>
+          <p class="lead">The best catalog may come from music the traditional sync market is not actively activating.</p>
+          <ol class="decision-list">
+            <li data-number="01"><strong>Dormant label catalogs.</strong><br>Reactivate tracks that are owned, cleared, and no longer receiving marketing attention.</li>
+            <li data-number="02"><strong>Pre-release exclusives.</strong><br>Give Mashups creators 7-14 days of early access in exchange for coordinated launch content.</li>
+            <li data-number="03"><strong>Territorial catalogs.</strong><br>License regional music for specific markets before pursuing worldwide permission.</li>
+            <li data-number="04"><strong>Manager-owned artists.</strong><br>Managers may coordinate master and publishing approvals faster than large organizations.</li>
+            <li data-number="05"><strong>Distributor opt-ins.</strong><br>Let artists opt releases into campaign terms through distributors while separately confirming composition authority.</li>
+            <li data-number="06"><strong>One-stop sync catalogs.</strong><br>Prioritize representatives with authority over both master and publishing rights.</li>
+            <li data-number="07"><strong>Artist-forward production music.</strong><br>Commission real performing artists and release the music commercially instead of producing anonymous stock.</li>
+            <li data-number="08"><strong>Public-domain compositions.</strong><br>Create new masters of familiar compositions after checking public-domain status in each territory.</li>
+            <li data-number="09"><strong>Commissioned re-recordings.</strong><br>A new recording avoids the old master, but underlying composition permission is still required.</li>
+            <li data-number="10"><strong>Remix-ready artist programs.</strong><br>Collect stems and explicit permission for chops, loops, transitions, pitch, tempo, and forks.</li>
+            <li data-number="11"><strong>Legacy artists and estates.</strong><br>Offer measurable catalog reactivation where renewed creator use can generate streaming lift.</li>
+            <li data-number="12"><strong>Track bounties.</strong><br>Publish hook-specific briefs and commission artists against creator niches and campaign structures.</li>
+            <li data-number="13"><strong>Revenue-share advances.</strong><br>Pay modest advances for broad campaign rights and recoup from premium licensing without taking ownership.</li>
+            <li data-number="14"><strong>Legally sampled source music.</strong><br>Explore specially cleared Tracklib remix programs with an additional audiovisual agreement.</li>
+          </ol>
+          <p><a class="source-link" href="https://www.tracklib.com/how-it-works">Tracklib</a> demonstrates that real records, iconic artists, stems, and sample clearances can be productized. Its standard sample-release license should not be assumed to include audiovisual sync, creator sublicensing, or brand campaigns.</p>
+          <div class="signal-box orange">A cover, re-recording, sample license, platform library, or Content ID claim is never a substitute for the exact sync permission Mashups needs.</div>
+        </section>
+
+        <section class="chapter" id="rights-product">
+          <div class="chapter-header"><span class="chapter-number">40</span><h2>Rights product</h2></div>
+          <p class="lead">Every track needs a machine-readable rights record. A PDF certificate is the output, not the source of truth.</p>
+          <h3>Required rights fields</h3>
+          <ul>
+            <li>Master owner.</li>
+            <li>Composition owners and ownership shares.</li>
+            <li>Granting party and evidence of authority.</li>
+            <li>Permitted territories.</li>
+            <li>License start and end dates.</li>
+            <li>Creation window and existing-post survival rules.</li>
+            <li>Approved platforms.</li>
+            <li>Organic use, commercial self-promotion, branded use, and paid-media permission.</li>
+            <li>Creator monetization permission.</li>
+            <li>Maximum clip duration.</li>
+            <li>Loop, cut, rearrangement, pitch, tempo, and stem permissions.</li>
+            <li>Number of exports or posts.</li>
+            <li>Creator and channel eligibility.</li>
+            <li>Content-category restrictions.</li>
+            <li>Content ID administrator and allowlisting policy.</li>
+            <li>Attribution and disclosure requirements.</li>
+            <li>Usage-reporting obligations.</li>
+            <li>Withdrawal, expiration, and takedown behavior.</li>
+            <li>Claims response and indemnity level.</li>
+          </ul>
+          <h3>User-facing rights badges</h3>
+          <div class="rights-badges" aria-label="Rights badge definitions">
+            <div class="rights-badge"><strong>OPEN</strong><span>Broad editing and cross-platform export rights under the displayed license.</span></div>
+            <div class="rights-badge"><strong>CAMPAIGN</strong><span>Approved clips, creators, platforms, uses, and dates only.</span></div>
+            <div class="rights-badge"><strong>PREMIUM</strong><span>Individually licensed commercial music with project-specific terms.</span></div>
+            <div class="rights-badge"><strong>NATIVE</strong><span>Add the official sound inside the destination platform. No audio export.</span></div>
+            <div class="rights-badge"><strong>RESTRICTED</strong><span>Preview or planning only until further permission is secured.</span></div>
+          </div>
+          <p>No track should receive a generic green checkmark unless the permitted use actually matches the creator's export, destination, commercial status, territory, and media plan.</p>
+          <h3>Three publishing modes</h3>
+          <section class="table-wrap" aria-label="Music publishing modes" tabindex="0">
+            <table>
+              <thead><tr><th>Mode</th><th>What Mashups delivers</th><th>Rights burden</th></tr></thead>
+              <tbody>
+                <tr><td>Baked export</td><td>Music mixed into the rendered video</td><td>Requires compatible master, composition, sync, export, platform, and sublicensing rights</td></tr>
+                <tr><td>Partner clip</td><td>Licensed clip integrated under a commercial API agreement</td><td>Requires partner controls, reporting, territories, approved destinations, and withdrawal handling</td></tr>
+                <tr><td>Platform-native handoff</td><td>Timed silent video plus instructions to add the platform's official sound</td><td>Use remains subject to the destination platform and creator account's eligibility</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="chapter" id="partner-reality">
+          <div class="chapter-header"><span class="chapter-number">41</span><h2>Partner reality</h2></div>
+          <p class="lead">Marketing pages prove the category exists. Only the signed agreement determines whether a partner actually covers the Mashups product.</p>
+          <h3>Feed Clips opportunity</h3>
+          <p>The public <a class="source-link" href="https://www.feed.fm/feed-clips-implementation-guide">Feed Clips implementation guide</a> says applications can offer curated or user-selected clips up to 60 seconds, synchronize them with UGC, use signed URLs, and report plays, additions, shares, and downloads.</p>
+          <p>That guide also contains material limits:</p>
+          <ul>
+            <li>Its current implementation section says US territories only, while another Feed product page uses worldwide language.</li>
+            <li>Third-party sharing destinations must be contractually approved.</li>
+            <li>Downloads are described as personal use.</li>
+            <li>Derivative alteration is prohibited without permission.</li>
+            <li>Looping requires prior approval.</li>
+            <li>Tracks can lose rights and existing in-app synced media may need to be blocked.</li>
+            <li>User-upload applications must integrate ACRCloud fingerprinting.</li>
+            <li>Every play, track audition, addition, share, and download must be reported.</li>
+          </ul>
+          <p>Feed could be transformative, but Mashups must obtain written answers covering browser use, baked exports, external-post survival, creator monetization, sponsored content, paid ads, clip transformation, territories, and indemnity.</p>
+          <h3>Lickd opportunity</h3>
+          <p>Lickd's public brand offering describes a basic Social Sync license for up to five short-form videos, up to 60 seconds of music per video, 12 months, worldwide territory, and one month of paid boosting, with larger creator-led packages available. It also distinguishes social-first content from highly produced advertising.</p>
+          <p>This aligns with premium brand campaigns, but Mashups still needs to learn whether Lickd offers an API, embedded checkout, referral economics, reseller rights, white-label operations, creator sublicensing, and hook-edit permission.</p>
+          <p class="note"><strong>Rule:</strong> Never design the customer promise from a partner's landing page. Design it from the final schedule, restrictions, technical requirements, and survival clauses.</p>
+        </section>
+
+        <section class="chapter" id="blanket-reality">
+          <div class="chapter-header"><span class="chapter-number">42</span><h2>Blanket-license reality</h2></div>
+          <p class="lead">A famous song is normally at least two legal assets, often controlled by multiple parties, with different policies and commercial expectations.</p>
+          <p>The sound recording and the underlying musical composition are separate copyrighted works. Permission for one is not a substitute for permission for the other. <a class="source-link" href="https://www.copyright.gov/register/pa-sr.html">US Copyright Office: compositions and recordings</a></p>
+          <p>The Mechanical Licensing Collective administers eligible US streaming and download mechanical licenses, not synchronization, performance, or sound-recording licenses. <a class="source-link" href="https://blog.themlc.com/resources/what-types-of-licenses-does-the-mlc-administer">The MLC license scope</a></p>
+          <h3>A broad Mashups grant could require</h3>
+          <ul>
+            <li>Master synchronization rights.</li>
+            <li>Composition synchronization rights from every required share.</li>
+            <li>Permission to sublicense creators.</li>
+            <li>Downloadable video exports.</li>
+            <li>Distribution to named social platforms.</li>
+            <li>Creator monetization.</li>
+            <li>Commercial self-promotion and brand sponsorship.</li>
+            <li>Paid-media use and whitelisting.</li>
+            <li>Derivative edits, clips, loops, transitions, pitch, tempo, and stems.</li>
+            <li>Multiple territories and languages.</li>
+            <li>Content ID and claims operations.</li>
+            <li>Usage reporting, royalty accounting, and audits.</li>
+            <li>Catalog withdrawal and survival rules.</li>
+            <li>Brand-safety, sensitive-content, and artist-approval controls.</li>
+            <li>Minimum guarantees, advances, per-use royalties, or revenue shares.</li>
+          </ul>
+          <p>That bundle is expensive because it shifts substantial risk and control away from the rightsholder. Mashups should unbundle it into auditable campaign, clip, project, platform, territory, and paid-media units.</p>
+          <h3>False shortcuts</h3>
+          <ul>
+            <li>A Spotify, Apple Music, or YouTube consumer API does not provide sync or export rights.</li>
+            <li>Buying a download does not buy a commercial synchronization license.</li>
+            <li>ASCAP, BMI, SESAC, or MLC coverage is not a blanket sync solution.</li>
+            <li>A compulsory cover license does not provide video synchronization rights.</li>
+            <li>Fair use is not a dependable product policy.</li>
+            <li>A distributor agreement is insufficient when the distributor lacks composition-sync authority.</li>
+            <li>Content ID monetization or claim release is not retroactive permission.</li>
+            <li>Scraped stems and unofficial downloads are not legitimate supply.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="deal-readiness">
+          <div class="chapter-header"><span class="chapter-number">43</span><h2>Deal readiness</h2></div>
+          <p class="lead">Rightsholders will evaluate operational credibility before they evaluate the interface.</p>
+          <ol>
+            <li>Every use maps to a user, track, license, export, destination, and post record.</li>
+            <li>Unlicensed uploads can be fingerprinted, blocked, quarantined, or stripped.</li>
+            <li>Territory, platform, term, and account eligibility can be enforced.</li>
+            <li>Expired or withdrawn tracks are disabled for new creation immediately.</li>
+            <li>Content ID claims can be allowlisted, reconciled, and audited.</li>
+            <li>Rightsholders receive accurate, timely usage reports and payments.</li>
+            <li>Sensitive industries and content categories can be restricted by track.</li>
+            <li>Artists and rightsholders have clear opt-out and emergency-quarantine controls.</li>
+            <li>Music, stems, and derived data are not used for AI training without a separate opt-in.</li>
+            <li>Takedown requests can be executed quickly across the Mashups product.</li>
+            <li>Creator identity, channels, campaign eligibility, and payouts are verifiable.</li>
+            <li>Mashups maintains appropriate media liability, cyber, and errors-and-omissions coverage.</li>
+            <li>Royalty statements, campaign payments, rights changes, and enforcement actions are auditable.</li>
+          </ol>
+          <div class="signal-box blue">These controls are not back-office overhead. They are the product that earns access to progressively better music.</div>
+          <h3>What the pitch must prove</h3>
+          <ul>
+            <li>Mashups can deliver qualified posts, not merely downloads.</li>
+            <li>Creators fit the artist's audience and brand.</li>
+            <li>Usage can be attributed to downstream streaming, saves, follows, and conversions.</li>
+            <li>Campaign content remains inside approved contexts.</li>
+            <li>Rightsholders can see what happened without reconstructing it from platform screenshots.</li>
+            <li>The commercial model fairly compensates creators and music rightsholders.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="partner-order">
+          <div class="chapter-header"><span class="chapter-number">44</span><h2>Partner order</h2></div>
+          <p class="lead">Approach the route that can close now while building the evidence required for the route that can transform the company later.</p>
+          <ol class="decision-list">
+            <li data-number="01"><strong>Feed.fm.</strong><br>Run a commercial and technical Feed Clips evaluation immediately.</li>
+            <li data-number="02"><strong>Lickd.</strong><br>Explore API, referral, reseller, agency, and premium-checkout terms.</li>
+            <li data-number="03"><strong>UnitedMasters.</strong><br>Discuss bulk sync, rising-artist supply, and managed release campaigns.</li>
+            <li data-number="04"><strong>Independent labels.</strong><br>Target ten labels with consistent monthly releases and one-stop opportunities.</li>
+            <li data-number="05"><strong>Artist managers.</strong><br>Recruit recognizable artists whose teams can move faster than institutional labels.</li>
+            <li data-number="06"><strong>Distributors.</strong><br>Pitch artist opt-in programs to Believe, Vydia, Downtown, DistroKid, and similar networks.</li>
+            <li data-number="07"><strong>Sync agencies.</strong><br>Add one-stop catalogs, boutique publishers, and production-music partners.</li>
+            <li data-number="08"><strong>Tracklib.</strong><br>Design a specially cleared remix challenge with audiovisual permission.</li>
+            <li data-number="09"><strong>Merlin.</strong><br>Approach after Mashups has credible use volume, controls, reporting, and economics.</li>
+            <li data-number="10"><strong>Major labels.</strong><br>Begin direct catalog discussions only after measurable campaign lift and paid pilots.</li>
+          </ol>
+          <p>Start with marketing, digital strategy, audience development, artist services, and management teams. The proposition is not merely "sell us rights." It is "we can move this release with a controlled creator network and show you exactly what happened."</p>
+          <h3>Standard label pitch</h3>
+          <div class="signal-box">Choose five tracks. Approve the best 15- and 30-second moments. Fund the creator pool. Mashups will match creators, generate campaign-ready assets, verify every post, manage rights evidence, and report which hooks produced measurable lift.</div>
+        </section>
+
+        <section class="chapter" id="partner-rfp">
+          <div class="chapter-header"><span class="chapter-number">45</span><h2>Partner RFP</h2></div>
+          <p class="lead">Every music-access conversation must resolve these questions in writing before the product makes a promise.</p>
+          <ol>
+            <li>Does the agreement cover web applications, native applications, or both?</li>
+            <li>Can music be baked into a downloadable video?</li>
+            <li>Which third-party destinations are approved?</li>
+            <li>Are creator monetization and commercial self-promotion permitted?</li>
+            <li>Are sponsored posts, creator-led branded content, and paid media permitted?</li>
+            <li>Which territories are licensed, and how must geofencing work?</li>
+            <li>Can users select arbitrary 15- to 60-second portions?</li>
+            <li>Can clips be looped, rearranged, pitch-shifted, tempo-adjusted, or ducked under voiceover?</li>
+            <li>Are stems, instrumentals, or clean versions available?</li>
+            <li>Do existing external posts survive expiration or catalog withdrawal?</li>
+            <li>Who manages Content ID registration, allowlisting, claim release, and channel disputes?</li>
+            <li>What happens to in-progress projects and published posts when a track is withdrawn?</li>
+            <li>Is there a minimum guarantee, advance, platform fee, or annual commitment?</li>
+            <li>Is pricing calculated per user, active user, play, clip, sync, export, share, campaign, or media spend?</li>
+            <li>Can Mashups sublicense participating creators directly?</li>
+            <li>Which events, metadata, statements, and audit files must Mashups provide?</li>
+            <li>What warranties, claims support, and indemnity does the partner provide?</li>
+            <li>Can rightsholders inspect, restrict, or veto sensitive content and advertisers?</li>
+            <li>Can campaign and performance data be shared with artists, labels, creators, agencies, and brands?</li>
+            <li>Are music, stems, fingerprints, embeddings, analytics, or derived data prohibited from AI training?</li>
+          </ol>
+          <h3>Commercial comparison sheet</h3>
+          <p>Normalize every proposal into the same model: fixed platform cost, minimum guarantee, variable music cost, implementation cost, reporting burden, claim burden, catalog size, track recognition, usable territories, allowed destinations, editing flexibility, survival terms, and effective gross margin by campaign type.</p>
+        </section>
+
+        <section class="chapter" id="access-plan">
+          <div class="chapter-header"><span class="chapter-number">46</span><h2>90-day access plan</h2></div>
+          <h3>Days 1-15: Open the partner rail</h3>
+          <ul>
+            <li>Send formal RFPs to Feed.fm, Lickd, and UnitedMasters.</li>
+            <li>Prepare a label-facing campaign deck rather than a generic catalog request.</li>
+            <li>Create the partner comparison sheet and rights-gap analysis.</li>
+            <li>Have music counsel review the target product modes and RFP.</li>
+          </ul>
+          <h3>Days 15-30: Prove direct supply</h3>
+          <ul>
+            <li>Recruit 25 one-stop artists with commercially released music.</li>
+            <li>Secure three label, manager, or distributor campaign letters of intent.</li>
+            <li>Define and publish the five rights badges.</li>
+            <li>Specify baked-export, partner-clip, and platform-native workflows.</li>
+          </ul>
+          <h3>Days 31-60: Build the rights machine</h3>
+          <ul>
+            <li>Implement machine-readable rights records and grant compatibility checks.</li>
+            <li>Add campaign agreements, creator disclosures, fingerprints, allowlisting, and export-level reporting.</li>
+            <li>Create track withdrawal, expiration, and existing-post survival workflows.</li>
+            <li>Prepare a partner API sandbox integration if commercial terms justify it.</li>
+          </ul>
+          <h3>Days 45-75: Run controlled pilots</h3>
+          <ul>
+            <li>Launch two label-funded release campaigns with small, verified creator cohorts.</li>
+            <li>Test approved 15- and 30-second clips against Mashups-generated alternative hook points.</li>
+            <li>Measure post qualification, creator fit, claim incidence, publishing conversion, and downstream lift.</li>
+          </ul>
+          <h3>Days 60-90: Turn evidence into access</h3>
+          <ul>
+            <li>Publish rightsholder-facing case studies showing content volume, creator adoption, attributed streams, saves, completion rates, and cost per qualified use.</li>
+            <li>Complete one commercial partner demonstration.</li>
+            <li>Use the pilot evidence to pursue a larger distributor or catalog agreement.</li>
+            <li>Begin Merlin and selective major-label introductions only when the data package is credible.</li>
+          </ul>
+          <div class="end-statement">
+            <p>Build a broad-rights independent catalog. Let labels fund release campaigns. Integrate one commercial clip partner. Offer premium song-by-song licensing. Use platform-native workflows for everything else. Then make rights, attribution, and measured lift so reliable that rightsholders compete for access to the Mashups creator network.</p>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-grid">
+        <p class="footer-title">Track -> hook -> rights -> lift</p>
+        <p class="footer-meta">Mashups strategy dossier<br>Prepared August 2026<br>mashups.agency</p>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const progressBar = document.getElementById("progress-bar");
+    const sectionLinks = [...document.querySelectorAll(".toc a")];
+    const sections = sectionLinks
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+
+    function updateProgress() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
+      progressBar.style.width = `${progress * 100}%`;
+    }
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!visible) return;
+
+      sectionLinks.forEach((link) => {
+        const active = link.getAttribute("href") === `#${visible.target.id}`;
+        if (active) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-20% 0px -68% 0px", threshold: [0, 0.2, 0.5] });
+
+    sections.forEach((section) => sectionObserver.observe(section));
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+  </script>
+</body>
+</html>
+
