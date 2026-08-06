@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
       { source: "/subscriptions", destination: "/pricing", permanent: true },
     ]
   },
+  async rewrites() {
+    return [
+      { source: "/pitch", destination: "/founder-pitch.html" },
+      { source: "/founder-pitch", destination: "/founder-pitch.html" },
+    ]
+  },
   async headers() {
     return [
       {
