@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mashups founding partner and investor pitch: the growth and rights infrastructure for music-powered creator marketing.">
+  <meta name="theme-color" content="#13130f">
+  <title>Mashups - Founding Partner Pitch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f2efe5;
+      --paper-bright: #fbf8ef;
+      --ink: #13130f;
+      --ink-soft: #625f56;
+      --signal: #ff4f1f;
+      --acid: #d7ff3f;
+      --blue: #2458ff;
+      --wash: #e5e0d3;
+      --display: "Archivo Black", "Arial Black", sans-serif;
+      --sans: "Space Grotesk", "Trebuchet MS", sans-serif;
+      --mono: "IBM Plex Mono", "Courier New", monospace;
+      --page: min(1440px, calc(100vw - 2rem));
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 5rem;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: clip;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgb(19 19 15 / 0.045) 1px, transparent 1px),
+        radial-gradient(circle at 8% 5%, rgb(255 79 31 / 0.14), transparent 28rem),
+        radial-gradient(circle at 92% 27%, rgb(36 88 255 / 0.08), transparent 25rem);
+      background-size: 100% 24px, auto, auto;
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection { color: var(--ink); background: var(--acid); }
+
+    a { color: inherit; text-decoration-thickness: 2px; text-underline-offset: 0.24em; }
+    button { color: inherit; font: inherit; }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+
+    .skip-link {
+      position: fixed;
+      left: 1rem;
+      top: -5rem;
+      z-index: 1200;
+      padding: 0.7rem 1rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+
+    .skip-link:focus { top: 1rem; }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 1100;
+      height: 5px;
+      background: var(--wash);
+    }
+
+    .reading-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--signal);
+      transform-origin: left;
+    }
+
+    .masthead {
+      position: sticky;
+      top: 5px;
+      z-index: 1000;
+      color: var(--paper-bright);
+      background: rgb(19 19 15 / 0.96);
+      border-bottom: 1px solid var(--paper-bright);
+      backdrop-filter: blur(14px);
+    }
+
+    .masthead-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      width: var(--page);
+      min-height: 4.35rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--paper-bright);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      color: var(--ink);
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 3px 3px 0 var(--acid);
+      font-family: var(--display);
+      font-size: 0.88rem;
+      transform: rotate(-4deg);
+    }
+
+    .brand-word {
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .doc-label {
+      overflow: hidden;
+      color: #aaa597;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.11em;
+      text-align: center;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .header-actions { display: flex; gap: 0.55rem; }
+
+    .micro-button {
+      min-height: 2.45rem;
+      padding: 0.5rem 0.78rem;
+      color: var(--ink);
+      background: var(--acid);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 3px 3px 0 var(--signal);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
+    }
+
+    .micro-button:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--signal); }
+    .micro-button.secondary { color: var(--paper-bright); background: transparent; box-shadow: none; }
+
+    main { width: var(--page); margin: 0 auto; }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.34fr) minmax(19rem, 0.66fr);
+      gap: clamp(2rem, 6vw, 6rem);
+      align-items: center;
+      min-height: calc(100vh - 4.35rem);
+      min-height: calc(100svh - 4.35rem);
+      padding: clamp(3.8rem, 8vw, 7.5rem) 0 4rem;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .hero::before {
+      position: absolute;
+      right: 29%;
+      top: 8%;
+      z-index: -1;
+      width: clamp(8rem, 17vw, 16rem);
+      aspect-ratio: 1;
+      content: "";
+      background: var(--acid);
+      clip-path: polygon(8% 0, 100% 7%, 91% 95%, 0 100%);
+      transform: rotate(9deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.62rem;
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 0.62rem;
+      height: 0.62rem;
+      content: "";
+      background: var(--signal);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(255 79 31 / 0.18);
+    }
+
+    .hero h1 {
+      max-width: 10.5ch;
+      margin: 1.55rem 0 0;
+      font-family: var(--display);
+      font-size: clamp(3.45rem, 8.6vw, 9rem);
+      letter-spacing: -0.075em;
+      line-height: 0.82;
+      text-transform: uppercase;
+    }
+
+    .hero h1 .signal-line { display: block; color: var(--signal); }
+
+    .strike-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .strike-wrap::after {
+      position: absolute;
+      left: -2%;
+      right: -4%;
+      top: 52%;
+      height: 0.08em;
+      content: "";
+      background: var(--ink);
+      transform: rotate(-2deg) scaleX(0);
+      transform-origin: left;
+      animation: strike-in 700ms var(--ease) 700ms forwards;
+    }
+
+    .hero-deck {
+      max-width: 50rem;
+      margin: 2rem 0 0;
+      font-size: clamp(1.12rem, 1.8vw, 1.45rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.45;
+    }
+
+    .hero-deck strong { color: var(--signal); }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 2.2rem; }
+
+    .button {
+      display: inline-flex;
+      min-height: 3.1rem;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0.75rem 1.05rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 5px 5px 0 var(--signal);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), background 180ms ease;
+    }
+
+    .button:hover { color: var(--ink); background: var(--acid); transform: translate(-3px, -3px); box-shadow: 8px 8px 0 var(--signal); }
+    .button.ghost { color: var(--ink); background: transparent; box-shadow: none; }
+    .button.ghost:hover { color: var(--paper-bright); background: var(--blue); box-shadow: 5px 5px 0 var(--ink); }
+
+    .signal-machine {
+      position: relative;
+      min-height: 34rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 11px 11px 0 var(--signal);
+    }
+
+    .machine-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgb(251 248 239 / 0.35);
+      font-family: var(--mono);
+      font-size: 0.61rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .live-dot { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--acid); }
+    .live-dot::before { width: 0.5rem; height: 0.5rem; content: ""; background: var(--signal); border-radius: 50%; animation: pulse 1.8s ease-in-out infinite; }
+
+    .record-stage {
+      position: relative;
+      display: grid;
+      min-height: 20rem;
+      place-items: center;
+      overflow: hidden;
+      border-bottom: 1px solid rgb(251 248 239 / 0.35);
+      background-image: linear-gradient(rgb(251 248 239 / 0.07) 1px, transparent 1px), linear-gradient(90deg, rgb(251 248 239 / 0.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .record {
+      position: relative;
+      width: min(68%, 15rem);
+      aspect-ratio: 1;
+      border: 1px solid var(--paper-bright);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--ink) 0 4%, var(--acid) 4.5% 18%, var(--ink) 18.5% 25%, transparent 25.5%),
+        repeating-radial-gradient(circle, #26261f 0 3px, #11110e 4px 7px);
+      box-shadow: 0 0 0 1.2rem rgb(255 79 31 / 0.12), 0 0 0 2.5rem rgb(215 255 63 / 0.06);
+      animation: spin 13s linear infinite;
+    }
+
+    .record::after {
+      position: absolute;
+      inset: 10%;
+      content: "M/";
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: 1.15rem;
+    }
+
+    .needle {
+      position: absolute;
+      right: 17%;
+      top: 12%;
+      width: 0.45rem;
+      height: 11rem;
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      transform: rotate(20deg);
+      transform-origin: top;
+    }
+
+    .needle::before { position: absolute; left: -0.65rem; top: -1rem; width: 1.7rem; height: 1.7rem; content: ""; background: var(--acid); border: 2px solid var(--paper-bright); border-radius: 50%; }
+
+    .waveform {
+      position: absolute;
+      inset: auto 1.1rem 1rem;
+      display: flex;
+      height: 3.5rem;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .waveform i { flex: 1; min-width: 2px; height: var(--h); background: var(--signal); transform: scaleY(0.2); transform-origin: center; animation: wave-in 900ms var(--ease) var(--delay) forwards; }
+
+    .machine-copy { padding: 1.1rem; }
+    .machine-copy .label { margin: 0; color: #aaa597; font-family: var(--mono); font-size: 0.61rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .machine-copy strong { display: block; margin-top: 0.65rem; color: var(--acid); font-family: var(--display); font-size: clamp(1.35rem, 2.7vw, 2.25rem); letter-spacing: -0.05em; line-height: 1; text-transform: uppercase; }
+
+    .ticker {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--acid);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: ticker 32s linear infinite;
+    }
+
+    .ticker span { display: inline-flex; align-items: center; gap: 1.4rem; padding: 0.75rem 1.35rem; font-family: var(--mono); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; white-space: nowrap; }
+    .ticker b { color: var(--signal); }
+
+    .section {
+      position: relative;
+      padding: clamp(5rem, 10vw, 10rem) 0;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(7rem, 0.25fr) minmax(0, 0.75fr);
+      gap: clamp(2rem, 7vw, 7rem);
+    }
+
+    .section-grid > * { min-width: 0; }
+
+    .section-kicker { position: sticky; top: 7rem; align-self: start; }
+    .section-number { color: var(--signal); font-family: var(--display); font-size: clamp(4rem, 8vw, 8rem); letter-spacing: -0.08em; line-height: 0.8; }
+    .section-label { display: block; margin-top: 1.2rem; font-family: var(--mono); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; line-height: 1.5; text-transform: uppercase; }
+
+    .section h2, .dark-panel h2, .finale h2 {
+      max-width: 13ch;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(3rem, 7.4vw, 7.6rem);
+      letter-spacing: -0.07em;
+      line-height: 0.87;
+      text-transform: uppercase;
+    }
+
+    .section h2 em { color: var(--signal); font-style: normal; }
+
+    .lead {
+      max-width: 55rem;
+      margin: 2rem 0 0;
+      font-size: clamp(1.15rem, 2vw, 1.5rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+    }
+
+    .soft { color: var(--ink-soft); }
+
+    .broken-chain {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+    }
+
+    .chain-link {
+      position: relative;
+      min-height: 13rem;
+      padding: 1.2rem;
+      overflow: hidden;
+      background: var(--paper-bright);
+    }
+
+    .chain-link:nth-child(2), .chain-link:nth-child(4) { background: var(--wash); }
+    .chain-link span { color: var(--signal); font-family: var(--mono); font-size: 0.65rem; font-weight: 600; }
+    .chain-link strong { display: block; margin-top: 3.8rem; font-family: var(--display); font-size: 1.2rem; letter-spacing: -0.04em; line-height: 1; text-transform: uppercase; }
+    .chain-link::after { position: absolute; right: -0.7rem; top: 50%; z-index: 2; width: 1.4rem; height: 1.4rem; content: "+"; display: grid; place-items: center; color: var(--paper-bright); background: var(--ink); font-family: var(--mono); transform: translateY(-50%); }
+    .chain-link:last-child::after { display: none; }
+    .chain-link.broken::before { position: absolute; inset: 0; content: ""; background: linear-gradient(165deg, transparent 47%, var(--signal) 48% 52%, transparent 53%); pointer-events: none; }
+
+    .dark-bleed {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      color: var(--paper-bright);
+      background: var(--ink);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .dark-panel {
+      width: var(--page);
+      margin: 0 auto;
+      padding: clamp(5rem, 10vw, 10rem) 0;
+    }
+
+    .definition {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.42fr);
+      gap: clamp(3rem, 8vw, 8rem);
+      align-items: end;
+    }
+
+    .definition h2 { max-width: 12ch; }
+    .definition h2 span { color: var(--acid); }
+
+    .definition-card {
+      position: relative;
+      padding: 1.5rem;
+      color: var(--ink);
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 8px 8px 0 var(--acid);
+      transform: rotate(1.5deg);
+    }
+
+    .definition-card::before { display: block; margin-bottom: 4rem; content: "M/01"; font-family: var(--mono); font-size: 0.68rem; font-weight: 600; }
+    .definition-card p { margin: 0; font-size: 1.15rem; font-weight: 600; line-height: 1.4; }
+
+    .manifesto-line {
+      margin: clamp(5rem, 9vw, 9rem) 0 0;
+      padding-top: 2rem;
+      border-top: 1px solid rgb(251 248 239 / 0.35);
+      font-family: var(--display);
+      font-size: clamp(2rem, 5.3vw, 5.5rem);
+      letter-spacing: -0.06em;
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .manifesto-line span { color: var(--signal); }
+
+    .loop {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+    }
+
+    .loop::before {
+      position: absolute;
+      left: 6%;
+      right: 6%;
+      top: 2.15rem;
+      z-index: 2;
+      height: 2px;
+      content: "";
+      background: var(--signal);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 1.2s var(--ease);
+    }
+
+    .loop.in-view::before { transform: scaleX(1); }
+
+    .loop-step {
+      position: relative;
+      min-height: 15rem;
+      padding: 4.5rem 1rem 1rem;
+      background: var(--paper-bright);
+    }
+
+    .loop-step::before { position: absolute; left: calc(50% - 0.5rem); top: 1.65rem; z-index: 3; width: 1rem; height: 1rem; content: ""; background: var(--acid); border: 2px solid var(--ink); border-radius: 50%; }
+    .loop-step b { display: block; color: var(--signal); font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em; }
+    .loop-step strong { display: block; margin-top: 2rem; font-family: var(--display); font-size: 1.1rem; letter-spacing: -0.04em; line-height: 1; text-transform: uppercase; }
+    .loop-step p { margin: 0.65rem 0 0; color: var(--ink-soft); font-size: 0.79rem; line-height: 1.45; }
+
+    .network {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+    }
+
+    .network article { min-height: 28rem; padding: clamp(1.25rem, 3vw, 2.25rem); background: var(--paper-bright); }
+    .network article:nth-child(2) { color: var(--paper-bright); background: var(--blue); }
+    .network article:nth-child(3) { background: var(--acid); }
+    .network-tag { font-family: var(--mono); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; }
+    .network article h3 { max-width: 10ch; margin: 8rem 0 0; font-family: var(--display); font-size: clamp(2rem, 4vw, 3.8rem); letter-spacing: -0.06em; line-height: 0.9; text-transform: uppercase; }
+    .network article p { max-width: 28rem; margin: 1.3rem 0 0; line-height: 1.55; }
+
+    .wedge-layout {
+      display: grid;
+      grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.2fr);
+      gap: clamp(3rem, 8vw, 9rem);
+      align-items: center;
+      margin-top: 4rem;
+    }
+
+    .genre-poster {
+      position: relative;
+      min-height: 38rem;
+      overflow: hidden;
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 2px solid var(--ink);
+      box-shadow: 10px 10px 0 var(--signal);
+    }
+
+    .genre-poster::before, .genre-poster::after { position: absolute; content: ""; border: 1px solid var(--paper-bright); border-radius: 50%; }
+    .genre-poster::before { width: 24rem; height: 24rem; right: -9rem; top: -8rem; box-shadow: 0 0 0 2rem rgb(215 255 63 / 0.2), 0 0 0 4rem rgb(255 79 31 / 0.15); }
+    .genre-poster::after { width: 17rem; height: 17rem; left: -8rem; bottom: -7rem; box-shadow: 0 0 0 2rem rgb(251 248 239 / 0.08); }
+    .poster-copy { position: relative; z-index: 2; display: flex; min-height: 38rem; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
+    .poster-copy p { margin: 0; font-family: var(--mono); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+    .poster-copy strong { display: block; color: var(--acid); font-family: var(--display); font-size: clamp(4rem, 8vw, 8rem); letter-spacing: -0.08em; line-height: 0.76; text-transform: uppercase; }
+    .poster-copy strong span { display: block; color: var(--paper-bright); }
+
+    .reason-list { margin: 0; padding: 0; list-style: none; }
+    .reason-list li { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; padding: 1.4rem 0; border-top: 1px solid var(--ink); }
+    .reason-list li:last-child { border-bottom: 1px solid var(--ink); }
+    .reason-list b { color: var(--signal); font-family: var(--mono); font-size: 0.72rem; }
+    .reason-list strong { display: block; font-size: 1.12rem; }
+    .reason-list span { display: block; margin-top: 0.35rem; color: var(--ink-soft); font-size: 0.92rem; }
+
+    .revenue-stack {
+      display: grid;
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+    }
+
+    .revenue-row {
+      display: grid;
+      grid-template-columns: 5rem minmax(12rem, 0.8fr) minmax(0, 1.2fr) auto;
+      gap: 1.2rem;
+      align-items: center;
+      min-height: 7rem;
+      padding: 1.2rem;
+      border-bottom: 1px solid var(--ink);
+      transition: color 180ms ease, background 180ms ease, transform 180ms var(--ease);
+    }
+
+    .revenue-row:last-child { border-bottom: 0; }
+    .revenue-row:hover { color: var(--paper-bright); background: var(--ink); transform: translateX(0.6rem); }
+    .revenue-row .index { color: var(--signal); font-family: var(--mono); font-size: 0.68rem; }
+    .revenue-row strong { font-family: var(--display); font-size: clamp(1.25rem, 2.5vw, 2rem); letter-spacing: -0.045em; line-height: 1; text-transform: uppercase; }
+    .revenue-row p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+    .revenue-row:hover p { color: #aaa597; }
+    .revenue-row .payer { padding: 0.4rem 0.55rem; background: var(--acid); border: 1px solid var(--ink); font-family: var(--mono); font-size: 0.6rem; font-weight: 600; text-transform: uppercase; }
+    .revenue-row:hover .payer { color: var(--ink); }
+
+    .flywheel {
+      position: relative;
+      display: grid;
+      width: min(100%, 66rem);
+      aspect-ratio: 1.7;
+      margin: 4rem auto 0;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .flywheel::before {
+      position: absolute;
+      width: 48%;
+      aspect-ratio: 1;
+      content: "";
+      border: 2px solid var(--signal);
+      border-radius: 50%;
+      box-shadow: 0 0 0 1.8rem rgb(255 79 31 / 0.08), 0 0 0 3.6rem rgb(36 88 255 / 0.06);
+      animation: breathe 4s ease-in-out infinite;
+    }
+
+    .flywheel-center {
+      position: relative;
+      z-index: 3;
+      display: grid;
+      width: 11rem;
+      aspect-ratio: 1;
+      place-items: center;
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--paper-bright);
+      border-radius: 50%;
+      box-shadow: 7px 7px 0 var(--signal);
+      font-family: var(--display);
+      font-size: 1.2rem;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .flywheel-node {
+      position: absolute;
+      z-index: 4;
+      width: min(13rem, 25%);
+      padding: 0.9rem;
+      color: var(--ink);
+      background: var(--acid);
+      border: 2px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--signal);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      line-height: 1.4;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .flywheel-node:nth-of-type(2) { left: 2%; top: 8%; }
+    .flywheel-node:nth-of-type(3) { right: 2%; top: 8%; }
+    .flywheel-node:nth-of-type(4) { left: 0; bottom: 8%; }
+    .flywheel-node:nth-of-type(5) { right: 0; bottom: 8%; }
+    .flywheel-node:nth-of-type(6) { left: 50%; top: 0; transform: translateX(-50%); }
+    .flywheel-node:nth-of-type(7) { left: 50%; bottom: 0; transform: translateX(-50%); }
+
+    .positioning {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+    }
+
+    .positioning > div { min-height: 28rem; padding: clamp(1.5rem, 4vw, 3.5rem); }
+    .positioning .wrong { color: #aaa597; background: var(--ink); }
+    .positioning .right { background: var(--acid); }
+    .positioning-label { display: flex; align-items: center; gap: 0.6rem; font-family: var(--mono); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+    .positioning-label::before { display: grid; width: 1.3rem; height: 1.3rem; place-items: center; border: 1px solid currentColor; border-radius: 50%; }
+    .wrong .positioning-label::before { content: "X"; color: var(--signal); }
+    .right .positioning-label::before { content: "+"; color: var(--blue); }
+    .positioning blockquote { margin: 8rem 0 0; font-family: var(--display); font-size: clamp(2rem, 4.2vw, 4.3rem); letter-spacing: -0.06em; line-height: 0.93; text-transform: uppercase; }
+
+    .partner-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 4rem;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      gap: 2px;
+    }
+
+    .partner-card { position: relative; min-height: 27rem; padding: 1.5rem; overflow: hidden; background: var(--paper-bright); }
+    .partner-card:nth-child(2) { background: var(--wash); }
+    .partner-card:nth-child(3) { color: var(--paper-bright); background: var(--signal); }
+    .partner-card .partner-index { color: var(--signal); font-family: var(--display); font-size: 5rem; letter-spacing: -0.08em; line-height: 0.8; }
+    .partner-card:nth-child(3) .partner-index { color: var(--acid); }
+    .partner-card h3 { margin: 8rem 0 0; font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.8rem); letter-spacing: -0.055em; line-height: 0.92; text-transform: uppercase; }
+    .partner-card p { margin: 1rem 0 0; font-size: 0.92rem; line-height: 1.55; }
+    .partner-card::after { position: absolute; right: -4rem; top: -4rem; width: 8rem; height: 8rem; content: ""; border: 1px solid currentColor; border-radius: 50%; opacity: 0.3; }
+
+    .ask {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.45fr);
+      gap: clamp(3rem, 8vw, 8rem);
+      align-items: end;
+    }
+
+    .ask-copy { font-family: var(--display); font-size: clamp(2.1rem, 5vw, 5.3rem); letter-spacing: -0.06em; line-height: 0.95; text-transform: uppercase; }
+    .ask-copy span { color: var(--signal); }
+    .ask-ticket { padding: 1.5rem; color: var(--ink); background: var(--acid); border: 2px solid var(--paper-bright); box-shadow: 9px 9px 0 var(--signal); }
+    .ask-ticket p { margin: 0; font-family: var(--mono); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
+    .ask-ticket strong { display: block; margin-top: 5rem; font-family: var(--display); font-size: 2rem; letter-spacing: -0.05em; line-height: 1; text-transform: uppercase; }
+    .ask-ticket small { display: block; margin-top: 1rem; font-size: 0.85rem; line-height: 1.5; }
+
+    .analogy {
+      margin-top: clamp(5rem, 9vw, 9rem);
+      padding: clamp(1.8rem, 4vw, 3.5rem);
+      color: var(--ink);
+      background: var(--paper-bright);
+      border: 2px solid var(--paper-bright);
+      box-shadow: 11px 11px 0 var(--blue);
+    }
+
+    .analogy p { margin: 0; font-family: var(--display); font-size: clamp(2rem, 5.2vw, 5rem); letter-spacing: -0.06em; line-height: 0.96; text-transform: uppercase; }
+    .analogy span { color: var(--signal); }
+
+    .finale {
+      position: relative;
+      min-height: 92vh;
+      min-height: 92svh;
+      display: grid;
+      align-content: center;
+      padding: clamp(5rem, 10vw, 10rem) 0;
+      overflow: hidden;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .finale::before {
+      position: absolute;
+      right: -12vw;
+      top: 5%;
+      z-index: -1;
+      width: 55vw;
+      aspect-ratio: 1;
+      content: "";
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      box-shadow: 0 0 0 5vw rgb(255 79 31 / 0.18), 0 0 0 10vw rgb(215 255 63 / 0.18), 0 0 0 15vw rgb(36 88 255 / 0.08);
+    }
+
+    .finale h2 { max-width: 10ch; font-size: clamp(4rem, 11.5vw, 12rem); }
+    .finale h2 span { display: block; color: var(--signal); }
+    .finale-copy { max-width: 49rem; margin: 2.5rem 0 0; font-size: clamp(1.12rem, 2vw, 1.4rem); font-weight: 500; }
+    .finale-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 2.4rem; }
+
+    footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      align-items: end;
+      padding: 2rem 0 3rem;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      line-height: 1.6;
+      text-transform: uppercase;
+    }
+
+    .footer-brand { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 3.8rem); letter-spacing: -0.06em; line-height: 1; }
+    .footer-meta { max-width: 35rem; text-align: right; }
+
+    .reveal { opacity: 0; transform: translateY(2rem); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+    .reveal.in-view { opacity: 1; transform: none; }
+
+    body.presenting .masthead { position: fixed; inset: 5px 0 auto; }
+    body.presenting main > section, body.presenting .dark-bleed { scroll-snap-align: start; }
+    body.presenting { scroll-snap-type: y proximity; }
+    body.presenting .doc-label::after { content: " / Presentation mode"; color: var(--acid); }
+
+    @keyframes strike-in { to { transform: rotate(-2deg) scaleX(1); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { opacity: 0.3; transform: scale(0.7); } }
+    @keyframes wave-in { to { transform: scaleY(1); } }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    @keyframes breathe { 50% { transform: scale(1.04); } }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; }
+      .signal-machine { min-height: 30rem; }
+      .hero::before { right: 1rem; top: 5rem; }
+      .definition, .wedge-layout, .ask { grid-template-columns: 1fr; }
+      .broken-chain { grid-template-columns: repeat(2, 1fr); }
+      .chain-link:last-child { grid-column: 1 / -1; }
+      .loop { grid-template-columns: repeat(2, 1fr); }
+      .loop::before { display: none; }
+      .loop-step:last-child { grid-column: 1 / -1; }
+      .network, .partner-grid { grid-template-columns: 1fr; }
+      .network article, .partner-card { min-height: 20rem; }
+      .network article h3, .partner-card h3 { margin-top: 5rem; }
+      .flywheel { aspect-ratio: 1.1; }
+      .flywheel-node { width: 27%; }
+    }
+
+    @media (max-width: 720px) {
+      :root { --page: min(100% - 1.1rem, 1440px); }
+      .masthead-inner { grid-template-columns: 1fr auto; }
+      .doc-label, .micro-button.secondary { display: none; }
+      .brand-word { display: none; }
+      .hero { padding-top: 3.2rem; }
+      .hero h1 { font-size: clamp(3.15rem, 16.5vw, 5.5rem); }
+      .signal-machine { min-height: 27rem; }
+      .section-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+      .section-kicker { position: static; display: flex; align-items: baseline; gap: 1rem; }
+      .section-number { font-size: 3rem; }
+      .section-label { margin: 0; }
+      .broken-chain, .loop, .positioning { grid-template-columns: minmax(0, 1fr); }
+      .chain-link:last-child, .loop-step:last-child { grid-column: auto; }
+      .chain-link { min-height: 9rem; }
+      .chain-link strong { margin-top: 2.5rem; }
+      .network article { min-height: 18rem; }
+      .genre-poster, .poster-copy { min-height: 30rem; }
+      .revenue-row { grid-template-columns: 2.2rem 1fr auto; }
+      .revenue-row p { grid-column: 2 / -1; }
+      .flywheel { display: flex; aspect-ratio: auto; flex-direction: column; gap: 0.7rem; }
+      .flywheel::before { display: none; }
+      .flywheel-center { margin: 1rem 0; }
+      .flywheel-node { position: static; width: 100%; transform: none !important; }
+      .positioning > div { min-height: 22rem; }
+      .positioning blockquote { margin-top: 5rem; }
+      footer { grid-template-columns: 1fr; }
+      .footer-meta { text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+      .strike-wrap::after { transform: rotate(-2deg) scaleX(1); }
+    }
+
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { color: #000; background: #fff; font-size: 9.5pt; }
+      .reading-progress, .masthead, .hero-actions, .ticker, .finale-actions { display: none !important; }
+      main { width: 100%; }
+      .hero, .section, .dark-panel, .finale { min-height: auto; padding: 14mm 0; break-inside: avoid; }
+      .dark-bleed { width: 100%; margin: 0; color: #000; background: #fff; }
+      .dark-panel { width: 100%; }
+      .signal-machine, .genre-poster, .definition-card, .ask-ticket { box-shadow: none; }
+      .reveal { opacity: 1; transform: none; }
+      .network article, .partner-card, .loop-step, .chain-link { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to pitch</a>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="brand" href="#top" aria-label="Mashups pitch home">
+        <span class="brand-mark">M/</span>
+        <span class="brand-word">Mashups</span>
+      </a>
+      <div class="doc-label">Confidential / Founding Partner &amp; Investor Brief / 2026</div>
+      <div class="header-actions">
+        <button class="micro-button secondary" id="presentButton" type="button">Present</button>
+        <button class="micro-button" id="printButton" type="button">Save PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="top">
+      <div>
+        <p class="eyebrow">The short-form music operating system</p>
+        <h1>Music breaks on social. <span class="signal-line">The system is <span class="strike-wrap">broken.</span></span></h1>
+        <p class="hero-deck">Mashups is the <strong>growth and rights platform</strong> connecting music owners with creators who can turn tracks into culture.</p>
+        <div class="hero-actions">
+          <a class="button" href="#pitch">Run the pitch <span aria-hidden="true">&darr;</span></a>
+          <button class="button ghost" id="copyButton" type="button">Copy 30-second version</button>
+        </div>
+      </div>
+
+      <aside class="signal-machine" aria-label="Music signal visualization">
+        <div class="machine-top"><span>Signal engine / M-01</span><span class="live-dot">Live</span></div>
+        <div class="record-stage">
+          <div class="record" aria-hidden="true"></div>
+          <div class="needle" aria-hidden="true"></div>
+          <div class="waveform" aria-hidden="true">
+            <i style="--h:22%;--delay:40ms"></i><i style="--h:48%;--delay:80ms"></i><i style="--h:75%;--delay:120ms"></i><i style="--h:34%;--delay:160ms"></i><i style="--h:92%;--delay:200ms"></i><i style="--h:57%;--delay:240ms"></i><i style="--h:81%;--delay:280ms"></i><i style="--h:42%;--delay:320ms"></i><i style="--h:69%;--delay:360ms"></i><i style="--h:100%;--delay:400ms"></i><i style="--h:53%;--delay:440ms"></i><i style="--h:86%;--delay:480ms"></i><i style="--h:38%;--delay:520ms"></i><i style="--h:71%;--delay:560ms"></i><i style="--h:28%;--delay:600ms"></i><i style="--h:63%;--delay:640ms"></i><i style="--h:90%;--delay:680ms"></i><i style="--h:44%;--delay:720ms"></i>
+          </div>
+        </div>
+        <div class="machine-copy">
+          <p class="label">The opportunity</p>
+          <strong>Turn attention into attributable demand.</strong>
+        </div>
+      </aside>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>Creation <b>//</b> Rights <b>//</b> Distribution <b>//</b> Attribution <b>//</b> Payment <b>//</b></span>
+        <span>Creation <b>//</b> Rights <b>//</b> Distribution <b>//</b> Attribution <b>//</b> Payment <b>//</b></span>
+      </div>
+    </div>
+
+    <section class="section" id="pitch">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">01</span><span class="section-label">The 30-second<br>elevator pitch</span></div>
+        <div>
+          <h2 class="reveal">Creators break songs. <em>Nobody built the rails.</em></h2>
+          <p class="lead reveal">Short-form creators drive music discovery, but the system behind it is fragmented. Creators struggle to find music they can confidently use. Artists and labels struggle to activate creators and measure what actually drives growth.</p>
+          <p class="lead soft reveal">Mashups brings the loop together. Creators discover licensed tracks, generate platform-ready edits and mashups, publish with instant license proof and attribution, track performance, and earn from successful campaigns. Rights holders launch tracks into creator communities, reward performance, and spot breakout momentum before it is obvious elsewhere.</p>
+
+          <div class="broken-chain reveal" aria-label="The fragmented music marketing workflow">
+            <div class="chain-link"><span>01</span><strong>Create</strong></div>
+            <div class="chain-link broken"><span>02</span><strong>Clear rights</strong></div>
+            <div class="chain-link"><span>03</span><strong>Distribute</strong></div>
+            <div class="chain-link broken"><span>04</span><strong>Attribute</strong></div>
+            <div class="chain-link"><span>05</span><strong>Pay</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="dark-bleed">
+      <section class="dark-panel">
+        <div class="definition">
+          <h2 class="reveal">We are building the operating system for <span>music-powered creator marketing.</span></h2>
+          <aside class="definition-card reveal">
+            <p>Not another editing toy. Not another stock-music library. The infrastructure through which music enters the creator economy.</p>
+          </aside>
+        </div>
+        <p class="manifesto-line reveal">One system to <span>activate, transform, license, attribute, measure</span> and monetize a track.</p>
+      </section>
+    </div>
+
+    <section class="section" id="loop">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">02</span><span class="section-label">The value<br>creation loop</span></div>
+        <div>
+          <h2 class="reveal">From one track to <em>measurable culture.</em></h2>
+          <p class="lead reveal">The product starts with creation. The business compounds through rights, distribution, attribution, data, and repeat participation.</p>
+
+          <div class="loop reveal" aria-label="Mashups operating loop">
+            <article class="loop-step"><b>01 / SOURCE</b><strong>A track enters</strong><p>A rights holder defines the music, usage modes, territory, and campaign objective.</p></article>
+            <article class="loop-step"><b>02 / PACKAGE</b><strong>Hooks get cut</strong><p>Creator-ready edits, stems, prompts, and challenge formats are generated.</p></article>
+            <article class="loop-step"><b>03 / MATCH</b><strong>Creators activate</strong><p>The right creators receive the right track for their audience and format.</p></article>
+            <article class="loop-step"><b>04 / PUBLISH</b><strong>Rights travel</strong><p>Every post carries license proof, attribution, and campaign identity.</p></article>
+            <article class="loop-step"><b>05 / MEASURE</b><strong>Lift resolves</strong><p>Performance ties back to creator, hook, track, campaign, and platform.</p></article>
+            <article class="loop-step"><b>06 / REWARD</b><strong>Value gets shared</strong><p>Creators, collaborators, and rightsholders participate in the upside.</p></article>
+            <article class="loop-step"><b>07 / COMPOUND</b><strong>The next bet improves</strong><p>Every result sharpens matching, packaging, and campaign decisions.</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="network">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">03</span><span class="section-label">The network<br>we connect</span></div>
+        <div>
+          <h2 class="reveal">Every side gets <em>what it cannot buy alone.</em></h2>
+          <div class="network reveal">
+            <article>
+              <span class="network-tag">Creators / Demand</span>
+              <h3>Better music. Safer posts. Real upside.</h3>
+              <p>Licensed tracks, fast creation tools, campaign opportunities, analytics, social proof, and income from performance.</p>
+            </article>
+            <article>
+              <span class="network-tag">Rights holders / Supply</span>
+              <h3>Creator distri&shy;bution with a control panel.</h3>
+              <p>Scalable activation, controlled usage, remix lineage, attributable lift, creator intelligence, and a view into what is breaking now.</p>
+            </article>
+            <article>
+              <span class="network-tag">Brands / Capital</span>
+              <h3>Culture without rights rou&shy;lette.</h3>
+              <p>Music-led creator campaigns with clear permissions, auditable performance, repeatable formats, and programmable rewards.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="wedge">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">04</span><span class="section-label">The opening<br>wedge</span></div>
+        <div>
+          <h2 class="reveal">Start where music is built to <em>move.</em></h2>
+          <div class="wedge-layout">
+            <div class="genre-poster reveal" aria-label="Independent electronic music wedge">
+              <div class="poster-copy">
+                <p>Initial market / 001</p>
+                <strong>Indie<span>Electronic</span></strong>
+                <p>House / Techno / Club / Bass / Dance</p>
+              </div>
+            </div>
+            <div class="reveal">
+              <p class="lead">Independent electronic music gives Mashups the fastest path to a credible network.</p>
+              <ol class="reason-list">
+                <li><b>01</b><div><strong>Naturally remixable</strong><span>Hooks, drops, stems, DJ culture, and versioning are already native behavior.</span></div></li>
+                <li><b>02</b><div><strong>Constant creator demand</strong><span>Fitness, fashion, gaming, nightlife, travel, and event content need energetic audio every day.</span></div></li>
+                <li><b>03</b><div><strong>Faster rights decisions</strong><span>Independent owners can approve experiments without a major-label committee.</span></div></li>
+                <li><b>04</b><div><strong>Globally distributed supply</strong><span>Scenes are fragmented across labels, collectives, DJs, producers, and territories.</span></div></li>
+                <li><b>05</b><div><strong>A clean expansion path</strong><span>Prove repeatable creator lift here, then earn access to larger catalogs.</span></div></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="business">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">05</span><span class="section-label">The business<br>model</span></div>
+        <div>
+          <h2 class="reveal">Monetize the workflow. <em>Own the network.</em></h2>
+          <p class="lead reveal">Revenue begins with software and campaigns, then expands into marketplace economics and infrastructure as the network becomes harder to replace.</p>
+          <div class="revenue-stack reveal">
+            <div class="revenue-row"><span class="index">01</span><strong>Creator subscriptions</strong><p>Premium creation, exports, campaign intelligence, collaboration, and growth tools.</p><span class="payer">Creators</span></div>
+            <div class="revenue-row"><span class="index">02</span><strong>License upgrades</strong><p>Paid media, commercial usage, extended territory, longer windows, and indemnity tiers.</p><span class="payer">Creators / Brands</span></div>
+            <div class="revenue-row"><span class="index">03</span><strong>Campaign commissions</strong><p>Managed activation, creator sourcing, challenge operations, payouts, and reporting.</p><span class="payer">Labels / Brands</span></div>
+            <div class="revenue-row"><span class="index">04</span><strong>Marketplace take rate</strong><p>Revenue share on creator packs, premium catalogs, stems, templates, and performance deals.</p><span class="payer">Network</span></div>
+            <div class="revenue-row"><span class="index">05</span><strong>Teams and enterprise</strong><p>Agency workspaces, rights administration, API access, compliance, and white-label programs.</p><span class="payer">Agencies / Labels</span></div>
+            <div class="revenue-row"><span class="index">06</span><strong>Intelligence layer</strong><p>Actionable market signals built from opt-in, attributed campaign and creative performance.</p><span class="payer">Rights holders</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="dark-bleed" id="moat">
+      <section class="dark-panel">
+        <div class="definition">
+          <h2 class="reveal">The moat is not the editor. <span>It is the graph.</span></h2>
+          <p class="lead reveal" style="color:#aaa597">Creation gets the network moving. Proprietary relationships and attributed outcomes make every future campaign smarter.</p>
+        </div>
+        <div class="flywheel reveal" aria-label="Mashups compounding data and network flywheel">
+          <div class="flywheel-center">Better<br>matching</div>
+          <div class="flywheel-node">More cleared music</div>
+          <div class="flywheel-node">More active creators</div>
+          <div class="flywheel-node">More attributed posts</div>
+          <div class="flywheel-node">More campaign demand</div>
+          <div class="flywheel-node">Better creative signals</div>
+          <div class="flywheel-node">Stronger rights relationships</div>
+        </div>
+        <p class="manifesto-line reveal">Creator history + catalog rights + remix lineage + campaign performance = <span>a system competitors cannot scrape.</span></p>
+      </section>
+    </div>
+
+    <section class="section" id="positioning">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">07</span><span class="section-label">The category<br>we claim</span></div>
+        <div>
+          <h2 class="reveal">Do not pitch the feature. <em>Pitch the infra&shy;structure.</em></h2>
+          <div class="positioning reveal">
+            <div class="wrong">
+              <span class="positioning-label">Sounds small. Invites legal fear.</span>
+              <blockquote>"We are an app for making mashups."</blockquote>
+            </div>
+            <div class="right">
+              <span class="positioning-label">The category-defining frame.</span>
+              <blockquote>"Mashups is a licensed creator-distribution network for music."</blockquote>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="partner">
+      <div class="section-grid">
+        <div class="section-kicker reveal"><span class="section-number">08</span><span class="section-label">The founding<br>partner ask</span></div>
+        <div>
+          <h2 class="reveal">Help us own one side of the <em>market.</em></h2>
+          <p class="lead reveal">The ideal founding partner does more than admire the vision. They create structural advantage in one of the three places that matter most.</p>
+          <div class="partner-grid reveal">
+            <article class="partner-card"><span class="partner-index">A</span><h3>Music rights and catalog</h3><p>Open independent-label relationships, shape scalable deal structures, and turn licensing from a blocker into distribution leverage.</p></article>
+            <article class="partner-card"><span class="partner-index">B</span><h3>Creator distribution</h3><p>Build communities, cohorts, challenges, agency channels, and repeat creator activation at a speed rights holders cannot reproduce.</p></article>
+            <article class="partner-card"><span class="partner-index">C</span><h3>Commercial firepower</h3><p>Bring brands, sponsorships, label budgets, partnerships, and the operating discipline that converts network activity into revenue.</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="dark-bleed">
+      <section class="dark-panel">
+        <div class="ask">
+          <p class="ask-copy reveal">We have the chance to build the company that sits <span>between music and the creator economy.</span></p>
+          <aside class="ask-ticket reveal">
+            <p>Founding partner / Seat 01</p>
+            <strong>Bring an unfair advantage.</strong>
+            <small>Rights supply. Creator demand. Commercial distribution. Pick the side you can make undeniable.</small>
+          </aside>
+        </div>
+        <div class="analogy reveal">
+          <p>Part <span>Canva.</span> Part creator marketplace. Part licensing and attribution infrastructure. Built to turn music into short-form culture.</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="finale" id="vision">
+      <p class="eyebrow reveal">The long-term vision</p>
+      <h2 class="reveal">Music enters <span>culture here.</span></h2>
+      <p class="finale-copy reveal">The goal is not merely to help someone combine two songs. It is to build the system through which tracks are activated, transformed, licensed, attributed, measured, monetized, and ultimately broken into the mainstream.</p>
+      <div class="finale-actions reveal">
+        <button class="button" id="copyFinalButton" type="button">Copy the elevator pitch</button>
+        <button class="button ghost" type="button" onclick="window.print()">Export the brief</button>
+      </div>
+    </section>
+  </main>
+
+  <footer style="width:var(--page);margin:0 auto">
+    <div class="footer-brand">Mashups / Make the sound. Prove the lift.</div>
+    <div class="footer-meta">Founding partner and investor brief<br>Private working document / August 2026</div>
+  </footer>
+
+  <script>
+    const elevatorPitch = "Short-form creators drive music discovery, but the system behind it is broken. Creators struggle to find music they can confidently use, while artists and labels struggle to activate creators and measure what actually drives growth. Mashups brings the entire loop together: creators discover licensed tracks, generate platform-ready edits and mashups, publish with instant license proof and attribution, then track performance and earn from successful campaigns. Rights holders launch tracks into creator communities, reward performance, and identify breakout momentum early. We are building the operating system for music-powered creator marketing.";
+
+    const progress = document.getElementById("progress");
+    const updateProgress = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = scrollable > 0 ? window.scrollY / scrollable : 0;
+      progress.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+    };
+
+    const copyPitch = async (button) => {
+      const original = button.textContent;
+      try {
+        await navigator.clipboard.writeText(elevatorPitch);
+        button.textContent = "Pitch copied";
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = elevatorPitch;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        button.textContent = "Pitch copied";
+      }
+      window.setTimeout(() => { button.textContent = original; }, 1800);
+    };
+
+    document.getElementById("copyButton").addEventListener("click", (event) => copyPitch(event.currentTarget));
+    document.getElementById("copyFinalButton").addEventListener("click", (event) => copyPitch(event.currentTarget));
+    document.getElementById("printButton").addEventListener("click", () => window.print());
+
+    document.getElementById("presentButton").addEventListener("click", (event) => {
+      document.body.classList.toggle("presenting");
+      event.currentTarget.textContent = document.body.classList.contains("presenting") ? "Exit mode" : "Present";
+      if (document.body.classList.contains("presenting")) document.getElementById("top").scrollIntoView();
+    });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8%" });
+
+    document.querySelectorAll(".reveal, .loop").forEach((element) => revealObserver.observe(element));
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    updateProgress();
+  </script>
+</body>
+</html>
