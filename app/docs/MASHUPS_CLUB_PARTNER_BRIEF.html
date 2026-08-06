@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mashups Club founding-label pilot: a controlled creator campaign for independent electronic music releases.">
+  <meta name="theme-color" content="#f2efe5">
+  <title>Mashups Club - Founding Label Pilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f2efe5;
+      --paper-bright: #fbf8ef;
+      --ink: #13130f;
+      --ink-soft: #625f56;
+      --signal: #ff4f1f;
+      --acid: #d7ff3f;
+      --blue: #2458ff;
+      --wash: #e5e0d3;
+      --display: "Archivo Black", "Arial Black", sans-serif;
+      --sans: "Space Grotesk", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+      --page: min(1240px, calc(100vw - 2rem));
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: clip;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgb(19 19 15 / 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 5% 5%, rgb(255 79 31 / 0.16), transparent 26rem),
+        radial-gradient(circle at 96% 34%, rgb(36 88 255 / 0.09), transparent 25rem);
+      background-size: 100% 24px, auto, auto;
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.65;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection { color: var(--ink); background: var(--acid); }
+
+    a {
+      color: inherit;
+      text-decoration-color: var(--signal);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 0.24em;
+    }
+
+    a:hover { color: var(--signal); }
+
+    a:focus-visible,
+    button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+
+    button { color: inherit; font: inherit; }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 999;
+      height: 5px;
+      background: var(--wash);
+    }
+
+    .reading-progress span { display: block; width: 0; height: 100%; background: var(--signal); }
+
+    .masthead {
+      position: sticky;
+      top: 5px;
+      z-index: 100;
+      color: var(--paper-bright);
+      background: rgb(19 19 15 / 0.96);
+      border-bottom: 1px solid var(--ink);
+      backdrop-filter: blur(14px);
+    }
+
+    .masthead-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      width: var(--page);
+      min-height: 4.35rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--paper-bright);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.15rem;
+      height: 2.15rem;
+      place-items: center;
+      color: var(--ink);
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      font-family: var(--display);
+      font-size: 0.9rem;
+      transform: rotate(-4deg);
+    }
+
+    .brand-word { font-family: var(--display); font-size: 1rem; letter-spacing: -0.04em; text-transform: uppercase; }
+
+    .doc-label {
+      overflow: hidden;
+      color: #aaa597;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.11em;
+      text-align: center;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .print-button {
+      min-height: 2.45rem;
+      padding: 0.52rem 0.75rem;
+      color: var(--ink);
+      background: var(--acid);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 3px 3px 0 var(--signal);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    main { width: var(--page); margin: 0 auto; }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
+      gap: clamp(2rem, 7vw, 7rem);
+      align-items: center;
+      min-height: calc(100vh - 4.35rem);
+      min-height: calc(100svh - 4.35rem);
+      padding: clamp(4rem, 9vw, 8rem) 0 4rem;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.69rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 0.62rem;
+      height: 0.62rem;
+      content: "";
+      background: var(--signal);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(255 79 31 / 0.18);
+    }
+
+    .hero h1 {
+      max-width: 10ch;
+      margin: 1.6rem 0 0;
+      font-family: var(--display);
+      font-size: clamp(3.35rem, 9vw, 8.7rem);
+      letter-spacing: -0.075em;
+      line-height: 0.85;
+      text-transform: uppercase;
+    }
+
+    .hero h1 span { display: block; color: var(--signal); }
+
+    .hero-deck {
+      max-width: 50rem;
+      margin: 2rem 0 0;
+      font-size: clamp(1.12rem, 1.9vw, 1.45rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.43;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 2.3rem; }
+
+    .button {
+      display: inline-flex;
+      min-height: 3rem;
+      align-items: center;
+      justify-content: center;
+      padding: 0.72rem 1rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 5px 5px 0 var(--signal);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .button.alt { color: var(--ink); background: var(--acid); box-shadow: none; }
+
+    .button:hover { color: var(--paper-bright); transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--blue); }
+
+    .button.alt:hover { color: var(--ink); }
+
+    .campaign-ticket {
+      position: relative;
+      padding: 1.8rem;
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 3px solid var(--ink);
+      box-shadow: 11px 11px 0 var(--ink);
+      transform: rotate(1.5deg);
+    }
+
+    .campaign-ticket::before,
+    .campaign-ticket::after {
+      position: absolute;
+      left: -0.9rem;
+      width: 1.6rem;
+      height: 1.6rem;
+      content: "";
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .campaign-ticket::before { top: 4rem; }
+    .campaign-ticket::after { bottom: 4rem; }
+
+    .ticket-label { margin: 0 0 2rem; font-family: var(--mono); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .ticket-value {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(1.65rem, 2.6vw, 2.2rem);
+      letter-spacing: -0.06em;
+      line-height: 0.88;
+      text-transform: uppercase;
+    }
+
+    .ticket-value span {
+      display: grid;
+      grid-template-columns: 1.6em minmax(0, 1fr);
+      gap: 0.15rem;
+      align-items: baseline;
+    }
+
+    .ticket-value strong { color: var(--acid); font-size: 1.25em; }
+
+    .ticket-list { margin: 2rem 0 0; padding: 1.2rem 0 0; border-top: 1px solid var(--paper-bright); font-family: var(--mono); font-size: 0.7rem; line-height: 1.8; list-style: none; }
+
+    .ticket-list li::before { margin-right: 0.55rem; color: var(--acid); content: "+"; font-weight: 700; }
+
+    .section {
+      padding: clamp(5rem, 10vw, 9rem) 0;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 5rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .section-number { padding-top: 0.3rem; color: var(--signal); font-family: var(--mono); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.11em; }
+
+    .section h2 {
+      max-width: 18ch;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(2.45rem, 5.5vw, 5.6rem);
+      letter-spacing: -0.065em;
+      line-height: 0.92;
+      text-transform: uppercase;
+    }
+
+    .section h3 { margin: 0 0 1rem; font-family: var(--display); font-size: clamp(1.35rem, 2.4vw, 2.1rem); letter-spacing: -0.045em; line-height: 1.02; text-transform: uppercase; }
+
+    .lead { max-width: 58rem; margin-top: 0; font-size: clamp(1.2rem, 2vw, 1.6rem); font-weight: 500; letter-spacing: -0.025em; line-height: 1.43; }
+
+    .problem-grid,
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 2.8rem;
+      border: 2px solid var(--ink);
+    }
+
+    .problem-grid section,
+    .value-grid section { min-height: 15rem; padding: clamp(1.4rem, 3vw, 2rem); border-right: 1px solid var(--ink); }
+
+    .problem-grid section:last-child,
+    .value-grid section:last-child { border-right: 0; }
+
+    .problem-grid section:nth-child(2) { background: var(--wash); }
+    .value-grid section:nth-child(2) { color: var(--paper-bright); background: var(--ink); }
+    .value-grid section:last-child { background: var(--acid); }
+
+    .problem-grid p,
+    .value-grid p { margin-bottom: 0; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-top: 2.8rem;
+      border: 2px solid var(--ink);
+    }
+
+    .flow-step { min-height: 12rem; padding: 1.25rem; border-right: 1px solid var(--ink); }
+
+    .flow-step:last-child { border-right: 0; background: var(--acid); }
+
+    .flow-step strong { display: block; margin-bottom: 2rem; color: var(--signal); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; }
+
+    .flow-step span { display: block; font-family: var(--display); font-size: 1.08rem; letter-spacing: -0.03em; line-height: 1.05; text-transform: uppercase; }
+
+    .control-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      max-width: 62rem;
+      margin: 2.8rem 0 0;
+      padding: 0;
+      border-top: 2px solid var(--ink);
+      list-style: none;
+    }
+
+    .control-list li { position: relative; margin: 0; padding: 1.1rem 1rem 1.1rem 2.4rem; border-bottom: 1px solid var(--ink); font-weight: 600; }
+
+    .control-list li::before { position: absolute; left: 0.8rem; color: var(--signal); content: "\2713"; font-family: var(--mono); font-weight: 700; }
+
+    .outcomes {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 2.8rem;
+      border: 2px solid var(--ink);
+    }
+
+    .outcome { min-height: 13rem; padding: 1.35rem; border-right: 1px solid var(--ink); }
+
+    .outcome:last-child { border-right: 0; background: var(--signal); color: var(--paper-bright); }
+
+    .outcome strong { display: block; font-family: var(--display); font-size: clamp(2.5rem, 5vw, 4.7rem); letter-spacing: -0.07em; line-height: 0.9; }
+
+    .outcome span { display: block; margin-top: 1.2rem; font-family: var(--mono); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.07em; line-height: 1.45; text-transform: uppercase; }
+
+    .promise {
+      margin: 3rem 0 0;
+      padding: clamp(1.6rem, 4vw, 3rem);
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 2px solid var(--ink);
+      box-shadow: 8px 8px 0 var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.5rem, 3.4vw, 3.4rem);
+      letter-spacing: -0.05em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .cta {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.6fr);
+      gap: 2rem;
+      align-items: end;
+      padding: clamp(5rem, 10vw, 9rem) 0;
+    }
+
+    .cta h2 { max-width: 12ch; margin: 0; font-family: var(--display); font-size: clamp(3rem, 8vw, 8rem); letter-spacing: -0.075em; line-height: 0.86; text-transform: uppercase; }
+
+    .cta h2 span { color: var(--signal); }
+
+    .cta-panel { padding: 1.6rem; background: var(--acid); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); }
+
+    .cta-panel p { margin-top: 0; }
+
+    .fine-print { max-width: 65rem; margin: 2rem 0 0; color: var(--ink-soft); font-family: var(--mono); font-size: 0.65rem; line-height: 1.6; }
+
+    .footer { padding: 2rem 0 3rem; border-top: 2px solid var(--ink); font-family: var(--mono); font-size: 0.67rem; letter-spacing: 0.07em; text-transform: uppercase; }
+
+    .footer-inner { display: flex; gap: 2rem; justify-content: space-between; }
+
+    .reveal { opacity: 0; transform: translateY(20px); animation: reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .reveal:nth-child(2) { animation-delay: 90ms; }
+    .reveal:nth-child(3) { animation-delay: 170ms; }
+    .reveal:nth-child(4) { animation-delay: 240ms; }
+
+    @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .campaign-ticket { max-width: 31rem; }
+      .problem-grid,
+      .value-grid { grid-template-columns: 1fr; }
+      .problem-grid section,
+      .value-grid section { min-height: 0; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .problem-grid section:last-child,
+      .value-grid section:last-child { border-bottom: 0; }
+      .flow { grid-template-columns: repeat(5, minmax(9rem, 1fr)); overflow-x: auto; }
+      .cta { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      :root { --page: min(100% - 1.1rem, 1240px); }
+      .masthead-inner { grid-template-columns: auto 1fr; }
+      .doc-label { display: none; }
+      .hero { min-height: auto; }
+      .hero h1 { font-size: clamp(3.2rem, 17vw, 6rem); }
+      .section-head { grid-template-columns: 3.2rem minmax(0, 1fr); }
+      .control-list { grid-template-columns: 1fr; }
+      .outcomes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .outcome:nth-child(2) { border-right: 0; }
+      .outcome:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+      .footer-inner { flex-direction: column; }
+    }
+
+    @media (max-width: 450px) {
+      .brand-word { display: none; }
+      .outcomes { grid-template-columns: 1fr; }
+      .outcome { min-height: 0; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .outcome:last-child { border-bottom: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media print {
+      @page { margin: 0.55in; }
+      body { background: var(--paper); font-size: 9pt; }
+      .reading-progress,
+      .masthead,
+      .hero-actions { display: none !important; }
+      main { width: 100%; }
+      .hero { min-height: 9in; break-after: page; }
+      .section { min-height: 8.8in; break-before: page; }
+      .section h2 { font-size: 34pt; }
+      .cta { min-height: 8.8in; break-before: page; }
+      .button { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="brand" href="#top" aria-label="Mashups Club home">
+        <span class="brand-mark">M</span>
+        <span class="brand-word">Mashups</span>
+      </a>
+      <p class="doc-label">Founding-label pilot / independent electronic music</p>
+      <button class="print-button" type="button" onclick="window.print()">Print / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow reveal">For independent electronic labels</p>
+        <h1 class="reveal" id="hero-title">One release. <span>Real signal.</span></h1>
+        <p class="hero-deck reveal">Mashups turns one approved track into a controlled creator campaign: three hook cuts, matched creators, explicit rights, official-sound attribution, and evidence showing what deserves to scale.</p>
+        <div class="hero-actions reveal">
+          <a class="button" href="#pilot">See the pilot</a>
+          <a class="button alt" href="https://mashups.agency">Visit Mashups</a>
+        </div>
+      </div>
+      <aside class="campaign-ticket reveal" aria-label="Pilot summary">
+        <p class="ticket-label">Founding-label pilot / 01 track</p>
+        <p class="ticket-value"><span><strong>3</strong> hooks</span><span><strong>25</strong> creators</span><span><strong>30</strong> days</span></p>
+        <ul class="ticket-list">
+          <li>Partner-approved context</li>
+          <li>Campaign-specific rights proof</li>
+          <li>Seven-day and 30-day reports</li>
+          <li>Qualified posts, never fake guarantees</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="section" id="problem">
+      <div class="section-head"><span class="section-number">01</span><h2>Release marketing has a signal problem</h2></div>
+      <p class="lead">A label can commission posts and still finish a campaign without knowing which hook worked, which creator audience mattered, whether attribution consolidated, or what to repeat next.</p>
+      <div class="problem-grid">
+        <section><h3>Too much guesswork</h3><p>Teams choose one clip, send broad briefs, and discover creative fit only after the release window is moving.</p></section>
+        <section><h3>Too little control</h3><p>Creator context, commercial use, platform availability, and claim handling are often split across email threads and vendors.</p></section>
+        <section><h3>Weak evidence</h3><p>Raw views and follower counts do not explain whether a post outperformed that creator's normal content or generated repeatable lift.</p></section>
+      </div>
+    </section>
+
+    <section class="section" id="opportunity">
+      <div class="section-head"><span class="section-number">02</span><h2>Mashups makes the release testable</h2></div>
+      <p class="lead">We combine hook strategy, creator activation, rights operations, attribution, and performance reporting in one bounded campaign.</p>
+      <div class="value-grid">
+        <section><h3>Before launch</h3><p>Identify three high-potential 8-15 second moments and match each to native creator behaviors.</p></section>
+        <section><h3>During activation</h3><p>Recruit verified creators, enforce approved contexts, issue usage proof, and map every post to the official sound where possible.</p></section>
+        <section><h3>After publication</h3><p>Compare hooks, niches, and treatments against creator baselines and show the label where follow-on budget has the strongest evidence.</p></section>
+      </div>
+      <div class="promise">The label keeps control. Mashups supplies execution and evidence.</div>
+    </section>
+
+    <section class="section" id="pilot">
+      <div class="section-head"><span class="section-number">03</span><h2>The founding-label pilot</h2></div>
+      <p class="lead">Start with one release. Keep the grant narrow. Learn enough to make the next campaign smarter.</p>
+      <div class="flow" aria-label="Campaign workflow">
+        <div class="flow-step"><strong>01</strong><span>Nominate one release</span></div>
+        <div class="flow-step"><strong>02</strong><span>Approve three hooks</span></div>
+        <div class="flow-step"><strong>03</strong><span>Select creator lanes</span></div>
+        <div class="flow-step"><strong>04</strong><span>Publish with proof</span></div>
+        <div class="flow-step"><strong>05</strong><span>Read the lift report</span></div>
+      </div>
+      <ul class="control-list">
+        <li>One track and one 30-day creation window</li>
+        <li>Three partner-approved hook cuts</li>
+        <li>Ten to 25 matched creators</li>
+        <li>TikTok, Reels, and Shorts where supported</li>
+        <li>Organic posts unless broader rights are added</li>
+        <li>Campaign-specific license record</li>
+        <li>Official sound and Content ID operations</li>
+        <li>Seven-day and 30-day reporting</li>
+      </ul>
+    </section>
+
+    <section class="section" id="control">
+      <div class="section-head"><span class="section-number">04</span><h2>Control stays with the music team</h2></div>
+      <p class="lead">The standard pilot is not an unrestricted remix grant, permanent catalog license, or automatic permission for advertising.</p>
+      <ul class="control-list">
+        <li>Approve or reject every hook</li>
+        <li>Choose permitted creator categories</li>
+        <li>Exclude sensitive content and contexts</li>
+        <li>Set platforms, territories, and term</li>
+        <li>Separate organic and sponsored use</li>
+        <li>Separate creator posts and paid media</li>
+        <li>Define editing and remix permissions</li>
+        <li>Nominate a claims and Content ID contact</li>
+      </ul>
+      <p class="fine-print">Public activation requires confirmed authority for both the sound recording and underlying composition, plus any samples, interpolations, featured performers, and other approvals relevant to the campaign. Mashups does not treat delivery to a social platform as proof of commercial clearance.</p>
+    </section>
+
+    <section class="section" id="measurement">
+      <div class="section-head"><span class="section-number">05</span><h2>Measure what should happen next</h2></div>
+      <p class="lead">The report is designed to support a decision, not decorate a recap deck.</p>
+      <div class="outcomes">
+        <div class="outcome"><strong>Hook</strong><span>Which approved moment traveled furthest?</span></div>
+        <div class="outcome"><strong>Fit</strong><span>Which creator niche made the record feel native?</span></div>
+        <div class="outcome"><strong>Lift</strong><span>Which posts beat the creator's recent baseline?</span></div>
+        <div class="outcome"><strong>Next</strong><span>What should the label fund, repeat, or stop?</span></div>
+      </div>
+      <p class="fine-print">Mashups guarantees only the campaign deliverables written into the final order, such as qualified creator posts. It does not guarantee views, streams, chart position, virality, or commercial success. Fraud, deletion, claims, and post-survival rules are defined before activation.</p>
+    </section>
+
+    <section class="cta" id="next-step">
+      <h2>Bring one track. <span>Leave with signal.</span></h2>
+      <div class="cta-panel">
+        <h3>Founding-label next step</h3>
+        <p>Nominate one release scheduled four to eight weeks ahead. Mashups will evaluate hook utility, creator fit, rights readiness, and platform operations before proposing a campaign.</p>
+        <a class="button" href="https://mashups.agency">Start at mashups.agency</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <span>Mashups Club / independent electronic release campaigns</span>
+        <span>Track -> hook -> rights -> lift</span>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const progressBar = document.getElementById("progress-bar");
+
+    function updateProgress() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
+      progressBar.style.width = `${progress * 100}%`;
+    }
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+  </script>
+</body>
+</html>

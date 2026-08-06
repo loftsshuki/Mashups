@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mashups Club electronic music entry strategy, label outreach system, pilot offer, scripts, qualification model, and 90-day execution plan.">
+  <meta name="theme-color" content="#f2efe5">
+  <title>Mashups Club - Electronic Music Go-to-Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f2efe5;
+      --paper-bright: #fbf8ef;
+      --ink: #13130f;
+      --ink-soft: #625f56;
+      --signal: #ff4f1f;
+      --acid: #d7ff3f;
+      --blue: #2458ff;
+      --wash: #e5e0d3;
+      --line: #1b1b16;
+      --display: "Archivo Black", "Arial Black", sans-serif;
+      --sans: "Space Grotesk", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+      --page: min(1440px, calc(100vw - 2rem));
+      --measure: 74ch;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 6rem;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: clip;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgb(19 19 15 / 0.045) 1px, transparent 1px),
+        radial-gradient(circle at 4% 7%, rgb(255 79 31 / 0.16), transparent 27rem),
+        radial-gradient(circle at 96% 28%, rgb(36 88 255 / 0.1), transparent 30rem);
+      background-size: 100% 24px, auto, auto;
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.7;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection { color: var(--ink); background: var(--acid); }
+
+    a {
+      color: inherit;
+      text-decoration-color: var(--signal);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 0.24em;
+    }
+
+    a:hover { color: var(--signal); }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 4px;
+    }
+
+    button { color: inherit; font: inherit; }
+
+    .skip-link {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 1000;
+      padding: 0.65rem 0.9rem;
+      color: var(--paper-bright);
+      background: var(--signal);
+      border: 2px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      transform: translateY(-180%);
+      transition: transform 160ms cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 999;
+      height: 5px;
+      background: var(--wash);
+    }
+
+    .reading-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--signal);
+      transform-origin: left;
+    }
+
+    .masthead {
+      position: sticky;
+      top: 5px;
+      z-index: 100;
+      color: var(--paper-bright);
+      background: rgb(19 19 15 / 0.96);
+      border-bottom: 1px solid var(--ink);
+      backdrop-filter: blur(14px);
+    }
+
+    .masthead-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      width: var(--page);
+      min-height: 4.4rem;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--paper-bright);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.2rem;
+      height: 2.2rem;
+      place-items: center;
+      color: var(--ink);
+      background: var(--signal);
+      border: 1px solid var(--paper-bright);
+      font-family: var(--display);
+      font-size: 0.9rem;
+      line-height: 1;
+      transform: rotate(-4deg);
+    }
+
+    .brand-word {
+      font-family: var(--display);
+      font-size: 1rem;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .doc-label {
+      overflow: hidden;
+      color: #aaa597;
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .header-actions { display: flex; gap: 0.65rem; }
+
+    .header-button {
+      min-height: 2.45rem;
+      padding: 0.52rem 0.75rem;
+      color: var(--ink);
+      background: var(--acid);
+      border: 1px solid var(--paper-bright);
+      box-shadow: 3px 3px 0 var(--signal);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .header-button.secondary {
+      color: var(--paper-bright);
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .header-button:hover {
+      color: var(--ink);
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--signal);
+    }
+
+    .header-button.secondary:hover { color: var(--paper-bright); }
+
+    main { width: var(--page); margin: 0 auto; }
+
+    .cover {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+      gap: clamp(2rem, 6vw, 7rem);
+      align-items: center;
+      min-height: calc(100vh - 4.4rem);
+      min-height: calc(100svh - 4.4rem);
+      padding: clamp(4rem, 8vw, 7.5rem) 0 4rem;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .cover::after {
+      position: absolute;
+      right: clamp(0rem, 4vw, 3rem);
+      bottom: -1.4rem;
+      min-width: clamp(12rem, 23vw, 20rem);
+      height: 2.8rem;
+      padding-inline: 1rem;
+      content: "HOUSE FIRST / TECHNO NEXT";
+      color: var(--paper-bright);
+      background: var(--blue);
+      border: 2px solid var(--ink);
+      box-shadow: 5px 5px 0 var(--ink);
+      font-family: var(--mono);
+      font-size: clamp(0.55rem, 1vw, 0.72rem);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      line-height: 2.65rem;
+      text-align: center;
+      transform: rotate(1.5deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 0.65rem;
+      height: 0.65rem;
+      content: "";
+      background: var(--signal);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgb(255 79 31 / 0.18);
+    }
+
+    .cover h1 {
+      max-width: 11ch;
+      margin: 1.6rem 0 0;
+      font-family: var(--display);
+      font-size: clamp(3.35rem, 8.7vw, 9.3rem);
+      letter-spacing: -0.075em;
+      line-height: 0.84;
+      text-transform: uppercase;
+    }
+
+    .cover h1 span { display: block; color: var(--signal); }
+
+    .cover-deck {
+      max-width: 57rem;
+      margin: 2.1rem 0 0;
+      font-size: clamp(1.08rem, 1.65vw, 1.42rem);
+      line-height: 1.45;
+    }
+
+    .cover-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.3rem;
+      margin-top: 2.5rem;
+      font-family: var(--mono);
+      font-size: 0.69rem;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .cover-meta span { padding-bottom: 0.18rem; border-bottom: 2px solid var(--ink); }
+
+    .record-wrap {
+      position: relative;
+      display: grid;
+      min-height: 30rem;
+      place-items: center;
+    }
+
+    .record {
+      position: relative;
+      width: min(29vw, 24rem);
+      min-width: 17rem;
+      aspect-ratio: 1;
+      background:
+        radial-gradient(circle, var(--acid) 0 5%, var(--ink) 5.4% 9%, var(--signal) 9.4% 20%, transparent 20.4%),
+        repeating-radial-gradient(circle, #282820 0 2px, var(--ink) 3px 7px);
+      border: 3px solid var(--ink);
+      border-radius: 50%;
+      box-shadow: 14px 14px 0 var(--blue);
+    }
+
+    .record::before,
+    .record::after {
+      position: absolute;
+      content: "";
+      background: var(--paper-bright);
+      border: 2px solid var(--ink);
+    }
+
+    .record::before {
+      top: -2rem;
+      right: -1rem;
+      width: 5rem;
+      height: 8.5rem;
+      transform: rotate(24deg);
+    }
+
+    .record::after {
+      right: -2.5rem;
+      bottom: 0.5rem;
+      width: 7rem;
+      height: 2.1rem;
+      background: var(--acid);
+      transform: rotate(-7deg);
+    }
+
+    .record-note {
+      position: absolute;
+      left: 0;
+      bottom: 1.5rem;
+      max-width: 15rem;
+      padding: 0.8rem 1rem;
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 5px 5px 0 var(--signal);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      line-height: 1.5;
+      text-transform: uppercase;
+      transform: rotate(-2deg);
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: 0.65fr 2.35fr;
+      gap: 2rem;
+      padding: clamp(5rem, 9vw, 8rem) 0 clamp(4rem, 8vw, 7rem);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .toc h2,
+    .toc p { margin: 0; }
+
+    .toc h2 {
+      max-width: 7ch;
+      font-family: var(--display);
+      font-size: clamp(2.1rem, 4vw, 4.3rem);
+      letter-spacing: -0.055em;
+      line-height: 0.93;
+      text-transform: uppercase;
+    }
+
+    .toc ol {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      border-top: 2px solid var(--ink);
+      list-style: none;
+      counter-reset: toc;
+    }
+
+    .toc li { border-bottom: 1px solid var(--line); counter-increment: toc; }
+
+    .toc a {
+      display: flex;
+      min-height: 4.6rem;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.8rem 0.7rem;
+      font-weight: 650;
+      line-height: 1.2;
+      text-decoration: none;
+      transition: color 140ms ease, background 140ms ease;
+    }
+
+    .toc a::before {
+      content: counter(toc, decimal-leading-zero);
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 0.63rem;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] { color: var(--ink); background: var(--acid); }
+
+    .document-grid {
+      display: grid;
+      grid-template-columns: minmax(11rem, 0.58fr) minmax(0, 2.42fr);
+      gap: clamp(2rem, 6vw, 7rem);
+      padding-top: clamp(5rem, 8vw, 8rem);
+    }
+
+    .document-grid > * { min-width: 0; }
+
+    .side-rail { position: relative; }
+
+    .side-note {
+      position: sticky;
+      top: 7rem;
+      padding-top: 0.8rem;
+      border-top: 4px solid var(--signal);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      line-height: 1.6;
+      text-transform: uppercase;
+    }
+
+    .side-note strong { display: block; margin-bottom: 0.55rem; font-family: var(--display); font-size: 1.15rem; letter-spacing: -0.03em; }
+
+    .chapter {
+      max-width: 65rem;
+      padding: 0 0 clamp(5rem, 9vw, 8rem);
+      margin-bottom: clamp(4.5rem, 8vw, 7rem);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .chapter:last-child { margin-bottom: 0; border-bottom: 0; }
+
+    .chapter-header {
+      display: grid;
+      grid-template-columns: 5rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .chapter-number {
+      padding-top: 0.25rem;
+      color: var(--signal);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    .chapter h2 {
+      max-width: 17ch;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(2.35rem, 5vw, 5.4rem);
+      letter-spacing: -0.065em;
+      line-height: 0.92;
+      text-transform: uppercase;
+    }
+
+    .chapter h3 {
+      max-width: 28ch;
+      margin: 3.2rem 0 1rem;
+      font-family: var(--display);
+      font-size: clamp(1.3rem, 2.2vw, 2.05rem);
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+      text-transform: uppercase;
+    }
+
+    .chapter p,
+    .chapter ul,
+    .chapter ol { max-width: var(--measure); }
+
+    .chapter ul,
+    .chapter ol { padding-left: 1.25rem; }
+
+    .chapter li { margin: 0.5rem 0; padding-left: 0.3rem; }
+
+    .lead {
+      margin-top: 0;
+      font-size: clamp(1.2rem, 2vw, 1.62rem);
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 1.42;
+    }
+
+    .signal-box {
+      max-width: 58rem;
+      margin: 2.2rem 0;
+      padding: clamp(1.4rem, 3vw, 2.4rem);
+      background: var(--acid);
+      border: 2px solid var(--ink);
+      box-shadow: 8px 8px 0 var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.35rem, 2.7vw, 2.55rem);
+      letter-spacing: -0.045em;
+      line-height: 1.04;
+      text-transform: uppercase;
+      transform: rotate(-0.35deg);
+    }
+
+    .signal-box.orange { color: var(--paper-bright); background: var(--signal); }
+
+    .signal-box.blue { color: var(--paper-bright); background: var(--blue); }
+
+    .note {
+      max-width: var(--measure);
+      padding: 1rem 1.2rem;
+      background: var(--paper-bright);
+      border: 1px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      line-height: 1.65;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 2.5rem 0;
+      border: 2px solid var(--ink);
+    }
+
+    .comparison > section { padding: clamp(1.4rem, 3vw, 2.4rem); }
+
+    .comparison > section:first-child { color: var(--paper-bright); background: var(--ink); }
+
+    .comparison > section:last-child { background: var(--acid); }
+
+    .comparison h3 { margin-top: 0; }
+
+    .comparison ul { margin-bottom: 0; }
+
+    .table-wrap {
+      max-width: 100%;
+      margin: 2.2rem 0;
+      overflow-x: auto;
+      border: 2px solid var(--ink);
+      background: var(--paper-bright);
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 44rem; }
+
+    th,
+    td {
+      padding: 0.9rem 1rem;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:last-child,
+    td:last-child { border-right: 0; }
+
+    tr:last-child td { border-bottom: 0; }
+
+    th {
+      color: var(--paper-bright);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    td { font-size: 0.91rem; line-height: 1.55; }
+
+    tbody tr:nth-child(even) { background: var(--wash); }
+
+    .fit-bars {
+      display: grid;
+      gap: 0.9rem;
+      max-width: 58rem;
+      margin: 2.2rem 0;
+    }
+
+    .fit-row {
+      display: grid;
+      grid-template-columns: minmax(9rem, 0.7fr) minmax(12rem, 2.3fr) 3rem;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .fit-label { font-weight: 700; }
+
+    .fit-track { height: 1.25rem; background: var(--wash); border: 1px solid var(--ink); }
+
+    .fit-fill { height: 100%; width: var(--score); background: var(--signal); border-right: 1px solid var(--ink); }
+
+    .fit-row:nth-child(2) .fit-fill,
+    .fit-row:nth-child(3) .fit-fill { background: var(--acid); }
+
+    .fit-score { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; }
+
+    .operating-loop {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin: 2.4rem 0;
+      border: 2px solid var(--ink);
+    }
+
+    .loop-step {
+      position: relative;
+      min-height: 10rem;
+      padding: 1.1rem;
+      border-right: 1px solid var(--ink);
+    }
+
+    .loop-step:last-child { border-right: 0; }
+
+    .loop-step:nth-child(2),
+    .loop-step:nth-child(4) { background: var(--wash); }
+
+    .loop-step strong {
+      display: block;
+      margin-bottom: 1.4rem;
+      color: var(--signal);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+    }
+
+    .loop-step span { display: block; font-family: var(--display); font-size: 1.05rem; letter-spacing: -0.03em; line-height: 1.05; text-transform: uppercase; }
+
+    .offer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 2.5rem 0;
+      border: 2px solid var(--ink);
+    }
+
+    .offer-grid section { min-height: 17rem; padding: 1.6rem; border-right: 1px solid var(--ink); }
+
+    .offer-grid section:last-child { border-right: 0; background: var(--acid); }
+
+    .offer-grid .offer-label {
+      margin: 0 0 2rem;
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .offer-grid h3 { margin-top: 0; }
+
+    .offer-grid ul { margin-bottom: 0; padding-left: 1rem; }
+
+    .cadence {
+      display: grid;
+      grid-template-columns: 5rem minmax(0, 1fr) minmax(12rem, 0.75fr);
+      max-width: 58rem;
+      margin: 2.4rem 0;
+      border-top: 2px solid var(--ink);
+    }
+
+    .cadence > * { padding: 1rem; border-bottom: 1px solid var(--ink); }
+
+    .cadence-day {
+      color: var(--signal);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .cadence strong { display: block; line-height: 1.3; }
+
+    .cadence small { color: var(--ink-soft); font-size: 0.83rem; line-height: 1.45; }
+
+    .message-block {
+      position: relative;
+      max-width: 58rem;
+      margin: 2rem 0;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      color: var(--paper-bright);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 7px 7px 0 var(--signal);
+    }
+
+    .message-block.light { color: var(--ink); background: var(--paper-bright); box-shadow: 7px 7px 0 var(--blue); }
+
+    .message-label {
+      display: inline-block;
+      margin-bottom: 1.2rem;
+      color: var(--ink);
+      background: var(--acid);
+      padding: 0.25rem 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .message-block p { white-space: pre-line; }
+
+    .copy-button {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.42rem 0.65rem;
+      color: var(--ink);
+      background: var(--paper-bright);
+      border: 1px solid currentColor;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .message-block.light .copy-button { background: var(--acid); }
+
+    .copy-button[data-state="copied"] { background: var(--acid); }
+
+    .funnel {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      max-width: 58rem;
+      margin: 2.3rem 0;
+      border: 2px solid var(--ink);
+    }
+
+    .funnel-step { padding: 1.4rem; border-right: 1px solid var(--ink); }
+
+    .funnel-step:last-child { border-right: 0; background: var(--acid); }
+
+    .funnel-value { display: block; font-family: var(--display); font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.06em; line-height: 1; }
+
+    .funnel-label { display: block; margin-top: 0.6rem; font-family: var(--mono); font-size: 0.65rem; line-height: 1.4; text-transform: uppercase; }
+
+    .scorecard {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 8rem 7rem;
+      max-width: 58rem;
+      margin: 2rem 0;
+      border-top: 2px solid var(--ink);
+    }
+
+    .scorecard > * { padding: 0.85rem 0.65rem; border-bottom: 1px solid var(--ink); }
+
+    .scorecard strong { font-size: 0.93rem; }
+
+    .scorecard .weight,
+    .scorecard .entry { font-family: var(--mono); font-size: 0.7rem; }
+
+    .scorecard .entry { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+    .scorecard input {
+      width: 3.5rem;
+      padding: 0.35rem;
+      color: var(--ink);
+      background: var(--paper-bright);
+      border: 1px solid var(--ink);
+      font: inherit;
+    }
+
+    .score-total {
+      display: flex;
+      max-width: 58rem;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.2rem;
+      background: var(--ink);
+      color: var(--paper-bright);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .score-total output { color: var(--acid); font-family: var(--display); font-size: 2rem; letter-spacing: -0.05em; }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      margin: 2rem 0;
+      padding: 0;
+      border-top: 2px solid var(--ink);
+      list-style: none;
+    }
+
+    .source-list li { margin: 0; padding: 1rem; border-bottom: 1px solid var(--ink); }
+
+    .source-list a { font-weight: 650; }
+
+    .source-list small { display: block; margin-top: 0.3rem; color: var(--ink-soft); line-height: 1.45; }
+
+    .source-link { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; }
+
+    .end-statement {
+      margin-top: 3rem;
+      padding: clamp(2rem, 5vw, 4.5rem);
+      color: var(--paper-bright);
+      background: var(--signal);
+      border: 2px solid var(--ink);
+      box-shadow: 10px 10px 0 var(--ink);
+    }
+
+    .end-statement p {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(1.9rem, 4.5vw, 4.6rem);
+      letter-spacing: -0.06em;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+
+    .page-footer {
+      margin-top: 6rem;
+      padding: 2.5rem 0 3rem;
+      border-top: 2px solid var(--ink);
+    }
+
+    .footer-grid { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: end; }
+
+    .footer-title { margin: 0; font-family: var(--display); font-size: clamp(1.5rem, 3.5vw, 3.5rem); letter-spacing: -0.05em; line-height: 1; text-transform: uppercase; }
+
+    .footer-meta { margin: 0; font-family: var(--mono); font-size: 0.67rem; letter-spacing: 0.08em; line-height: 1.6; text-align: right; text-transform: uppercase; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .reveal:nth-child(2) { animation-delay: 90ms; }
+    .reveal:nth-child(3) { animation-delay: 170ms; }
+    .reveal:nth-child(4) { animation-delay: 240ms; }
+
+    @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1000px) {
+      .cover { grid-template-columns: 1fr; }
+      .record-wrap { min-height: 22rem; }
+      .record { width: min(58vw, 22rem); }
+      .toc { grid-template-columns: 1fr; }
+      .toc h2 { max-width: none; }
+      .document-grid { grid-template-columns: 1fr; }
+      .side-rail { display: none; }
+      .operating-loop { grid-template-columns: repeat(5, minmax(8.5rem, 1fr)); overflow-x: auto; }
+      .offer-grid { grid-template-columns: 1fr; }
+      .offer-grid section { min-height: 0; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .offer-grid section:last-child { border-bottom: 0; }
+    }
+
+    @media (max-width: 760px) {
+      :root { --page: min(100% - 1.1rem, 1440px); }
+      .masthead-inner { grid-template-columns: auto 1fr; }
+      .doc-label { display: none; }
+      .header-button.secondary { display: none; }
+      .cover { min-height: auto; padding-top: 4rem; }
+      .cover h1 { font-size: clamp(3.15rem, 17vw, 5.8rem); }
+      .cover::after { right: 0.4rem; }
+      .record-note { left: 0.5rem; }
+      .toc ol { grid-template-columns: 1fr 1fr; }
+      .chapter-header { grid-template-columns: 3.2rem minmax(0, 1fr); }
+      .comparison { grid-template-columns: 1fr; }
+      .fit-row { grid-template-columns: 7.5rem minmax(8rem, 1fr) 2.5rem; }
+      .cadence { grid-template-columns: 4rem minmax(0, 1fr); }
+      .cadence small { grid-column: 2; padding-top: 0; }
+      .funnel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .funnel-step:nth-child(2) { border-right: 0; }
+      .funnel-step:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+      .source-list { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-meta { text-align: left; }
+    }
+
+    @media (max-width: 520px) {
+      .brand-word { display: none; }
+      .toc ol { grid-template-columns: 1fr; }
+      .header-button { font-size: 0.58rem; }
+      .record-wrap { min-height: 19rem; }
+      .record { min-width: 14rem; }
+      .copy-button { position: static; margin-bottom: 1rem; }
+      .scorecard { grid-template-columns: minmax(0, 1fr) 4.2rem 5.5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media print {
+      @page { margin: 0.6in; }
+      body { background: var(--paper); font-size: 9.5pt; }
+      .reading-progress,
+      .masthead,
+      .side-rail,
+      .copy-button { display: none !important; }
+      main { width: 100%; }
+      .cover { min-height: 8.5in; break-after: page; }
+      .record { animation: none; }
+      .toc { break-after: page; }
+      .document-grid { display: block; padding-top: 0; }
+      .chapter { max-width: none; break-before: page; }
+      .chapter h2 { font-size: 34pt; }
+      .message-block { color: var(--ink); background: var(--paper-bright); box-shadow: none; }
+      .table-wrap { overflow: visible; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="brand" href="#top" aria-label="Mashups Club strategy home">
+        <span class="brand-mark">M</span>
+        <span class="brand-word">Mashups</span>
+      </a>
+      <p class="doc-label">Internal playbook / electronic music entry / August 2026</p>
+      <div class="header-actions">
+        <a class="header-button secondary" href="MASHUPS_CLUB_PARTNER_BRIEF.html">Partner brief</a>
+        <button class="header-button" type="button" onclick="window.print()">Print / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="cover" id="top" aria-labelledby="cover-title">
+      <div>
+        <p class="eyebrow reveal">Electronic music entry strategy</p>
+        <h1 class="reveal" id="cover-title">Own the <span>club signal</span></h1>
+        <p class="cover-deck reveal">A founder-led plan to make Mashups the creator-growth and rights infrastructure for independent electronic music: house first, techno next, measurable lift throughout.</p>
+        <div class="cover-meta reveal">
+          <span>Internal playbook</span>
+          <span>90-day launch</span>
+          <span>Outreach scripts included</span>
+          <span>Research current to Aug 2026</span>
+        </div>
+      </div>
+      <div class="record-wrap reveal" aria-hidden="true">
+        <div class="record"></div>
+        <div class="record-note">Track -> hook -> creator -> rights -> lift</div>
+      </div>
+    </section>
+
+    <nav class="toc" aria-label="Document sections">
+      <h2>Signal map</h2>
+      <ol>
+        <li><a href="#decision">Decision</a></li>
+        <li><a href="#why-now">Why now</a></li>
+        <li><a href="#entry-lane">Entry lane</a></li>
+        <li><a href="#opportunity">Opportunity</a></li>
+        <li><a href="#offer">Pilot offer</a></li>
+        <li><a href="#rights">Rights boundary</a></li>
+        <li><a href="#targets">Target accounts</a></li>
+        <li><a href="#outreach-plan">Outreach plan</a></li>
+        <li><a href="#message">Message architecture</a></li>
+        <li><a href="#scripts">Outreach scripts</a></li>
+        <li><a href="#sales-call">Sales call</a></li>
+        <li><a href="#objections">Objections</a></li>
+        <li><a href="#qualification">Qualification</a></li>
+        <li><a href="#operations">Sales operations</a></li>
+        <li><a href="#pilot-plan">90-day pilot</a></li>
+        <li><a href="#sources">Sources</a></li>
+      </ol>
+    </nav>
+
+    <div class="document-grid">
+      <aside class="side-rail" aria-label="Strategy note">
+        <p class="side-note"><strong>Operating thesis</strong>Do not sell access to songs. Sell a controlled release campaign that turns one approved hook into attributable creator activity.</p>
+      </aside>
+
+      <article>
+        <section class="chapter" id="decision">
+          <div class="chapter-header"><span class="chapter-number">01</span><h2>Decision</h2></div>
+          <p class="lead">Enter electronic music as a focused beachhead under the working name <strong>Mashups Club</strong>. Lead with tech house, minimal/deep tech, accessible vocal house, and selected melodic house. Add high-energy techno as a specialized lane rather than the center of the offer.</p>
+          <div class="signal-box">Yes to electronic. House first. No to becoming another royalty-free EDM library.</div>
+          <div class="comparison">
+            <section>
+              <h3>Do not become</h3>
+              <ul>
+                <li>A generic stock-music catalog.</li>
+                <li>A streaming service competing on track count.</li>
+                <li>A tool that calls every electronic scene &ldquo;EDM.&rdquo;</li>
+                <li>A promotion vendor promising viral views.</li>
+                <li>A remix platform that treats uncleared samples as harmless.</li>
+              </ul>
+            </section>
+            <section>
+              <h3>Become</h3>
+              <ul>
+                <li>The launch system for independent electronic releases.</li>
+                <li>The place labels test three hooks before spending heavily.</li>
+                <li>The creator network that guarantees qualified activity, not virality.</li>
+                <li>The rights layer that keeps approved uses attributable and claim-ready.</li>
+                <li>The performance dataset connecting tracks, hooks, creators, and outcomes.</li>
+              </ul>
+            </section>
+          </div>
+          <p>Mashups remains genre-expandable. Electronic music is the first concentrated market in which the track-to-hook-to-rights-to-lift loop can be proven quickly.</p>
+        </section>
+
+        <section class="chapter" id="why-now">
+          <div class="chapter-header"><span class="chapter-number">02</span><h2>Why now</h2></div>
+          <p class="lead">The opportunity is attractive because demand is growing, supply is fragmented, discovery is social, and electronic music is structurally compatible with short-form creation.</p>
+          <section class="table-wrap" aria-label="Electronic music market evidence" tabindex="0">
+            <table>
+              <thead><tr><th>Signal</th><th>Current evidence</th><th>Mashups implication</th></tr></thead>
+              <tbody>
+                <tr><td>Industry growth</td><td>IMS estimates the global electronic music industry reached $15.1B in 2025, up 7% year over year.</td><td>This is a growing market, not a shrinking niche.</td></tr>
+                <tr><td>Genre strength</td><td>Electronic music ranks among the top three genres in nearly all leading markets; tech house remains Beatport's top-selling genre.</td><td>Start where commercial demand and independent supply overlap.</td></tr>
+                <tr><td>Reachable supply</td><td>Beatport reports more than 80,000 labels and 400,000 artists, with more than 100,000 tracks added monthly.</td><td>Mashups can build a pipeline without waiting for major-label access.</td></tr>
+                <tr><td>Emerging scenes</td><td>SoundCloud says electronic became its fastest-growing genre over three years and exceeded one-third of uploads in 2025.</td><td>There is a continuous pre-mainstream discovery funnel.</td></tr>
+                <tr><td>Short-form behavior</td><td>TikTok has expanded a global Electronic Music hub and documented dance records moving from snippets and community activity into chart success.</td><td>The desired behavior already exists; Mashups must organize and measure it.</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p class="note"><strong>Inference:</strong> These market signals prove supply and attention, not automatic product-market fit. The pilot must prove that Mashups can produce incremental creator performance and paid label renewal.</p>
+        </section>
+
+        <section class="chapter" id="entry-lane">
+          <div class="chapter-header"><span class="chapter-number">03</span><h2>Entry lane</h2></div>
+          <p class="lead">House offers the broadest creator utility. Techno is valuable when matched to high-intensity visual niches, but it should not define the entire launch.</p>
+          <div class="fit-bars" aria-label="Strategic genre fit scores">
+            <div class="fit-row"><span class="fit-label">Tech house</span><span class="fit-track"><span class="fit-fill" style="--score: 90%"></span></span><span class="fit-score">9/10</span></div>
+            <div class="fit-row"><span class="fit-label">Minimal house</span><span class="fit-track"><span class="fit-fill" style="--score: 90%"></span></span><span class="fit-score">9/10</span></div>
+            <div class="fit-row"><span class="fit-label">Vocal house</span><span class="fit-track"><span class="fit-fill" style="--score: 90%"></span></span><span class="fit-score">9/10</span></div>
+            <div class="fit-row"><span class="fit-label">Melodic house</span><span class="fit-track"><span class="fit-fill" style="--score: 80%"></span></span><span class="fit-score">8/10</span></div>
+            <div class="fit-row"><span class="fit-label">Afro house</span><span class="fit-track"><span class="fit-fill" style="--score: 80%"></span></span><span class="fit-score">8/10</span></div>
+            <div class="fit-row"><span class="fit-label">Hard techno</span><span class="fit-track"><span class="fit-fill" style="--score: 70%"></span></span><span class="fit-score">7/10</span></div>
+            <div class="fit-row"><span class="fit-label">Pure techno</span><span class="fit-track"><span class="fit-fill" style="--score: 60%"></span></span><span class="fit-score">6/10</span></div>
+            <div class="fit-row"><span class="fit-label">Mainstage EDM</span><span class="fit-track"><span class="fit-fill" style="--score: 50%"></span></span><span class="fit-score">5/10</span></div>
+          </div>
+          <h3>Creator use cases</h3>
+          <section class="table-wrap" aria-label="Electronic genre creator use cases" tabindex="0">
+            <table>
+              <thead><tr><th>Sound lane</th><th>Strong creator categories</th><th>Native visual treatments</th></tr></thead>
+              <tbody>
+                <tr><td>Tech/minimal house</td><td>Fashion, beauty, nightlife, travel, food, lifestyle</td><td>Transitions, reveals, runway edits, room changes, &ldquo;wait for the drop&rdquo;</td></tr>
+                <tr><td>Vocal/melodic house</td><td>Travel, relationships, wellness, cinematic lifestyle</td><td>Emotional reveals, memory edits, destination cuts, aspirational montages</td></tr>
+                <tr><td>Afro house</td><td>Dance, travel, fashion, hospitality, movement</td><td>Choreography, cultural storytelling, warm-location edits, collective movement</td></tr>
+                <tr><td>Hard techno</td><td>Fitness, gaming, automotive, nightlife, extreme sports</td><td>PR attempts, speed ramps, mechanical cuts, high-contrast transformation</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <p class="note"><strong>Culture rule:</strong> Work with authentic artists, labels, and curators inside Afro house and regional scenes. Do not treat culturally rooted sounds as interchangeable trend inventory.</p>
+        </section>
+
+        <section class="chapter" id="opportunity">
+          <div class="chapter-header"><span class="chapter-number">04</span><h2>Opportunity</h2></div>
+          <p class="lead">Independent labels are not short of music. They are short of reliable creator execution, clean permission workflows, and evidence connecting creator activity to release outcomes.</p>
+          <div class="operating-loop" aria-label="Mashups operating loop">
+            <div class="loop-step"><strong>01</strong><span>Find the strongest hook</span></div>
+            <div class="loop-step"><strong>02</strong><span>Match the right creators</span></div>
+            <div class="loop-step"><strong>03</strong><span>Encode approved use</span></div>
+            <div class="loop-step"><strong>04</strong><span>Publish with attribution</span></div>
+            <div class="loop-step"><strong>05</strong><span>Prove incremental lift</span></div>
+          </div>
+          <h3>What labels struggle with</h3>
+          <ul>
+            <li>Choosing which 8-15 seconds should lead the campaign.</li>
+            <li>Recruiting creators who fit the record rather than accepting generic placements.</li>
+            <li>Keeping creator instructions, approvals, disclosures, and rights consistent.</li>
+            <li>Preventing automated claims and fragmented &ldquo;original sound&rdquo; attribution.</li>
+            <li>Separating real creative lift from follower count, paid traffic, or one lucky post.</li>
+            <li>Learning before release instead of explaining failure after the marketing budget is spent.</li>
+          </ul>
+          <h3>The concise explanation</h3>
+          <div class="message-block light" data-copy-block>
+            <span class="message-label">30-second opportunity</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Mashups turns one approved electronic release into a controlled creator campaign. We identify three high-potential hooks, match them to verified creators, issue track-specific usage proof, keep every post tied to the official sound where possible, and report which hook, creator niche, and treatment produced lift. The label keeps creative and rights control. Mashups supplies the execution and evidence.</p>
+          </div>
+          <div class="signal-box blue">The product is not access to a track. The product is a repeatable release experiment with rights and attribution built in.</div>
+        </section>
+
+        <section class="chapter" id="offer">
+          <div class="chapter-header"><span class="chapter-number">05</span><h2>Pilot offer</h2></div>
+          <p class="lead">Sell one simple founding-label product before selling a platform. The offer must be bounded, legible, and safe enough for a label to approve quickly.</p>
+          <div class="offer-grid">
+            <section>
+              <p class="offer-label">Partner provides</p>
+              <h3>One release</h3>
+              <ul>
+                <li>Final master and instrumental.</li>
+                <li>Stems when available.</li>
+                <li>Rights and split information.</li>
+                <li>Official platform sound links.</li>
+                <li>Approval within two business days.</li>
+              </ul>
+            </section>
+            <section>
+              <p class="offer-label">Mashups provides</p>
+              <h3>One campaign</h3>
+              <ul>
+                <li>Three approved hook cuts.</li>
+                <li>Ten to 25 matched creators.</li>
+                <li>Creative concepts and captions.</li>
+                <li>License proof and claim workflow.</li>
+                <li>Seven-day and 30-day reporting.</li>
+              </ul>
+            </section>
+            <section>
+              <p class="offer-label">Commercial promise</p>
+              <h3>Proof, not hype</h3>
+              <ul>
+                <li>Guarantee qualified posts.</li>
+                <li>Never guarantee views or virality.</li>
+                <li>Measure against creator baselines.</li>
+                <li>Show what to scale next.</li>
+                <li>Stop if rights are incomplete.</li>
+              </ul>
+            </section>
+          </div>
+          <h3>Founding-label terms</h3>
+          <section class="table-wrap" aria-label="Founding label pilot terms" tabindex="0">
+            <table>
+              <thead><tr><th>Term</th><th>Recommended pilot position</th></tr></thead>
+              <tbody>
+                <tr><td>Scope</td><td>One track, one campaign, three approved hook cuts, 10-25 verified creators.</td></tr>
+                <tr><td>Platforms</td><td>TikTok, Instagram Reels, and YouTube Shorts where the track is operationally supported.</td></tr>
+                <tr><td>Use</td><td>Organic creator posts only unless sponsored or paid-media rights are added explicitly.</td></tr>
+                <tr><td>Creation window</td><td>30 days, with approved live posts surviving for at least 90 days.</td></tr>
+                <tr><td>Territory</td><td>Worldwide only when the partner controls it; otherwise use an explicit territory list.</td></tr>
+                <tr><td>Creator compensation</td><td>Defined publication reward plus optional verified-performance bonus.</td></tr>
+                <tr><td>Founding price</td><td>First five campaigns may be free or at cost in exchange for data, testimonial, and case-study rights. Standardize paid pilots after evidence.</td></tr>
+                <tr><td>Standard target price</td><td>Test $5,000-$12,500 per managed track campaign, with creator spend and premium rights itemized.</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="chapter" id="rights">
+          <div class="chapter-header"><span class="chapter-number">06</span><h2>Rights boundary</h2></div>
+          <p class="lead">Electronic music can produce cleaner one-stop opportunities, but samples, loops, vocalists, producer agreements, publishing splits, and distributor controls make &ldquo;the artist owns it&rdquo; an unsafe assumption.</p>
+          <h3>Minimum track acceptance</h3>
+          <ul>
+            <li>Master controller and composition controllers identified.</li>
+            <li>All writer and publisher shares documented to 100%.</li>
+            <li>Samples, interpolations, loops, and vocal sources disclosed and cleared.</li>
+            <li>Featured artists, producers, and remixers approved where required.</li>
+            <li>Organic, sponsored, paid-media, editing, looping, speed-change, and remix permissions separated.</li>
+            <li>Platform, territory, term, survival, withdrawal, and content-category rules encoded.</li>
+            <li>Content ID administrator and allowlisting or claim-release procedure confirmed.</li>
+            <li>Official sound identifiers and distributor delivery status collected.</li>
+          </ul>
+          <p>The sound recording and the underlying musical composition are separate copyrighted works. Permission from only the master owner is not sufficient when the composition is controlled elsewhere. Electronic tracks with samples or interpolations can add further rights layers.</p>
+          <h3>Platform operating requirement</h3>
+          <p>Mashups needs a platform sound map for every accepted track: ISRC, TikTok sound ID, Instagram audio ID, YouTube recording asset, distributor, Content ID policy, supported territories, commercial-use status, and official-sound deep links.</p>
+          <div class="signal-box orange">A public license certificate proves the grant. It does not automatically stop a platform bot from muting the post.</div>
+          <p>Where possible, creators should build around an exact Mashups-approved hook and then attach the destination platform's official sound. That preserves usage aggregation and reduces the chance that the post becomes a disconnected &ldquo;original sound.&rdquo;</p>
+          <p class="note"><strong>Legal boundary:</strong> This playbook is business strategy, not legal advice. Music counsel should approve supplier agreements, campaign grants, creator terms, promotional rules, and material territory-specific deviations.</p>
+        </section>
+
+        <section class="chapter" id="targets">
+          <div class="chapter-header"><span class="chapter-number">07</span><h2>Target accounts</h2></div>
+          <p class="lead">The ideal first partner has credible music, incomplete creator-marketing infrastructure, a controllable rights chain, and a release calendar that creates urgency.</p>
+          <section class="table-wrap" aria-label="Partner target tiers" tabindex="0">
+            <table>
+              <thead><tr><th>Tier</th><th>Profile</th><th>Why they fit</th><th>Offer</th></tr></thead>
+              <tbody>
+                <tr><td>A</td><td>Producer-owned labels with current social or chart momentum</td><td>Credibility, direct decision-makers, strong case-study potential</td><td>One controlled pilot plus private Hook Lab for the next release</td></tr>
+                <tr><td>B</td><td>Beatport Hype labels in house, tech house, minimal, melodic, and techno</td><td>Established enough to release consistently but still actively seeking growth</td><td>Founding-label campaign with low financial risk</td></tr>
+                <tr><td>C</td><td>Artist managers and boutique electronic agencies</td><td>One relationship can unlock multiple release calendars</td><td>Roster-wide testing allocation or quarterly campaign bundle</td></tr>
+                <tr><td>D</td><td>Independent distributors, publishers, and label-services companies</td><td>Catalog scale and operational rights knowledge</td><td>White-label campaign rail, reporting integration, or curated cohort</td></tr>
+                <tr><td>E</td><td>Self-releasing producers with verified momentum</td><td>Fast decisions and often cleaner control</td><td>Artist-funded campaign or performance-priced founding pilot</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Named starting points</h3>
+          <p>Use the previously researched companies as conversation starters, not as assumed-clear catalogs:</p>
+          <ul>
+            <li><strong>Thirty Knots:</strong> pitch a controlled activation around a current release and a private Hook Lab for the next single.</li>
+            <li><strong>No Art:</strong> pitch a multi-track dance partnership beginning with one release and three developing records.</li>
+            <li><strong>KOLTRAX / KOLTER:</strong> pitch a direct-control test around a hook-ready dance record.</li>
+            <li><strong>Black 17 Media:</strong> explore a catalog-scale social activation and rights-operations relationship.</li>
+            <li><strong>Beatport Hype labels:</strong> build a systematic list by subgenre, release activity, and current chart movement.</li>
+            <li><strong>LabelRadar ecosystem:</strong> explore a sourcing partnership built around its existing 20-second demo-selection behavior.</li>
+          </ul>
+          <h3>Do not prioritize</h3>
+          <ul>
+            <li>Labels expecting guaranteed streams, views, or chart placement.</li>
+            <li>Bootleg-heavy catalogs with weak sample documentation.</li>
+            <li>Tracks with unresolved splits or unavailable publishing administrators.</li>
+            <li>Partners unwilling to provide official sound and Content ID contacts.</li>
+            <li>Records already so large that Mashups cannot measure incremental contribution.</li>
+            <li>Unknown music with no hook utility chosen solely because it is easy to license.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="outreach-plan">
+          <div class="chapter-header"><span class="chapter-number">08</span><h2>Outreach plan</h2></div>
+          <p class="lead">Use founder-led, track-specific outreach. Every message should prove that Mashups listened, identify a concrete hook opportunity, and propose a bounded experiment.</p>
+          <h3>Wave structure</h3>
+          <section class="table-wrap" aria-label="Outreach waves" tabindex="0">
+            <table>
+              <thead><tr><th>Wave</th><th>Accounts</th><th>Purpose</th><th>Exit condition</th></tr></thead>
+              <tbody>
+                <tr><td>0: discovery</td><td>10 friendly label, manager, producer, and distributor contacts</td><td>Pressure-test language, objections, rights requirements, and buying process</td><td>Five completed interviews and revised pilot terms</td></tr>
+                <tr><td>1: founding labels</td><td>25 highly researched accounts</td><td>Close five pilot partners using personalized track-level outreach</td><td>Five signed pilots and at least 15 clearable candidate tracks</td></tr>
+                <tr><td>2: proof-led</td><td>75 qualified accounts</td><td>Use first campaign evidence to create repeatability</td><td>Three paid campaigns and two partner referrals</td></tr>
+                <tr><td>3: leverage</td><td>10 distributors, publishers, label services, or associations</td><td>Turn campaign proof into catalog and channel leverage</td><td>One cohort or catalog-scale commercial test</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Research each account</h3>
+          <ol>
+            <li>Find a release from the last 90 days or an announced upcoming release.</li>
+            <li>Identify the exact 8-15 second moment that could support a creator concept.</li>
+            <li>Map the sound to two creator niches and one visual treatment.</li>
+            <li>Identify likely master, publishing, distributor, and management contacts.</li>
+            <li>Check whether the official sound is delivered across target platforms.</li>
+            <li>Record one useful observation in the CRM before sending anything.</li>
+          </ol>
+          <h3>Six-touch cadence</h3>
+          <div class="cadence" aria-label="Six touch outreach cadence">
+            <span class="cadence-day">Day 0</span><strong>Personal email</strong><small>Specific track, specific hook, 20-minute pilot conversation.</small>
+            <span class="cadence-day">Day 2</span><strong>LinkedIn or Instagram follow</strong><small>Engage naturally; do not paste the email into a public comment.</small>
+            <span class="cadence-day">Day 4</span><strong>Value follow-up</strong><small>Send a one-screen mock hook plan or creator-fit observation.</small>
+            <span class="cadence-day">Day 7</span><strong>Proof or process</strong><small>Share the partner brief and explain campaign controls.</small>
+            <span class="cadence-day">Day 11</span><strong>Short DM or voice note</strong><small>Ask whether release marketing or rights owns the decision.</small>
+            <span class="cadence-day">Day 15</span><strong>Close the loop</strong><small>Offer two paths: revisit for the next release or nominate another track.</small>
+          </div>
+          <p class="note"><strong>Rule:</strong> Stop sequences immediately when a person replies. Switch from automation to a human conversation and set one explicit next action.</p>
+        </section>
+
+        <section class="chapter" id="message">
+          <div class="chapter-header"><span class="chapter-number">09</span><h2>Message architecture</h2></div>
+          <p class="lead">Lead with the label's release problem, not the Mashups feature list.</p>
+          <section class="table-wrap" aria-label="Messaging architecture by stakeholder" tabindex="0">
+            <table>
+              <thead><tr><th>Audience</th><th>Their concern</th><th>Mashups explanation</th></tr></thead>
+              <tbody>
+                <tr><td>Label owner</td><td>&ldquo;Will this create meaningful activity without damaging the record?&rdquo;</td><td>Controlled creators, approved hooks, explicit use boundaries, attributable reporting.</td></tr>
+                <tr><td>Marketing lead</td><td>&ldquo;How is this different from seeding?&rdquo;</td><td>Hook testing, creator matching, normalized baselines, post-level evidence, repeatable learning.</td></tr>
+                <tr><td>Artist or producer</td><td>&ldquo;Will creators make the track feel cheap or off-brand?&rdquo;</td><td>Artist-approved concepts, creator categories, sensitive-use exclusions, and optional review.</td></tr>
+                <tr><td>Rights or legal</td><td>&ldquo;What exactly are we granting?&rdquo;</td><td>Track-, platform-, territory-, term-, and use-specific policy with immutable license snapshots.</td></tr>
+                <tr><td>Distributor</td><td>&ldquo;Will this create claims and support work?&rdquo;</td><td>Official sound mapping, channel registration, claim canary, evidence packages, SLA reporting.</td></tr>
+                <tr><td>Manager</td><td>&ldquo;Does this help the next release?&rdquo;</td><td>Private Hook Lab plus a campaign that shows which audiences and creative treatments to scale.</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Core claims</h3>
+          <ul>
+            <li><strong>Controlled:</strong> the partner approves the track, hooks, creator categories, use types, platforms, territories, and term.</li>
+            <li><strong>Measurable:</strong> Mashups evaluates creator posts against their own recent baselines instead of comparing raw follower counts.</li>
+            <li><strong>Operationally safe:</strong> every campaign has a rights record, official-sound map, claims contact, and escalation path.</li>
+            <li><strong>Incremental:</strong> the partner learns which hook and creator treatment deserves further budget.</li>
+            <li><strong>Bounded:</strong> one release can be tested without granting permanent catalog-wide rights.</li>
+          </ul>
+          <h3>Words to avoid</h3>
+          <section class="table-wrap" aria-label="Words to avoid in outreach" tabindex="0">
+            <table>
+              <thead><tr><th>Avoid</th><th>Use instead</th><th>Reason</th></tr></thead>
+              <tbody>
+                <tr><td>Put your music in our mashup app</td><td>Run a controlled creator activation around one approved hook</td><td>The first sounds risky and undifferentiated.</td></tr>
+                <tr><td>Guaranteed viral campaign</td><td>Guaranteed qualified creator posts with measured outcomes</td><td>Virality cannot be guaranteed credibly.</td></tr>
+                <tr><td>Royalty-free</td><td>Rights-cleared for the approved campaign scope</td><td>&ldquo;Royalty-free&rdquo; obscures limitations and artist economics.</td></tr>
+                <tr><td>Exposure</td><td>Compensated creator activation and campaign evidence</td><td>Artists and producers should not be asked to trade rights for vague exposure.</td></tr>
+                <tr><td>EDM catalog</td><td>Electronic release campaign</td><td>Scene-specific language earns more trust.</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="chapter" id="scripts">
+          <div class="chapter-header"><span class="chapter-number">10</span><h2>Outreach scripts</h2></div>
+          <p class="lead">Personalization must live in the first three lines. Templates provide structure; the track observation earns the response.</p>
+
+          <h3>Initial label email</h3>
+          <div class="message-block" data-copy-block>
+            <span class="message-label">Email / label founder or marketing</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Subject: A controlled creator test for [TRACK]
+
+Hi [NAME] - I listened to [TRACK]. The moment around [TIMESTAMP / MUSICAL EVENT] feels unusually usable for [CREATOR NICHE] because [ONE SPECIFIC REASON].
+
+I'm building Mashups, a release activation system for independent electronic music. For one approved track, we package three short-form hooks, match them to 10-25 verified creators, issue campaign-specific rights proof, and report which hook, niche, and creative treatment actually produced lift.
+
+You keep approval over the hooks, creator categories, platforms, territories, and usage. We guarantee qualified creator posts, not views or virality.
+
+We're selecting five founding-label pilots. Would a 20-minute conversation about [TRACK / UPCOMING RELEASE] be useful next week?
+
+[NAME]
+Mashups
+https://mashups.agency</p>
+          </div>
+
+          <h3>Track-specific follow-up</h3>
+          <div class="message-block light" data-copy-block>
+            <span class="message-label">Email / day 4</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Subject: Three directions for [TRACK]
+
+Hi [NAME] - I mapped the [TIMESTAMP] section into three possible creator lanes:
+
+1. [NICHE]: [ONE-SENTENCE TREATMENT]
+2. [NICHE]: [ONE-SENTENCE TREATMENT]
+3. [NICHE]: [ONE-SENTENCE TREATMENT]
+
+The point is not to force a dance trend. It is to test which existing creator behavior makes the record feel native, then give you post-level evidence before you scale spend.
+
+If the rights are reasonably clean, we can structure the first test around organic posts only and keep sponsored or paid-media use out of scope.
+
+Worth reviewing for 20 minutes?</p>
+          </div>
+
+          <h3>Manager introduction</h3>
+          <div class="message-block" data-copy-block>
+            <span class="message-label">Email / artist manager</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Subject: Pre-release hook testing for [ARTIST]
+
+Hi [NAME] - Mashups helps electronic teams test release hooks with a controlled creator cohort before committing wider campaign spend.
+
+For one release, we identify three approved 8-15 second moments, match each to relevant creators, manage the usage rules and attribution, then show which combination of hook, audience, and treatment outperformed creator baselines.
+
+The artist keeps approval over context and creator fit. Nothing is opened for unrestricted remixing, sponsored content, or advertising unless the team explicitly adds it.
+
+I'd like to explore a private Hook Lab for [ARTIST]'s next release followed by a small public activation for the winning cut. Who on the team owns release marketing and rights coordination?</p>
+          </div>
+
+          <h3>Distributor or label-services email</h3>
+          <div class="message-block light" data-copy-block>
+            <span class="message-label">Email / catalog partner</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Subject: A creator-campaign rail for selected electronic releases
+
+Hi [NAME] - we are building a controlled release-activation layer for independent electronic music.
+
+Mashups selects one campaign-approved track, packages three creator hooks, recruits verified creators, binds each export to a usage record, maps official platform sounds, and returns creator-level performance and claims reporting.
+
+We are not asking for a broad blanket catalog grant. The first proposal is a bounded cohort: five releases, agreed territories and platforms, organic short-form only, explicit Content ID operations, and a 90-day post-survival period.
+
+The opportunity for [COMPANY] is a new release-marketing product for labels and artists plus cleaner evidence about which hooks and creator niches deserve follow-on budget.
+
+Would you be open to a rights-and-operations session with your digital and label-services teams?</p>
+          </div>
+
+          <h3>Short Instagram or LinkedIn DM</h3>
+          <div class="message-block" data-copy-block>
+            <span class="message-label">DM / 390 characters</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Hey [NAME] - the [TIMESTAMP / DROP] in [TRACK] feels built for [NICHE / TREATMENT]. I'm building Mashups: three approved hooks + matched creators + campaign-specific rights proof + post-level lift reporting. We're choosing five electronic label pilots and guarantee qualified posts, not virality. Who is best to speak with about release marketing?</p>
+          </div>
+
+          <h3>Close-the-loop email</h3>
+          <div class="message-block light" data-copy-block>
+            <span class="message-label">Email / day 15</span>
+            <button class="copy-button" type="button">Copy</button>
+            <p>Subject: Close the loop on [TRACK]
+
+Hi [NAME] - I'll close this out so I do not crowd your inbox.
+
+If [TRACK] is already too far into its campaign, the better fit may be a private three-hook test for the next release. That gives the team evidence before choosing the lead clip and creator direction.
+
+If someone else owns creator marketing or rights operations, I would appreciate a redirect. Otherwise I'll revisit when the next release is announced.
+
+Thanks,
+[NAME]</p>
+          </div>
+        </section>
+
+        <section class="chapter" id="sales-call">
+          <div class="chapter-header"><span class="chapter-number">11</span><h2>Sales call</h2></div>
+          <p class="lead">The first call is a qualification and design session, not a product demo. Leave with a candidate release, decision map, rights owner, and next document.</p>
+          <section class="table-wrap" aria-label="Twenty minute discovery call" tabindex="0">
+            <table>
+              <thead><tr><th>Minute</th><th>Topic</th><th>Outcome</th></tr></thead>
+              <tbody>
+                <tr><td>0-2</td><td>Explain the one-track pilot in plain language</td><td>Shared frame without a feature dump</td></tr>
+                <tr><td>2-7</td><td>Ask how they currently choose hooks and seed creators</td><td>Existing process, pain, and budget owner</td></tr>
+                <tr><td>7-11</td><td>Discuss one real release and its audiences</td><td>Candidate track and creator hypotheses</td></tr>
+                <tr><td>11-15</td><td>Map master, publishing, samples, distributor, and Content ID</td><td>Early rights feasibility</td></tr>
+                <tr><td>15-18</td><td>Explain controls, deliverables, and measurement</td><td>Confidence in execution</td></tr>
+                <tr><td>18-20</td><td>Set one dated next action</td><td>Rights packet, track files, or second call with stakeholder</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Discovery questions</h3>
+          <ol>
+            <li>How do you currently select the clip that leads a release?</li>
+            <li>What creator activity has worked, failed, or been impossible to explain?</li>
+            <li>Do you buy posts, seed organically, work through agencies, or combine approaches?</li>
+            <li>Which creator categories would make the artist feel credible rather than overexposed?</li>
+            <li>Which contexts must be excluded?</li>
+            <li>Who controls the master and composition, and are there samples or interpolations?</li>
+            <li>Who administers Content ID and platform delivery?</li>
+            <li>What result would justify a second paid campaign?</li>
+            <li>Which release four to eight weeks out is the cleanest test?</li>
+          </ol>
+          <h3>Required next step</h3>
+          <p>Do not end with &ldquo;we'll stay in touch.&rdquo; Book the rights review, receive the track packet, or agree on the date the next release becomes available for evaluation.</p>
+        </section>
+
+        <section class="chapter" id="objections">
+          <div class="chapter-header"><span class="chapter-number">12</span><h2>Objections</h2></div>
+          <section class="table-wrap" aria-label="Partner objections and responses" tabindex="0">
+            <table>
+              <thead><tr><th>Objection</th><th>Response</th><th>Proof required</th></tr></thead>
+              <tbody>
+                <tr><td>&ldquo;We already seed creators.&rdquo;</td><td>Mashups is not selling a contact list. It tests multiple hooks, controls approved use, consolidates evidence, and compares performance to creator baselines.</td><td>Sample campaign report and hook comparison.</td></tr>
+                <tr><td>&ldquo;We cannot open the track for remixing.&rdquo;</td><td>The standard pilot does not grant public remix rights. It authorizes specific clips and approved editing behavior only.</td><td>Plain-English grant summary and policy record.</td></tr>
+                <tr><td>&ldquo;Can you guarantee views?&rdquo;</td><td>No responsible partner can. Mashups guarantees qualified posts and reports verified outcomes; performance bonuses can align incentives.</td><td>Creator quality and fraud rules.</td></tr>
+                <tr><td>&ldquo;Creators may hurt the artist brand.&rdquo;</td><td>The label approves creator categories, prohibited contexts, concepts, and optional individual creators.</td><td>Creator shortlist and approval screen.</td></tr>
+                <tr><td>&ldquo;Content ID will claim the posts.&rdquo;</td><td>That risk is handled before launch through official sound mapping, channel registration, a canary post, and a named claim-release contact.</td><td>Claims runbook and SLA.</td></tr>
+                <tr><td>&ldquo;We do not control publishing.&rdquo;</td><td>Mashups can scope a Hook Lab privately while the team requests publisher approval; public activation waits for complete authority.</td><td>Rights checklist and approval routing.</td></tr>
+                <tr><td>&ldquo;TikTok already has our music.&rdquo;</td><td>Availability is not a campaign. Mashups adds hook strategy, creator execution, explicit commercial boundaries, attribution, and outcome reporting.</td><td>Partner brief and example workflow.</td></tr>
+                <tr><td>&ldquo;This sounds like an agency.&rdquo;</td><td>The first campaign is service-assisted to prove the workflow. The durable product is reusable campaign, rights, and measurement infrastructure.</td><td>Product roadmap and standardized workflow.</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="chapter" id="qualification">
+          <div class="chapter-header"><span class="chapter-number">13</span><h2>Qualification</h2></div>
+          <p class="lead">Prioritize partners where clean execution and a convincing result are both plausible. Easy rights with unusable music are not enough; popular music with impossible rights is not enough.</p>
+          <div class="scorecard" id="scorecard" aria-label="Interactive partner scorecard">
+            <strong>Rights readiness</strong><span class="weight">25 points</span><label class="entry"><input type="number" min="0" max="25" value="0" aria-label="Rights readiness score"> /25</label>
+            <strong>Release timing and urgency</strong><span class="weight">20 points</span><label class="entry"><input type="number" min="0" max="20" value="0" aria-label="Release timing score"> /20</label>
+            <strong>Current social signal</strong><span class="weight">20 points</span><label class="entry"><input type="number" min="0" max="20" value="0" aria-label="Social signal score"> /20</label>
+            <strong>Hook and creator utility</strong><span class="weight">15 points</span><label class="entry"><input type="number" min="0" max="15" value="0" aria-label="Hook utility score"> /15</label>
+            <strong>Partner responsiveness</strong><span class="weight">10 points</span><label class="entry"><input type="number" min="0" max="10" value="0" aria-label="Responsiveness score"> /10</label>
+            <strong>Data and case-study access</strong><span class="weight">10 points</span><label class="entry"><input type="number" min="0" max="10" value="0" aria-label="Data access score"> /10</label>
+          </div>
+          <div class="score-total"><span>Partner priority</span><output id="score-output" aria-live="polite">0 / 100 - Red</output></div>
+          <h3>Decision thresholds</h3>
+          <ul>
+            <li><strong>75-100 / Green:</strong> move to rights review and pilot design immediately.</li>
+            <li><strong>55-74 / Yellow:</strong> continue discovery but resolve the lowest scoring area before committing creator spend.</li>
+            <li><strong>0-54 / Red:</strong> nurture or decline; do not force a pilot for logo value.</li>
+          </ul>
+          <h3>Hard disqualifiers</h3>
+          <ul>
+            <li>Known uncleared sample or unresolved ownership dispute.</li>
+            <li>No authority to approve the intended platforms and use categories.</li>
+            <li>Refusal to define a Content ID contact or claim response process.</li>
+            <li>Demand for guaranteed views, streams, chart position, or artificial engagement.</li>
+            <li>Release timing that makes proper rights and creator preparation impossible.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="operations">
+          <div class="chapter-header"><span class="chapter-number">14</span><h2>Sales operations</h2></div>
+          <p class="lead">A disciplined founder-led CRM is more valuable than a large scraped list. Every active opportunity needs an owner, next action, date, and rights risk.</p>
+          <h3>Required CRM fields</h3>
+          <section class="table-wrap" aria-label="CRM field groups" tabindex="0">
+            <table>
+              <thead><tr><th>Group</th><th>Fields</th></tr></thead>
+              <tbody>
+                <tr><td>Account</td><td>Company, website, territory, subgenres, roster size, distributor, publisher relationships.</td></tr>
+                <tr><td>Contact</td><td>Name, role, email, social profile, relationship source, decision influence, preferred channel.</td></tr>
+                <tr><td>Release</td><td>Track, artist, release date, ISRC, status, current traction, proposed hooks, creator niches.</td></tr>
+                <tr><td>Rights</td><td>Master controller, publishing controllers, sample status, platform map, Content ID admin, risk notes.</td></tr>
+                <tr><td>Sales</td><td>Tier, score, stage, last touch, next action, next date, objection, proposed offer, probability.</td></tr>
+                <tr><td>Learning</td><td>Reason won/lost, quoted language, rights friction, budget signal, referral source, follow-up release.</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Pipeline stages</h3>
+          <ol>
+            <li>Researched</li>
+            <li>Contacted</li>
+            <li>Engaged</li>
+            <li>Discovery complete</li>
+            <li>Track nominated</li>
+            <li>Rights review</li>
+            <li>Pilot proposed</li>
+            <li>Contracting</li>
+            <li>Campaign live</li>
+            <li>Renewed, nurtured, or lost</li>
+          </ol>
+          <h3>Weekly operating cadence</h3>
+          <section class="table-wrap" aria-label="Weekly outreach operating cadence" tabindex="0">
+            <table>
+              <thead><tr><th>Day</th><th>Founder activity</th><th>Minimum output</th></tr></thead>
+              <tbody>
+                <tr><td>Monday</td><td>Research releases, score accounts, choose track-level angles</td><td>15 newly qualified accounts</td></tr>
+                <tr><td>Tuesday</td><td>Send personalized first touches</td><td>10 high-quality emails and five DMs</td></tr>
+                <tr><td>Wednesday</td><td>Discovery calls and partner follow-up</td><td>Two conversations and all next actions dated</td></tr>
+                <tr><td>Thursday</td><td>Create mock hook plans and rights pre-checks</td><td>Three account-specific value assets</td></tr>
+                <tr><td>Friday</td><td>Review funnel, objections, copy, and conversion</td><td>One experiment and one playbook improvement</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <h3>Initial funnel targets</h3>
+          <div class="funnel" aria-label="Initial outreach funnel targets">
+            <div class="funnel-step"><span class="funnel-value">100</span><span class="funnel-label">Researched accounts</span></div>
+            <div class="funnel-step"><span class="funnel-value">40</span><span class="funnel-label">Meaningful replies</span></div>
+            <div class="funnel-step"><span class="funnel-value">15</span><span class="funnel-label">Qualified calls</span></div>
+            <div class="funnel-step"><span class="funnel-value">5</span><span class="funnel-label">Signed pilots</span></div>
+          </div>
+          <p>These are directional launch targets, not industry benchmarks. If reply rate is below 20%, fix targeting and the first three lines before increasing volume. If calls do not convert, inspect rights friction and offer clarity. If pilots do not renew, stop selling and repair performance or reporting.</p>
+        </section>
+
+        <section class="chapter" id="pilot-plan">
+          <div class="chapter-header"><span class="chapter-number">15</span><h2>90-day pilot</h2></div>
+          <p class="lead">The goal is not a large catalog. The goal is evidence that clean electronic rights, creator execution, and paid partner demand can form a repeatable loop.</p>
+          <h3>Days 1-15: package the offer</h3>
+          <ul>
+            <li>Finalize the one-track pilot grant and rights intake questionnaire with counsel.</li>
+            <li>Build the account list, scorecard, CRM, outreach sequence, and partner brief.</li>
+            <li>Recruit 25 initial creators across fashion, fitness, nightlife, automotive, travel, gaming, and dance.</li>
+            <li>Prepare a sample three-hook treatment and example campaign report using non-confidential material.</li>
+            <li>Complete 10 discovery conversations before locking pricing.</li>
+          </ul>
+          <h3>Days 16-30: sign founding partners</h3>
+          <ul>
+            <li>Contact 25 Tier A and B accounts with track-specific messages.</li>
+            <li>Secure five signed pilot partners and at least 15 nominated tracks.</li>
+            <li>Clear five campaign tracks and reject anything that fails chain-of-title review.</li>
+            <li>Map official platform sounds and test Content ID handling with canary posts.</li>
+            <li>Approve three hooks and five creative treatments for each campaign track.</li>
+          </ul>
+          <h3>Days 31-60: run campaigns</h3>
+          <ul>
+            <li>Activate 10-25 creators per track in controlled weekly waves.</li>
+            <li>Monitor publication compliance, claims, deletion, attribution, and early performance.</li>
+            <li>Pay base rewards for qualified posts and bonuses only on verified outcomes.</li>
+            <li>Hold seven-day label reviews and adapt creator matching without changing rights scope silently.</li>
+            <li>Capture creator and partner interviews for case-study evidence.</li>
+          </ul>
+          <h3>Days 61-90: convert evidence</h3>
+          <ul>
+            <li>Deliver 30-day reports with hook, niche, treatment, claims, and normalized lift analysis.</li>
+            <li>Ask every partner for a paid second campaign, next-release Hook Lab, testimonial, and one referral.</li>
+            <li>Publish only evidence the partner explicitly approves.</li>
+            <li>Approach distributors and label-services companies with cohort-level results.</li>
+            <li>Decide whether to deepen house, expand techno, or test UK garage/drum and bass based on actual creator performance.</li>
+          </ul>
+          <h3>Go / no-go scorecard</h3>
+          <section class="table-wrap" aria-label="Pilot success criteria" tabindex="0">
+            <table>
+              <thead><tr><th>Metric</th><th>90-day target</th><th>Failure signal</th></tr></thead>
+              <tbody>
+                <tr><td>Signed founding labels</td><td>5</td><td>Fewer than 3 after 100 researched accounts</td></tr>
+                <tr><td>Rights-cleared campaign tracks</td><td>5</td><td>More than half fail preventable rights diligence</td></tr>
+                <tr><td>Verified creator posts</td><td>50+</td><td>Completion below 70%</td></tr>
+                <tr><td>Claim-free survival</td><td>90-95% at day 30</td><td>Repeated unresolved claims or muted posts</td></tr>
+                <tr><td>Creator return</td><td>25%+ join a second pack</td><td>Creators see no workflow or economic value</td></tr>
+                <tr><td>Partner conversion</td><td>3 paid second campaigns</td><td>Partners praise the work but will not pay</td></tr>
+                <tr><td>Performance evidence</td><td>At least one repeatable hook/niche pattern</td><td>Results depend on one outlier creator</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <div class="end-statement">
+            <p>Win one release, one hook, and one scene at a time. Access compounds after proof.</p>
+          </div>
+        </section>
+
+        <section class="chapter" id="sources">
+          <div class="chapter-header"><span class="chapter-number">16</span><h2>Sources</h2></div>
+          <p class="lead">Current market and platform references supporting the strategy. Commercial conclusions and scores are Mashups' strategic inferences.</p>
+          <ul class="source-list">
+            <li><a href="https://www.internationalmusicsummit.com/news/ims-electronic-music-business-report-2025-26">IMS Electronic Music Business Report 2025/26</a><small>Industry value, growth, audience, genre, and market findings.</small></li>
+            <li><a href="https://www.beatportal.com/articles/1489584-the-top-selling-tracks-artists-and-labels-of-2026-mid-year-review">Beatport 2026 Mid-Year Review</a><small>Current subgenre trends and monthly catalog volume.</small></li>
+            <li><a href="https://about.beatport.com/">Beatport company overview</a><small>Label, artist, user, and ecosystem scale.</small></li>
+            <li><a href="https://greenroomsupport.beatport.com/hc/en-us/articles/4415537649812-Who-is-eligible-for-Hype">Beatport Hype eligibility</a><small>Definition of smaller eligible dance labels and genres.</small></li>
+            <li><a href="https://www.labelradar.com/for-artists">LabelRadar for Artists</a><small>Electronic demo workflow and 20-second artist-selected clips.</small></li>
+            <li><a href="https://soundcloud.com/company/music-intelligence-report-2026---rising-electronic-tides">SoundCloud Music Intelligence Report 2026</a><small>Electronic listening, uploads, and emerging regional scenes.</small></li>
+            <li><a href="https://newsroom.tiktok.com/tiktok-expands-electronic-music-hub-globally-celebrating-the-genre-and-its-vibrant-community/?lang=en">TikTok Electronic Music Hub</a><small>Short-form electronic discovery and artist examples.</small></li>
+            <li><a href="https://ads.tiktok.com/help/article/commercial-music-library?redirected=1">TikTok Commercial Music Library</a><small>Existing platform-native commercial catalog and usage boundary.</small></li>
+            <li><a href="https://www.copyright.gov/register/pa-sr.html">U.S. Copyright Office: compositions and recordings</a><small>Separate copyright treatment of the musical work and sound recording.</small></li>
+            <li><a href="https://www.copyright.gov/music-modernization/educational-materials/Sampling-Interpolations-Beat-Stores-and-More-An-Introduction-for-Musicians-Using-Preexisting.pdf">U.S. Copyright Office sampling guidance</a><small>Samples, interpolations, beat stores, and preexisting works.</small></li>
+            <li><a href="https://support.google.com/youtube/answer/13053317?hl=en-GB">YouTube: manage Shorts as a rights holder</a><small>In-product music and standard claim behavior.</small></li>
+            <li><a href="MASHUPS_CLUB_PARTNER_BRIEF.html">Mashups Club partner brief</a><small>External, shareable explanation of the founding-label pilot.</small></li>
+          </ul>
+        </section>
+      </article>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-grid">
+        <p class="footer-title">Track -> hook -> rights -> lift</p>
+        <p class="footer-meta">Mashups Club internal playbook<br>Prepared August 2026<br>mashups.agency</p>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const progressBar = document.getElementById("progress-bar");
+    const sectionLinks = [...document.querySelectorAll(".toc a")];
+    const sections = sectionLinks
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+
+    function updateProgress() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
+      progressBar.style.width = `${progress * 100}%`;
+    }
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!visible) return;
+
+      sectionLinks.forEach((link) => {
+        const active = link.getAttribute("href") === `#${visible.target.id}`;
+        if (active) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-20% 0px -68% 0px", threshold: [0, 0.2, 0.5] });
+
+    sections.forEach((section) => sectionObserver.observe(section));
+
+    document.querySelectorAll("[data-copy-block]").forEach((block) => {
+      const button = block.querySelector(".copy-button");
+      const content = block.querySelector("p");
+
+      button.addEventListener("click", async () => {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(content.innerText);
+          } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = content.innerText;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            const copied = document.execCommand("copy");
+            textarea.remove();
+            if (!copied) throw new Error("Copy command failed");
+          }
+          button.textContent = "Copied";
+          button.dataset.state = "copied";
+          window.setTimeout(() => {
+            button.textContent = "Copy";
+            delete button.dataset.state;
+          }, 1800);
+        } catch {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(content);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          button.textContent = "Text selected";
+          window.setTimeout(() => {
+            button.textContent = "Copy";
+            selection.removeAllRanges();
+          }, 2500);
+        }
+      });
+    });
+
+    const scoreInputs = [...document.querySelectorAll("#scorecard input")];
+    const scoreOutput = document.getElementById("score-output");
+
+    function updateScore() {
+      const total = scoreInputs.reduce((sum, input) => {
+        const maximum = Number(input.max);
+        const value = Math.max(0, Math.min(maximum, Number(input.value) || 0));
+        input.value = value;
+        return sum + value;
+      }, 0);
+      const rating = total >= 75 ? "Green" : total >= 55 ? "Yellow" : "Red";
+      scoreOutput.textContent = `${total} / 100 - ${rating}`;
+    }
+
+    scoreInputs.forEach((input) => input.addEventListener("input", updateScore));
+    updateProgress();
+    updateScore();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+  </script>
+</body>
+</html>

@@ -21,6 +21,15 @@ It converts the business strategy into dependency-ordered releases, tickets,
 acceptance criteria, migration plans, test gates, and a reusable next-session prompt.
 Older backend plans remain historical references and do not override its priority.
 
+The electronic-music entry and label-acquisition package is documented in:
+
+- `app/docs/MASHUPS_CLUB_GO_TO_MARKET.html`: internal market thesis, founding-label
+  offer, rights boundary, targeting, outreach cadence, scripts, qualification,
+  objections, sales operations, and 90-day pilot plan.
+- `app/docs/MASHUPS_CLUB_PARTNER_BRIEF.html`: external partner-facing explanation
+  of the controlled one-track creator campaign. Share this brief, not the internal
+  playbook.
+
 ## Modernization Shipped
 
 - Editorial sound-laboratory design system: warm paper, ink, signal orange, acid accents, Archivo Black, Space Grotesk, and IBM Plex Mono.
