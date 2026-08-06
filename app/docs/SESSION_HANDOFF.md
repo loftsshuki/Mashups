@@ -16,6 +16,11 @@ Mashups is no longer positioned as a generic mashup community. It is the short-f
 
 Primary navigation is deliberately limited to Discover, Create, Challenges, Analytics, and Earnings. Broader experiments live under Labs.
 
+The authoritative implementation backlog is `app/docs/PRODUCT_EXECUTION_PLAN.md`.
+It converts the business strategy into dependency-ordered releases, tickets,
+acceptance criteria, migration plans, test gates, and a reusable next-session prompt.
+Older backend plans remain historical references and do not override its priority.
+
 ## Modernization Shipped
 
 - Editorial sound-laboratory design system: warm paper, ink, signal orange, acid accents, Archivo Black, Space Grotesk, and IBM Plex Mono.
