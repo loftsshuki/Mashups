@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { separateStems, isReplicateConfigured, getEstimatedProcessingTime } from "@/lib/audio/replicate"
 import { separateStemsModal, isModalConfigured } from "@/lib/audio/modal-stems"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
+import { parseExternalHttpUrl } from "@/lib/security/external-url"
 
 // Demucs takes 30-60+ seconds — extend Vercel function timeout
 export const maxDuration = 60
+
+const requestSchema = z.object({
+  audioUrl: z.string().min(1).max(2048),
+  duration: z.number().min(1).max(3600).optional(),
+})
 
 /** Convert a data URI to a Blob, upload to Vercel Blob, return URL */
 async function uploadDataUriToBlob(dataUri: string, stemName: string): Promise<string> {
@@ -36,11 +43,8 @@ async function uploadDataUriToBlob(dataUri: string, stemName: string): Promise<s
 }
 
 export async function POST(request: NextRequest) {
+  let usageEventId: string | null = null
   try {
-    // Check stem separation limit
-    const tierCheck = await enforceTierLimit("stem_separations")
-    if (tierCheck instanceof NextResponse) return tierCheck
-
     // Check if any provider is configured (Modal or Replicate)
     const useModal = isModalConfigured()
     const useReplicate = isReplicateConfigured()
@@ -55,26 +59,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse request body
-    const body = await request.json()
-    const { audioUrl, duration } = body
-
-    if (!audioUrl || typeof audioUrl !== "string") {
+    const parsed = requestSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "audioUrl is required", code: "MISSING_AUDIO_URL" },
         { status: 400 }
       )
     }
 
-    // Validate audio URL format
-    try {
-      new URL(audioUrl)
-    } catch {
+    const { audioUrl, duration } = parsed.data
+    if (!parseExternalHttpUrl(audioUrl)) {
       return NextResponse.json(
-        { error: "Invalid audioUrl format", code: "INVALID_URL" },
+        { error: "audioUrl must be a public HTTP(S) URL", code: "INVALID_URL" },
         { status: 400 }
       )
     }
+
+    const tierCheck = await enforceTierLimit("stem_separations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+    usageEventId = tierCheck.usageEventId
 
     const startTime = Date.now()
     let stems: { vocals: string; drums: string; bass: string; other: string }
@@ -114,6 +117,12 @@ export async function POST(request: NextRequest) {
     const processingTime = (Date.now() - startTime) / 1000
     console.log(`[API /audio/separate] Complete via ${provider} in ${processingTime.toFixed(1)}s`)
 
+    await finalizeUsage(usageEventId, "completed", {
+      operation: "stem_separation",
+      provider,
+      processingTime,
+    })
+
     return NextResponse.json({
       success: true,
       stems,
@@ -126,6 +135,10 @@ export async function POST(request: NextRequest) {
     console.error("[API /audio/separate] Error:", error)
 
     const message = error instanceof Error ? error.message : "Unknown error"
+    await finalizeUsage(usageEventId, "failed", {
+      operation: "stem_separation",
+      message,
+    })
 
     return NextResponse.json(
       {

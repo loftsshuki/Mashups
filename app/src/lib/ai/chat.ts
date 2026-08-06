@@ -1,31 +1,39 @@
+import { zodTextFormat } from "openai/helpers/zod"
+import type { z } from "zod"
+
+import { modelFor, reasoningFor, type AIWorkload } from "./models"
 import { getOpenAI, isOpenAIConfigured } from "./openai"
 
-interface ChatOptions {
+interface StructuredOptions<TSchema extends z.ZodType> {
   system: string
   user: string
-  temperature?: number
+  schema: TSchema
+  schemaName: string
+  workload?: AIWorkload
   maxTokens?: number
 }
 
-/**
- * Call GPT-4o-mini with JSON mode. Returns parsed JSON or null if unavailable.
- */
-export async function chatJSON<T>(options: ChatOptions): Promise<T | null> {
+/** Generate a validated object through Responses API Structured Outputs. */
+export async function chatJSON<TSchema extends z.ZodType>(
+  options: StructuredOptions<TSchema>,
+): Promise<z.infer<TSchema> | null> {
   if (!isOpenAIConfigured()) return null
 
-  const openai = getOpenAI()!
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: options.temperature ?? 0.7,
-    max_tokens: options.maxTokens ?? 1024,
-    response_format: { type: "json_object" },
-    messages: [
+  const workload = options.workload ?? "create"
+  const response = await getOpenAI()!.responses.parse({
+    model: modelFor(workload),
+    store: false,
+    reasoning: { effort: reasoningFor(workload) },
+    max_output_tokens: options.maxTokens ?? 1200,
+    input: [
       { role: "system", content: options.system },
       { role: "user", content: options.user },
     ],
+    text: {
+      verbosity: "low",
+      format: zodTextFormat(options.schema, options.schemaName),
+    },
   })
 
-  const text = response.choices[0]?.message?.content
-  if (!text) return null
-  return JSON.parse(text) as T
+  return response.output_parsed
 }

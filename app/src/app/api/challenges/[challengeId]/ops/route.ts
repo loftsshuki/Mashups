@@ -95,7 +95,7 @@ export async function POST(
 ) {
   const admin = await getAdminContext()
   if ("error" in admin) return admin.error
-  const rate = consumeRateLimit({
+  const rate = await consumeRateLimit({
     key: resolveRateLimitKey(request, "challenges.ops", admin.userId),
     limit: 80,
     windowMs: 60_000,

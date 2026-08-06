@@ -11,7 +11,7 @@ interface SignBody {
 
 export async function POST(request: Request) {
   try {
-    const rate = consumeRateLimit({
+    const rate = await consumeRateLimit({
       key: resolveRateLimitKey(request, "attribution.sign"),
       limit: 60,
       windowMs: 60_000,

@@ -9,3 +9,13 @@ export function createAdminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }
+
+export function requireAdminClient() {
+  const client = createAdminClient()
+  if (!client) {
+    throw new Error(
+      "Supabase admin access is not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    )
+  }
+  return client
+}

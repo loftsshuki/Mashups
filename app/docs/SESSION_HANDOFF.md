@@ -1,78 +1,58 @@
 # Mashups Session Handoff
 
 ## Current Baseline
-- Project: `Mashups`
-- Repo path: `c:\Dev\Mashups`
+
+- Repo: `C:\Dev\Mashups`
+- App: `C:\Dev\Mashups\app`
 - Branch: `claude/mashups-dev`
-- Baseline commit: `1fa23d9`
-- Status: clean working tree
+- Production domain: `https://mashups.agency`
+- Baseline commit: run `git log -1 --oneline`
 
-## What Is Already Shipped
-- Legal center + policies (terms, copyright, repeat infringer)
-- Rights + monetization schema migrations
-- Admin moderation + claim actions
-- Realtime studio presence + shared transport sync
-- Billing/license API foundations (checkout/webhook/license issue)
-- For-you ranking + recommendation event tracking
-- Campaign Builder + signed attribution links + redirect short links
-- Launchpad + partner/enterprise/sponsor surfaces
-- Pink Neon-style UI system rolled out across core pages
-- Brand/Figma starter tokens + plugin/seed automation files
+## Product Direction
 
-## Read First (New Session)
-- `app/docs/ship-checklist.md`
-- `app/docs/of-creator-growth-plan.md`
-- `app/src/components/marketing/neon-page.tsx`
-- `app/src/app/page.tsx`
-- `app/src/app/launchpad/page.tsx`
-- `app/src/app/campaigns/page.tsx`
-- `app/src/app/dashboard/page.tsx`
-- `app/supabase/migrations/002_rights_and_monetization.sql`
-- `app/supabase/migrations/003_growth_collab_and_reco.sql`
-- `app/supabase/migrations/004_billing_and_creator_licenses.sql`
+Mashups is no longer positioned as a generic mashup community. It is the short-form music operating system for the loop:
 
-## New Session Prompt (Feature-Forward)
-Copy/paste this into a new chat and fill the placeholders:
+`track -> hook cuts -> rights proof -> attributed export -> performance brief -> next post`
+
+Primary navigation is deliberately limited to Discover, Create, Challenges, Analytics, and Earnings. Broader experiments live under Labs.
+
+## Modernization Shipped
+
+- Editorial sound-laboratory design system: warm paper, ink, signal orange, acid accents, Archivo Black, Space Grotesk, and IBM Plex Mono.
+- Rebuilt homepage around the campaign loop with responsive campaign-tape visualization and live-only momentum data.
+- Create defaults to Fast Campaign; Pro Studio and 5-Minute Flip remain optional modes.
+- GPT-5.6 model router: Luna for classification, Terra for creative generation, Sol for diagnostics.
+- Responses API Structured Outputs with Zod instead of Chat Completions JSON mode.
+- `gpt-image-2` cover generation and `gpt-4o-transcribe-diarize` timestamped transcription.
+- Stripe SDK checkout/webhook handling, service-role writes, event claiming, and referral idempotency.
+- Authenticated Blob upload tokens, SSRF-resistant audio URLs, durable usage reservations, and distributed rate limits.
+- Cron routes fail closed without `CRON_SECRET`.
+- Global route error and not-found experiences.
+- CI now runs lint, typecheck, tests, and build.
+
+## Required Deployment Work
+
+1. Apply `app/supabase/migrations/019_production_foundations.sql`.
+2. Configure every production variable in `app/.env.local.example`.
+3. Set `NEXT_PUBLIC_APP_URL=https://mashups.agency`.
+4. Add `mashups.agency` and `www.mashups.agency` to the Vercel project and choose a canonical redirect.
+5. Register the production Stripe webhook URL: `https://mashups.agency/api/billing/webhook`.
+6. Keep `DEMO_MODE=false` and `NEXT_PUBLIC_DEMO_MODE=false` in production.
+
+## Quality State
+
+- `npm run build`: passes
+- `npm run typecheck`: passes
+- `npm test`: passes
+- `npm run lint`: zero errors; legacy experimental surfaces still emit warnings
+- Browser fallback screenshots verified desktop and 500px layouts. `agent-browser` could not start its Windows daemon socket in this environment.
+
+## Next Session Prompt
 
 ```md
-Project: Mashups
-Repo: c:\Dev\Mashups
-Branch: claude/mashups-dev
-Baseline commit: 1fa23d9
-Deploy URL: [paste Vercel preview/prod URL]
-
-Objective for this session:
-- Expand product features and ship production-ready increments.
-
-Already shipped (do not re-implement):
-- Legal + rights + monetization foundations
-- Admin moderation + claims
-- Realtime studio sync
-- Campaign Builder + signed attribution loop
-- For-you ranking + recommendation events
-- Launchpad/partner/enterprise/sponsor surfaces
-
-New features to build (priority order):
-1. [Feature A]
-2. [Feature B]
-3. [Feature C]
-
-Business constraints:
-- Preserve rights/compliance flows.
-- Keep creator attribution links in share paths.
-- Do not regress existing pages/routes.
-
-Execution requirements:
-- Implement code (not just planning).
-- Run `npm run lint` and `npm run build`.
-- Commit in logical chunks.
-- Push to `origin/claude/mashups-dev`.
-- Return a shipped summary with file-level references.
+Start in C:\Dev\Mashups on branch claude/mashups-dev.
+Read app/docs/SESSION_HANDOFF.md first.
+Verify migration 019 and production environment variables before changing live billing or AI routes.
+Continue the core creator loop, not broad feature count: track -> hooks -> rights -> attributed export -> analytics.
+Implement directly, run npm run check, commit only in-scope files, and push origin/claude/mashups-dev.
 ```
-
-## Suggested Next Feature Tracks
-- Mobile foundation: Expo app (`mobile/`) with auth/feed/player/create flow
-- Creator growth engine: cohort invites, referral mechanics, campaign templates
-- Rights automation: fingerprint confidence scoring + auto-routing policies
-- Monetization upgrades: payout thresholds, subscription entitlements, invoices
-- Collaboration upgrades: comments/markers/versioning in studio sessions

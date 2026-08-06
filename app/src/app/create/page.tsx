@@ -41,20 +41,20 @@ const ThumbnailCreator = lazy(() => import("@/components/thumbnail/thumbnail-cre
 const steps = [
   {
     number: 1,
-    title: "Upload Tracks",
-    description: "Add tracks and separate stems",
+    title: "Source",
+    description: "Upload a track or choose a pack",
     icon: Upload,
   },
   {
     number: 2,
-    title: "Mix & Arrange",
-    description: "Adjust levels and blend stems",
+    title: "Shape",
+    description: "Cut hooks and tune the mix",
     icon: Sliders,
   },
   {
     number: 3,
-    title: "Publish",
-    description: "Share your mashup with the community",
+    title: "Campaign",
+    description: "Prove rights, caption, and export",
     icon: Share2,
   },
 ]
@@ -566,22 +566,35 @@ function CreatePageContent() {
   }, [rouletteStems])
 
   const modeParam = searchParams.get("mode")
-  const mode = modeParam === "auto" ? "auto" : modeParam === "roulette" ? "roulette" : "manual"
+  const mode = modeParam === "manual" ? "manual" : modeParam === "roulette" ? "roulette" : "auto"
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-28 pt-28 sm:px-6 lg:px-8">
       {/* Page header */}
-      <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create a Mashup
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Blend tracks together and make something new
-        </p>
+      <div className="mb-10 grid gap-5 border-b border-foreground pb-8 text-left lg:grid-cols-12 lg:items-end">
+        <div className="lg:col-span-8">
+          <p className="signal-label mb-5">Campaign builder</p>
+          <h1 className="display-type text-5xl leading-[0.85] text-foreground sm:text-7xl">
+            Track in. Campaign out.
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
+            Find the hook, resolve the rights, package the post, and keep the signal attached to the source.
+          </p>
+        </div>
+        <div className="flex gap-px border border-foreground bg-foreground lg:col-span-4">
+          <div className="flex-1 bg-background p-3">
+            <p className="mono-label text-muted-foreground">Target</p>
+            <p className="mt-2 text-sm font-semibold">First export in 10 min</p>
+          </div>
+          <div className="flex-1 bg-secondary p-3 text-secondary-foreground">
+            <p className="mono-label">Rights gate</p>
+            <p className="mt-2 text-sm font-semibold">Always before export</p>
+          </div>
+        </div>
       </div>
 
       {/* Step indicator */}
-      <div className="mx-auto mb-12 max-w-3xl">
+      <div className="mx-auto mb-10 max-w-4xl border border-foreground bg-card p-4 sm:p-6">
         <div className="flex items-start justify-between">
           {steps.map((step, i) => {
             const isActive = step.number === currentStep
@@ -604,7 +617,7 @@ function CreatePageContent() {
                   {/* Step circle */}
                   <div
                     className={cn(
-                      "relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 transition-colors",
+                      "relative z-10 flex h-12 w-12 items-center justify-center rounded-sm border transition-colors",
                       isCompleted
                         ? "border-primary bg-primary text-primary-foreground"
                         : isActive
@@ -641,23 +654,24 @@ function CreatePageContent() {
       {/* Mode Selection */}
       <Tabs defaultValue={mode} className="mb-8">
         <div className="flex justify-center mb-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
-            <TabsTrigger value="manual">Manual Studio</TabsTrigger>
+          <TabsList className="grid h-auto w-full max-w-2xl grid-cols-3 rounded-none border border-foreground bg-muted p-1">
             <TabsTrigger value="auto">
               <Sparkles className="h-4 w-4 mr-2" />
-              Auto-Mashup
+              Fast Campaign
             </TabsTrigger>
+            <TabsTrigger value="manual">Pro Studio</TabsTrigger>
             <TabsTrigger value="roulette">
               <Dices className="h-4 w-4 mr-2" />
-              Stem Roulette
+              5-Minute Flip
             </TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="auto">
-          <div className="max-w-2xl mx-auto text-center mb-8">
-            <h2 className="text-xl font-bold">AI Magic Generator</h2>
-            <p className="text-muted-foreground text-sm">Upload tracks and let our AI engine analyze, beat-match, and mix them instantly.</p>
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <p className="mono-label text-primary">Recommended first run</p>
+            <h2 className="display-type mt-3 text-3xl">Build the campaign fast</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Upload source material, generate a workable first mix, then move directly into hooks and export proof.</p>
           </div>
           <AutoMashupGenerator
             className="max-w-3xl mx-auto"
@@ -670,7 +684,7 @@ function CreatePageContent() {
         <TabsContent value="roulette">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-xl font-bold">Stem Roulette</h2>
+              <h2 className="display-type text-3xl">The 5-minute flip</h2>
               <p className="text-muted-foreground text-sm">
                 Spin for 3 random stems. Make something amazing in 5 minutes.
               </p>
@@ -1156,7 +1170,7 @@ export default function CreatePage() {
     <AuthGuard>
       <Suspense
         fallback={
-          <div className="mx-auto max-w-4xl px-4 py-8 pb-24 sm:px-6 md:py-12 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 pb-24 pt-28 sm:px-6 lg:px-8">
             <p className="text-sm text-muted-foreground">Loading creator workspace...</p>
           </div>
         }

@@ -1,71 +1,102 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { checkUsageLimit, type PlatformTier } from "@/lib/billing/entitlements"
 
-type Feature = "mashups" | "ai_generations" | "stem_separations"
+import {
+  getTierEntitlements,
+  getUserTier,
+  type PlatformTier,
+} from "@/lib/billing/entitlements"
+import { isDemoMode, isSupabaseConfigured } from "@/lib/config/runtime"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
+
+export type MeteredFeature = "mashups" | "ai_generations" | "stem_separations"
 
 interface EnforceResult {
   allowed: true
   userId: string
   tier: PlatformTier
   remaining: number
+  usageEventId: string | null
+}
+
+function featureLimit(tier: PlatformTier, feature: MeteredFeature): number {
+  const entitlements = getTierEntitlements(tier)
+  if (feature === "mashups") return entitlements.maxMashupsPerMonth
+  if (feature === "stem_separations") {
+    return entitlements.maxStemSeparationsPerMonth
+  }
+  return entitlements.maxAiGenerationsPerMonth
 }
 
 /**
- * Check tier limits before processing an API request.
- * Returns the user info if allowed, or a 403 NextResponse if over limit.
+ * Authenticates the caller and atomically reserves one unit before paid work
+ * starts. The database function serializes reservations per user and feature.
  */
 export async function enforceTierLimit(
-  feature: Feature,
+  feature: MeteredFeature,
 ): Promise<EnforceResult | NextResponse> {
+  if (!isSupabaseConfigured()) {
+    if (isDemoMode()) {
+      return {
+        allowed: true,
+        userId: "demo-user",
+        tier: "studio",
+        remaining: -1,
+        usageEventId: null,
+      }
+    }
+    return NextResponse.json(
+      { error: "Authentication is not configured." },
+      { status: 503 },
+    )
+  }
+
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Unauthenticated → treat as free tier with userId "anon"
-  const userId = user?.id ?? "anon"
-
-  // Count usage this month
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-
-  let currentCount = 0
-
-  if (userId !== "anon") {
-    try {
-      const table = feature === "mashups" ? "mashups" : "ai_jobs"
-      const column = feature === "mashups" ? "creator_id" : "user_id"
-
-      let query = supabase
-        .from(table)
-        .select("id", { count: "exact", head: true })
-        .eq(column, userId)
-        .gte("created_at", monthStart)
-
-      if (feature !== "mashups") {
-        const jobType =
-          feature === "stem_separations" ? "stem_separation" : "ai_generation"
-        query = query.eq("job_type", jobType)
-      }
-
-      const { count } = await query
-      currentCount = count ?? 0
-    } catch {
-      // If counting fails, allow the request
-    }
+  if (!user?.id) {
+    return NextResponse.json(
+      { error: "Sign in to use this feature." },
+      { status: 401 },
+    )
   }
 
-  const result = await checkUsageLimit(userId, feature, currentCount)
+  const tier = await getUserTier(user.id)
+  const limit = featureLimit(tier, feature)
+  const admin = createAdminClient()
+  if (!admin) {
+    return NextResponse.json(
+      { error: "Usage metering is not configured." },
+      { status: 503 },
+    )
+  }
 
-  if (!result.allowed) {
+  const { data, error } = await admin.rpc("reserve_usage_event", {
+    p_user_id: user.id,
+    p_feature: feature,
+    p_limit: limit,
+    p_metadata: { tier },
+  })
+
+  if (error) {
+    console.error("[Usage] Reservation failed:", error.message)
+    return NextResponse.json(
+      { error: "Usage metering is temporarily unavailable." },
+      { status: 503 },
+    )
+  }
+
+  const usageEventId = typeof data === "string" ? data : null
+  if (!usageEventId) {
     return NextResponse.json(
       {
-        error: `Monthly ${feature.replace("_", " ")} limit reached`,
-        limit: result.limit,
+        error: `Monthly ${feature.replace("_", " ")} limit reached.`,
+        limit,
         remaining: 0,
-        tier: userId === "anon" ? "free" : undefined,
-        upgrade: userId === "anon" ? undefined : "/pricing",
+        tier,
+        upgrade: "/pricing",
       },
       { status: 403 },
     )
@@ -73,8 +104,33 @@ export async function enforceTierLimit(
 
   return {
     allowed: true,
-    userId,
-    tier: (userId === "anon" ? "free" : "free") as PlatformTier, // getUserTier already called inside checkUsageLimit
-    remaining: result.remaining,
+    userId: user.id,
+    tier,
+    remaining: limit === -1 ? -1 : Math.max(0, limit - 1),
+    usageEventId,
+  }
+}
+
+export async function finalizeUsage(
+  usageEventId: string | null,
+  status: "completed" | "failed",
+  metadata: Record<string, unknown> = {},
+): Promise<void> {
+  if (!usageEventId) return
+
+  const admin = createAdminClient()
+  if (!admin) return
+
+  const { error } = await admin
+    .from("usage_events")
+    .update({
+      status,
+      metadata,
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", usageEventId)
+
+  if (error) {
+    console.error("[Usage] Finalization failed:", error.message)
   }
 }

@@ -3,6 +3,7 @@ import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
 import { computeMomentum, type MomentumMashup } from "@/lib/growth/momentum"
 import { mockMashups } from "@/lib/mock-data"
 import { createClient } from "@/lib/supabase/server"
+import { isDemoMode } from "@/lib/config/runtime"
 
 const isSupabaseConfigured = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -51,7 +52,7 @@ function enrichMomentumRows(rows: MomentumMashup[], eventScores: Map<string, num
 
 export async function getMomentumFeed(limit = 8): Promise<MomentumFeedItem[]> {
   const fallback = enrichMomentumRows(computeMomentum(mockMashups), new Map())
-  if (!isSupabaseConfigured()) return fallback.slice(0, limit)
+  if (!isSupabaseConfigured()) return isDemoMode() ? fallback.slice(0, limit) : []
 
   try {
     const supabase = await createClient()
@@ -71,7 +72,7 @@ export async function getMomentumFeed(limit = 8): Promise<MomentumFeedItem[]> {
       .limit(Math.max(20, limit * 3))
 
     if (mashupError || !mashupData || mashupData.length === 0) {
-      return fallback.slice(0, limit)
+      return isDemoMode() ? fallback.slice(0, limit) : []
     }
 
     const mashups = (mashupData as Record<string, unknown>[]).map((row) =>
@@ -101,6 +102,6 @@ export async function getMomentumFeed(limit = 8): Promise<MomentumFeedItem[]> {
 
     return enrichMomentumRows(computeMomentum(mashups), eventScores).slice(0, limit)
   } catch {
-    return fallback.slice(0, limit)
+    return isDemoMode() ? fallback.slice(0, limit) : []
   }
 }

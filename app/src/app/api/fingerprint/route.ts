@@ -29,7 +29,7 @@ function toSegmentHash(bytes: Uint8Array): string {
 
 export async function POST(request: Request) {
   try {
-    const rate = consumeRateLimit({
+    const rate = await consumeRateLimit({
       key: resolveRateLimitKey(request, "fingerprint.generate"),
       limit: 40,
       windowMs: 60_000,

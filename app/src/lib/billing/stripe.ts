@@ -1,11 +1,27 @@
-import { createHmac, timingSafeEqual } from "node:crypto"
+import "server-only"
+
+import Stripe from "stripe"
 
 export type CheckoutSessionType = "subscription" | "license"
 
-export const STRIPE_API_BASE = "https://api.stripe.com/v1"
+let stripeClient: Stripe | null = null
 
 export function isStripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY)
+}
+
+export function getStripe(secretKey = process.env.STRIPE_SECRET_KEY): Stripe {
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not configured.")
+  }
+
+  if (!stripeClient || secretKey !== process.env.STRIPE_SECRET_KEY) {
+    stripeClient = new Stripe(secretKey, {
+      appInfo: { name: "Mashups", version: "0.1.0" },
+    })
+  }
+
+  return stripeClient
 }
 
 function normalizeTarget(value: string): string {
@@ -19,16 +35,14 @@ export function resolveStripePriceId(
   const normalized = normalizeTarget(targetId)
 
   if (sessionType === "subscription") {
-    if (normalized.includes("studio")) {
-      return process.env.STRIPE_PRICE_ID_PRO_STUDIO ?? null
-    }
-    return process.env.STRIPE_PRICE_ID_PRO_CREATOR ?? null
+    return normalized.includes("studio")
+      ? process.env.STRIPE_PRICE_ID_PRO_STUDIO ?? null
+      : process.env.STRIPE_PRICE_ID_PRO_CREATOR ?? null
   }
 
-  if (normalized.includes("paid_ads")) {
-    return process.env.STRIPE_PRICE_ID_LICENSE_PAID_ADS_SHORTS ?? null
-  }
-  return process.env.STRIPE_PRICE_ID_LICENSE_ORGANIC_SHORTS ?? null
+  return normalized.includes("paid_ads")
+    ? process.env.STRIPE_PRICE_ID_LICENSE_PAID_ADS_SHORTS ?? null
+    : process.env.STRIPE_PRICE_ID_LICENSE_ORGANIC_SHORTS ?? null
 }
 
 export async function createStripeCheckoutSession(input: {
@@ -39,137 +53,60 @@ export async function createStripeCheckoutSession(input: {
   cancelUrl: string
   metadata: Record<string, string>
   customerEmail?: string
-}): Promise<{ id: string; url: string } | null> {
-  const body = new URLSearchParams()
-  body.set("mode", input.mode)
-  body.set("success_url", input.successUrl)
-  body.set("cancel_url", input.cancelUrl)
-  body.set("line_items[0][price]", input.priceId)
-  body.set("line_items[0][quantity]", "1")
-
-  if (input.customerEmail) {
-    body.set("customer_email", input.customerEmail)
-  }
-
-  for (const [key, value] of Object.entries(input.metadata)) {
-    body.set(`metadata[${key}]`, value)
-  }
-
-  const response = await fetch(`${STRIPE_API_BASE}/checkout/sessions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.secretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
+}): Promise<{ id: string; url: string }> {
+  const stripe = getStripe(input.secretKey)
+  const session = await stripe.checkout.sessions.create({
+    mode: input.mode,
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+    line_items: [{ price: input.priceId, quantity: 1 }],
+    customer_email: input.customerEmail,
+    metadata: input.metadata,
+    subscription_data:
+      input.mode === "subscription" ? { metadata: input.metadata } : undefined,
+    payment_intent_data:
+      input.mode === "payment" ? { metadata: input.metadata } : undefined,
   })
 
-  if (!response.ok) {
-    return null
+  if (!session.url) {
+    throw new Error("Stripe did not return a checkout URL.")
   }
 
-  const payload = (await response.json()) as { id?: string; url?: string }
-  if (!payload.id || !payload.url) {
-    return null
-  }
-
-  return { id: payload.id, url: payload.url }
+  return { id: session.id, url: session.url }
 }
 
-function parseStripeSignatureHeader(header: string): {
-  timestamp: string | null
-  signatures: string[]
-} {
-  const segments = header.split(",").map((item) => item.trim())
-  let timestamp: string | null = null
-  const signatures: string[] = []
-
-  for (const segment of segments) {
-    if (segment.startsWith("t=")) {
-      timestamp = segment.slice(2)
-    } else if (segment.startsWith("v1=")) {
-      signatures.push(segment.slice(3))
-    }
-  }
-
-  return { timestamp, signatures }
-}
-
-export function verifyStripeWebhookSignature(input: {
+export function constructStripeWebhookEvent(input: {
   payload: string
   signatureHeader: string
   secret: string
-  toleranceSeconds?: number
-}): boolean {
-  const tolerance = input.toleranceSeconds ?? 300
-  const { timestamp, signatures } = parseStripeSignatureHeader(input.signatureHeader)
-  if (!timestamp || signatures.length === 0) return false
-
-  const timestampNumber = Number(timestamp)
-  if (!Number.isFinite(timestampNumber)) return false
-  const ageSeconds = Math.abs(Date.now() / 1000 - timestampNumber)
-  if (ageSeconds > tolerance) return false
-
-  const signedPayload = `${timestamp}.${input.payload}`
-  const expected = createHmac("sha256", input.secret).update(signedPayload).digest("hex")
-  const expectedBuffer = Buffer.from(expected)
-
-  for (const signature of signatures) {
-    const actualBuffer = Buffer.from(signature)
-    if (
-      actualBuffer.length === expectedBuffer.length &&
-      timingSafeEqual(actualBuffer, expectedBuffer)
-    ) {
-      return true
-    }
-  }
-
-  return false
+}): Stripe.Event {
+  return getStripe().webhooks.constructEvent(
+    input.payload,
+    input.signatureHeader,
+    input.secret,
+  )
 }
-
-// ---------------------------------------------------------------------------
-// Stripe Customer Portal
-// ---------------------------------------------------------------------------
 
 export async function createStripePortalSession(input: {
   secretKey: string
   customerId: string
   returnUrl: string
-}): Promise<{ url: string } | null> {
-  const body = new URLSearchParams()
-  body.set("customer", input.customerId)
-  body.set("return_url", input.returnUrl)
-
-  const response = await fetch(`${STRIPE_API_BASE}/billing_portal/sessions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.secretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
+}): Promise<{ url: string }> {
+  const session = await getStripe(input.secretKey).billingPortal.sessions.create({
+    customer: input.customerId,
+    return_url: input.returnUrl,
   })
 
-  if (!response.ok) return null
-
-  const payload = (await response.json()) as { url?: string }
-  if (!payload.url) return null
-  return { url: payload.url }
+  return { url: session.url }
 }
 
-// Look up Stripe customer ID by email
 export async function findStripeCustomerByEmail(input: {
   secretKey: string
   email: string
 }): Promise<string | null> {
-  const response = await fetch(
-    `${STRIPE_API_BASE}/customers?email=${encodeURIComponent(input.email)}&limit=1`,
-    {
-      headers: { Authorization: `Bearer ${input.secretKey}` },
-    },
-  )
-
-  if (!response.ok) return null
-
-  const payload = (await response.json()) as { data?: Array<{ id: string }> }
-  return payload.data?.[0]?.id ?? null
+  const customers = await getStripe(input.secretKey).customers.list({
+    email: input.email,
+    limit: 1,
+  })
+  return customers.data[0]?.id ?? null
 }
