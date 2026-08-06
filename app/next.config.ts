@@ -16,10 +16,23 @@ const nextConfig: NextConfig = {
     return [
       { source: "/pitch", destination: "/founder-pitch.html" },
       { source: "/founder-pitch", destination: "/founder-pitch.html" },
+      { source: "/demo-track", destination: "/mashup-demo.html" },
     ]
   },
   async headers() {
     return [
+      {
+        source: "/demo-track",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      {
+        source: "/mashup-demo.html",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [
