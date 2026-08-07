@@ -7,6 +7,7 @@ export const primaryNavigation = [
 ] as const
 
 export const labNavigation = [
+  { href: "/launches", label: "Viral command", note: "Test, raid, and multiply" },
   { href: "/studio", label: "Live studio", note: "Co-create in real time" },
   { href: "/packs", label: "Weekly packs", note: "Hook-ready drops" },
   { href: "/momentum", label: "Momentum feed", note: "What is moving now" },
@@ -17,6 +18,7 @@ export const labNavigation = [
 
 export const productPillars = [
   { href: "/campaigns/new", label: "Campaign studio", status: "Core" },
+  { href: "/launches", label: "Viral launch network", status: "Core" },
   { href: "/discover", label: "Momentum discovery", status: "Core" },
   { href: "/challenges", label: "Challenge engine", status: "Core" },
   { href: "/dashboard/rights", label: "Rights operations", status: "Core" },

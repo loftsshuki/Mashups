@@ -17,6 +17,7 @@ import {
   Loader2,
   Play,
   RefreshCcw,
+  Rocket,
   ShieldCheck,
   Sparkles,
   Upload,
@@ -310,7 +311,10 @@ export function CampaignWorkspace() {
             {currentIndex < steps.length - 1 ? (
               <Button type="button" onClick={() => goToStep(currentIndex + 1)} data-testid="campaign-next">Next stage<ArrowRight /></Button>
             ) : (
-              <Button asChild><Link href="/dashboard/analytics?demo=1">Open analytics<BarChart3 /></Link></Button>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" asChild><Link href={`/dashboard/analytics${demo ? "?demo=1" : ""}`}>Open analytics<BarChart3 /></Link></Button>
+                <Button asChild><Link href={`/launches/new${demo ? "?demo=1" : ""}`}>Scale this launch<Rocket /></Link></Button>
+              </div>
             )}
           </div>
         </main>

@@ -44,9 +44,28 @@ The electronic-music entry and label-acquisition package is documented in:
 - Global route error and not-found experiences.
 - CI now runs lint, typecheck, tests, and build.
 
+## Viral Launch Network Shipped
+
+- `/launches` is the authenticated operator command center for creator K-factor,
+  test/scale/blast raids, winning template genomes, squad standings, community
+  unlocks, bounties, and artist commitments. Use `?demo=1` for the labeled demo.
+- `/launches/new` creates a complete 72-hour launch protocol with three creative
+  genomes, three native packages per genome, creator waves, squads, outcome
+  bounties, chain royalty rules, save destinations, unlocks, and artist actions.
+- `/launches/[slug]` is the public participation surface for audio playback,
+  music saves, private sharing, template forks, lineage, Fan A&R calls, squad
+  joins, native posting packages, community unlocks, and artist follow-through.
+- Viral event, fork, squad, and launch APIs are under `/api/viral/launches`.
+  Production writes require auth where appropriate, use distributed rate limits,
+  and mutate fork/squad counters atomically. Explicit demo requests never write.
+- `supabase/migrations/020_viral_launch_network.sql` is the production schema for
+  launches, genomes, raids, squads, activations, bounties, unlocks, commitments,
+  events, predictions, royalty rules, and platform packages.
+
 ## Required Deployment Work
 
-1. Apply `app/supabase/migrations/019_production_foundations.sql`.
+1. Apply `app/supabase/migrations/019_production_foundations.sql`, then
+   `app/supabase/migrations/020_viral_launch_network.sql`.
 2. Configure every production variable in `app/.env.local.example`.
 3. Set `NEXT_PUBLIC_APP_URL=https://mashups.agency`.
 4. Add `mashups.agency` and `www.mashups.agency` to the Vercel project and choose a canonical redirect.

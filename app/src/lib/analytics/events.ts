@@ -10,6 +10,11 @@ export const PRODUCT_EVENTS = {
   challengeJoined: "challenge_joined",
   pricingViewed: "pricing_viewed",
   integrationChecked: "integration_checked",
+  viralLaunchCreated: "viral_launch_created",
+  viralTemplateForked: "viral_template_forked",
+  viralSquadJoined: "viral_squad_joined",
+  viralMusicSaveClicked: "viral_music_save_clicked",
+  viralLaunchShared: "viral_launch_shared",
 } as const
 
 export type ProductEvent = (typeof PRODUCT_EVENTS)[keyof typeof PRODUCT_EVENTS]
