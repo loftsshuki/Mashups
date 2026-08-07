@@ -7,6 +7,7 @@ export const primaryNavigation = [
 ] as const
 
 export const labNavigation = [
+  { href: "/network?demo=1", label: "Growth OS", note: "Fourteen network systems" },
   { href: "/launches", label: "Viral command", note: "Test, raid, and multiply" },
   { href: "/studio", label: "Live studio", note: "Co-create in real time" },
   { href: "/packs", label: "Weekly packs", note: "Hook-ready drops" },
@@ -17,6 +18,7 @@ export const labNavigation = [
 ] as const
 
 export const productPillars = [
+  { href: "/network?demo=1", label: "Growth operating system", status: "Core" },
   { href: "/campaigns/new", label: "Campaign studio", status: "Core" },
   { href: "/launches", label: "Viral launch network", status: "Core" },
   { href: "/discover", label: "Momentum discovery", status: "Core" },
@@ -24,6 +26,8 @@ export const productPillars = [
   { href: "/dashboard/rights", label: "Rights operations", status: "Core" },
   { href: "/dashboard/analytics", label: "Performance brief", status: "Core" },
   { href: "/studio", label: "Live collaboration", status: "Lab" },
+  { href: "/supply?demo=1", label: "Rightsholder supply", status: "Lab" },
+  { href: "/exchange?demo=1", label: "Pre-release exchange", status: "Lab" },
   { href: "/battles", label: "Beat battles", status: "Lab" },
   { href: "/tools", label: "Specialized tools", status: "Lab" },
 ] as const

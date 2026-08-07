@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next"
 
-  const routes = [
+const routes = [
   "",
   "/discover",
-    "/campaigns/new",
-    "/launches",
-    "/launches/new",
+  "/campaigns/new",
+  "/launches",
+  "/launches/new",
+  "/network",
+  "/supply",
+  "/exchange",
   "/challenges",
   "/pricing",
   "/packs",

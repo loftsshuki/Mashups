@@ -62,15 +62,54 @@ The electronic-music entry and label-acquisition package is documented in:
   launches, genomes, raids, squads, activations, bounties, unlocks, commitments,
   events, predictions, royalty rules, and platform packages.
 
+## Growth Operating System Shipped
+
+- `/network?demo=1` is the unified control room for fourteen connected systems:
+  Launch Autopilot, connected platform accounts, one-tap music saving, dynamic
+  bounties, creator escrow and Stripe Connect, rightsholder supply, zero-follower
+  opportunity scoring, city competition, Fan A&R, paid-media handoff, venue QR
+  activation, embeds, proof passports, and private pre-release rooms.
+- `/supply?demo=1` is the rightsholder intake and campaign-readiness ledger.
+  Production submissions require an authenticated organization rights role and
+  store versioned rights attestations, permitted uses, territories, and sources.
+- `/exchange?demo=1` is the invitation-only pre-release floor. Accepted members
+  acknowledge the embargo, hear the private preview, identify the hook, and stake
+  Fan A&R reputation on a sealed call.
+- `/passport/[username]` publishes verified lift, reliability, rights standing,
+  paid-use clearances, and recent proofs without exposing private account data.
+- `/club/[code]` turns venue QR scans into attributed saves and city-cell joins.
+- `/embed/launch/[slug]` plus `public/mashups-launch.js` provides a compact launch
+  web component for label, artist, agency, and media sites.
+- Growth APIs live under `/api/growth`. Explicit `?demo=1` requests exercise the
+  contract without external writes. Production OAuth uses signed state and stores
+  AES-256-GCM encrypted tokens. Spotify saving uses the current generic library
+  endpoint; paid amplification requires creator consent and a rights re-check.
+- `supabase/migrations/021_growth_operating_system.sql` adds platform connections,
+  music-save evidence, Autopilot decision logs, dynamic offers, immutable escrow,
+  rightsholder organizations and tracks, opportunity scores, city cells, Fan A&R,
+  paid-media handoffs, venue and embed events, proof snapshots, and embargo rooms.
+- `/api/cron/autopilot` evaluates active launch genomes every 15 minutes and writes
+  reversible, human-overridable decisions. It fails closed without `CRON_SECRET`.
+
 ## Required Deployment Work
 
-1. Apply `app/supabase/migrations/019_production_foundations.sql`, then
-   `app/supabase/migrations/020_viral_launch_network.sql`.
+1. Create/link the replacement Supabase project, then apply migrations in order,
+   including `019_production_foundations.sql`, `020_viral_launch_network.sql`, and
+   `021_growth_operating_system.sql`.
 2. Configure every production variable in `app/.env.local.example`.
 3. Set `NEXT_PUBLIC_APP_URL=https://mashups.agency`.
 4. Add `mashups.agency` and `www.mashups.agency` to the Vercel project and choose a canonical redirect.
 5. Register the production Stripe webhook URL: `https://mashups.agency/api/billing/webhook`.
-6. Keep `DEMO_MODE=false` and `NEXT_PUBLIC_DEMO_MODE=false` in production.
+6. Enable Stripe Connect and verify the platform business profile before creator payouts.
+7. Register these OAuth callbacks with each reviewed provider app:
+   `https://mashups.agency/api/growth/connections/spotify/callback`,
+   `/youtube/callback`, `/tiktok/callback`, and `/instagram/callback`.
+8. Configure `PLATFORM_TOKEN_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`, and provider
+   client credentials. Do not reuse either secret or rotate encryption keys without
+   a token re-encryption procedure.
+9. Complete required Google, TikTok, and Meta app verification before enabling
+   public posting. Unreviewed apps must remain test-only.
+10. Keep `DEMO_MODE=false` and `NEXT_PUBLIC_DEMO_MODE=false` in production.
 
 ## Quality State
 

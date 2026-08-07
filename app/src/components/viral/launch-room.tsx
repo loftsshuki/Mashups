@@ -121,15 +121,32 @@ export function LaunchRoom({ launch, demo }: { launch: ViralLaunch; demo: boolea
 
   async function predictWinner(genome: TemplateGenome) {
     setPendingAction(`vote:${genome.id}`)
-    await recordEvent("vote", { genomeId: genome.id, metadata: { confidence: 75 } })
-    setStatus(`${genome.name} is now your breakout call. Accurate early calls build your A&R score.`)
-    setPendingAction(null)
+    try {
+      const response = await fetch(`/api/growth/predict${demo ? "?demo=1" : ""}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ launchSlug: launch.slug, genomeId: genome.id, confidence: 75 }) })
+      const payload = await response.json().catch(() => ({})) as { error?: string }
+      setStatus(response.ok ? `${genome.name} is now your breakout call. Accurate early calls build your A&R score.` : payload.error ?? "The breakout call could not be recorded.")
+      void recordEvent("vote", { genomeId: genome.id, metadata: { confidence: 75 } })
+    } finally {
+      setPendingAction(null)
+    }
   }
 
-  function registerSave(platform: string) {
+  async function registerSave(platform: string, destinationUrl: string) {
+    if (platform === "spotify") {
+      setPendingAction("save:spotify")
+      const response = await fetch(`/api/growth/save${demo ? "?demo=1" : ""}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ launchSlug: launch.slug, spotifyUri: destinationUrl, anonymousKey: anonymousKey() }) })
+      const payload = await response.json().catch(() => ({})) as { error?: string; connectUrl?: string }
+      if (!response.ok) {
+        setStatus(payload.connectUrl ? "Connect Spotify from Growth OS, then return to save this track." : payload.error ?? "Spotify save failed.")
+        setPendingAction(null)
+        return
+      }
+      setStatus("Saved to your Spotify library. The launch received verified music intent.")
+      setPendingAction(null)
+    }
     setSignals((current) => ({ ...current, saves: current.saves + 1 }))
     trackProductEvent(PRODUCT_EVENTS.viralMusicSaveClicked, { launch_slug: launch.slug, platform, mode: demo ? "demo" : "live" })
-    void recordEvent("save_click", { platform })
+    if (platform !== "spotify") void recordEvent("save_click", { platform })
   }
 
   return (
@@ -228,7 +245,7 @@ export function LaunchRoom({ launch, demo }: { launch: ViralLaunch; demo: boolea
 
         <section className="grid gap-8 py-12 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7"><p className="signal-label">Turn discovery into listening</p><h2 className="display-type mt-6 text-6xl leading-[0.84] sm:text-8xl">Save the track.<br /><span className="text-primary">Then spread it.</span></h2></div>
-          <div className="lg:col-span-5"><p className="text-lg leading-relaxed text-muted-foreground">Every campaign action should lead somewhere real: a music save, a creator fork, a squad relationship, or the next attributed post.</p><div className="mt-7 flex flex-wrap gap-3">{launch.saveDestinations.map((destination) => <Button key={destination.platform} asChild variant={destination.platform === "spotify" ? "default" : "outline"}><a href={destination.url} target="_blank" rel="noreferrer" onClick={() => registerSave(destination.platform)}><Save />{saveLabel(destination.platform)}</a></Button>)}<Button type="button" variant="secondary" onClick={() => void shareLaunch()}><Share2 />Share launch</Button></div></div>
+          <div className="lg:col-span-5"><p className="text-lg leading-relaxed text-muted-foreground">Every campaign action should lead somewhere real: a music save, a creator fork, a squad relationship, or the next attributed post.</p><div className="mt-7 flex flex-wrap gap-3">{launch.saveDestinations.map((destination) => destination.platform === "spotify" ? <Button key={destination.platform} type="button" disabled={pendingAction === "save:spotify"} onClick={() => void registerSave(destination.platform, destination.url)}>{pendingAction === "save:spotify" ? <Loader2 className="animate-spin" /> : <Save />}{saveLabel(destination.platform)}</Button> : <Button key={destination.platform} asChild variant="outline"><a href={destination.url} target="_blank" rel="noreferrer" onClick={() => void registerSave(destination.platform, destination.url)}><Save />{saveLabel(destination.platform)}</a></Button>)}<Button type="button" variant="secondary" onClick={() => void shareLaunch()}><Share2 />Share launch</Button></div></div>
         </section>
 
         {status ? <div role="status" className="pointer-events-none sticky bottom-4 z-30 mx-auto flex max-w-3xl items-start gap-3 border border-foreground bg-secondary p-4 shadow-[6px_6px_0_var(--foreground)]"><Check className="mt-0.5 size-5 shrink-0" /><p className="text-sm font-semibold leading-relaxed">{status}</p><button type="button" className="pointer-events-auto ml-auto font-mono text-xs underline" onClick={() => setStatus(null)}>Close</button></div> : null}

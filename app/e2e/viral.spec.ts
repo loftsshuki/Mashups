@@ -59,9 +59,7 @@ test("operator can configure and ignite a labeled launch", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Test small")
   await expect(page.getByLabel("Spotify save URL")).toHaveValue(/spotify/)
 
-  for (let stage = 0; stage < 4; stage += 1) {
-    await page.getByRole("button", { name: /Next stage/i }).click()
-  }
+  await page.getByRole("button", { name: /Ignition/i }).click()
   await expect(page.getByText(/Lock the protocol/i)).toBeVisible()
   const navigation = page.waitForURL(/\/launches\/midnight-velocity\?demo=1$/)
   const igniteButton = await page.getByRole("button", { name: /Ignite launch/i }).elementHandle()

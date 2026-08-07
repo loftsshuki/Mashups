@@ -396,6 +396,45 @@
   to { transform: scaleY(1); }
 }
 
+.growth-radar {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 8%, color-mix(in srgb, var(--secondary) 38%, transparent) 8.5% 9%, transparent 9.5% 24%, color-mix(in srgb, var(--secondary) 24%, transparent) 24.5% 25%, transparent 25.5% 42%, color-mix(in srgb, var(--secondary) 16%, transparent) 42.5% 43%, transparent 43.5%),
+    conic-gradient(from 225deg at 50% 50%, transparent 0 20%, color-mix(in srgb, var(--secondary) 20%, transparent) 24%, transparent 28% 100%);
+  animation: radar-sweep 7s linear infinite;
+}
+
+.growth-os > section {
+  animation: growth-reveal 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.exchange-record {
+  background:
+    repeating-radial-gradient(circle, transparent 0 7%, color-mix(in srgb, var(--background) 12%, transparent) 7.3% 7.8%, transparent 8.1% 11%),
+    radial-gradient(circle, color-mix(in srgb, var(--secondary) 22%, transparent), transparent 58%);
+}
+
+.club-beams {
+  background:
+    linear-gradient(112deg, transparent 14%, color-mix(in srgb, var(--secondary) 11%, transparent) 14.5% 16%, transparent 16.5% 46%, color-mix(in srgb, var(--primary) 12%, transparent) 46.5% 49%, transparent 49.5%),
+    radial-gradient(circle at 78% 28%, color-mix(in srgb, var(--primary) 20%, transparent), transparent 22%);
+  transform-origin: 78% 28%;
+  animation: club-sweep 9s ease-in-out infinite alternate;
+}
+
+@keyframes radar-sweep {
+  to { transform: rotate(360deg) scale(1.08); }
+}
+
+@keyframes growth-reveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes club-sweep {
+  from { transform: rotate(-2deg) scale(1.02); }
+  to { transform: rotate(3deg) scale(1.08); }
+}
+
 @media (min-width: 640px) {
   .container-padding { padding-inline: 1.5rem; }
 }
