@@ -180,6 +180,45 @@
   box-shadow: 0 0 0 3px rgb(255 79 31 / 0.18);
 }
 
+.pilot-shell input,
+.pilot-shell textarea,
+.pilot-shell select {
+  border-radius: 0;
+}
+
+.pilot-shell .operator-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-mono-custom), monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.pilot-shell .grid > * {
+  min-width: 0;
+}
+
+.pilot-grid {
+  background:
+    linear-gradient(90deg, transparent 49.7%, rgb(19 19 15 / 0.1) 50%, transparent 50.3%),
+    repeating-linear-gradient(0deg, transparent 0 47px, rgb(19 19 15 / 0.08) 48px);
+}
+
+.pipeline-stripes {
+  background:
+    repeating-linear-gradient(118deg, transparent 0 44px, rgb(255 79 31 / 0.08) 45px 88px),
+    radial-gradient(circle at 82% 25%, rgb(215 255 63 / 0.55), transparent 19rem);
+}
+
+.readiness-scan {
+  background:
+    linear-gradient(135deg, transparent 0 66%, rgb(36 88 255 / 0.09) 66.2% 70%, transparent 70.2%),
+    repeating-linear-gradient(90deg, transparent 0 11.8%, rgb(19 19 15 / 0.07) 12% 12.15%);
+}
+
 .gradient-text,
 .gradient-text-full {
   color: var(--primary);

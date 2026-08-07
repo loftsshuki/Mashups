@@ -12,6 +12,10 @@ interface CommandItem {
 }
 
 const commands: CommandItem[] = [
+  { label: "Founding Pilot Intake", href: "/pilot/new?demo=1", keywords: "label artist rights house campaign application" },
+  { label: "Pilot Operator", href: "/operator?demo=1", keywords: "guarantee license measurement terms protection" },
+  { label: "Outreach Desk", href: "/outreach?demo=1", keywords: "crm label distributor manager venue acquisition" },
+  { label: "Launch Readiness", href: "/readiness?demo=1", keywords: "deployment blockers infrastructure checklist" },
   { label: "Domination OS", href: "/domination?demo=1", keywords: "commercial rights causal lift index trust protection" },
   { label: "Mashups Index", href: "/index?demo=1", keywords: "independent breakout ranking evidence" },
   { label: "Create Mashup", href: "/create", keywords: "create upload mix publish" },

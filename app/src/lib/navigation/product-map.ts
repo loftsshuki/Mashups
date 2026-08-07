@@ -7,6 +7,8 @@ export const primaryNavigation = [
 ] as const
 
 export const labNavigation = [
+  { href: "/operator?demo=1", label: "Pilot operator", note: "Guarantees, rights, and launch gates" },
+  { href: "/outreach?demo=1", label: "Outreach desk", note: "Independent rightsholder pipeline" },
   { href: "/domination?demo=1", label: "Domination OS", note: "Commercial proof and control" },
   { href: "/network?demo=1", label: "Growth OS", note: "Fourteen network systems" },
   { href: "/launches", label: "Viral command", note: "Test, raid, and multiply" },
@@ -19,6 +21,8 @@ export const labNavigation = [
 ] as const
 
 export const productPillars = [
+  { href: "/operator?demo=1", label: "Pilot operating workflow", status: "Core" },
+  { href: "/outreach?demo=1", label: "Rightsholder acquisition", status: "Core" },
   { href: "/domination?demo=1", label: "Domination operating layer", status: "Core" },
   { href: "/network?demo=1", label: "Growth operating system", status: "Core" },
   { href: "/campaigns/new", label: "Campaign studio", status: "Core" },
