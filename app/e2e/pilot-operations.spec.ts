@@ -76,11 +76,15 @@ test("all fourteen domination systems remain visible", async ({ page }) => {
 })
 
 test("rightsholder offer explains fit and opens the portable intake", async ({ page }, testInfo) => {
+  if (testInfo.project.name.startsWith("mobile")) {
+    await page.setViewportSize({ width: 390, height: 844 })
+  }
   await page.goto("/partner")
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/YOUR TRACK\s*DESERVES\s*A FAIR TEST/)
   await expect(page.getByRole("link", { name: "Build a private brief" })).toHaveAttribute("href", "/pilot/new?demo=1")
   await expect(page.getByText("We guarantee the work. Never the fantasy.")).toBeVisible()
   if (testInfo.project.name.startsWith("mobile")) {
+    await page.evaluate(() => document.fonts.ready)
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(1)
   }
