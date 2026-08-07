@@ -1,9 +1,9 @@
 export const primaryNavigation = [
+  { href: "/create", label: "Create" },
   { href: "/discover", label: "Discover" },
-  { href: "/campaigns/new", label: "Create" },
   { href: "/challenges", label: "Challenges" },
-  { href: "/dashboard/analytics", label: "Analytics" },
-  { href: "/earnings", label: "Earnings" },
+  { href: "/chains", label: "Remix Trees" },
+  { href: "/crates", label: "Crates" },
 ] as const
 
 export const labNavigation = [

@@ -1,12 +1,14 @@
 # Mashups
 
-Mashups is a rights-aware campaign studio for short-form music creators. The core loop is:
+Mashups is a rights-cleared social playground for creating and forking mashups. The public loop is:
 
-1. Choose or upload a track.
-2. Cut three hook-ready shorts.
-3. Resolve usage rights before export.
-4. Attach attribution and campaign links.
-5. Read performance and decide what to post next.
+1. Choose two green-catalog tracks.
+2. Generate three phrase-aligned arrangements.
+3. Keep, export, or publish one version.
+4. Let another creator fork it.
+5. Preserve source credit and permission through the remix tree.
+
+The existing rights, campaign, attribution, and partner systems remain the infrastructure and future artist product underneath this consumer experience. See `docs/PRODUCT_RESET_GREEN_ROOM.md`.
 
 ## Stack
 
@@ -17,6 +19,7 @@ Mashups is a rights-aware campaign studio for short-form music creators. The cor
 - `gpt-image-2` cover generation
 - `gpt-4o-transcribe-diarize` timestamped transcription
 - Vercel Blob, Vercel Cron, Modal/Replicate stem separation
+- Browser-native Web Audio rendering for the green-catalog prototype
 
 ## Local Setup
 

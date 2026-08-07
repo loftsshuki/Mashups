@@ -2,22 +2,13 @@ import type { MetadataRoute } from "next"
 
 const routes = [
   "",
+  "/create",
   "/discover",
-  "/campaigns/new",
   "/launches",
-  "/launches/new",
-  "/network",
-  "/supply",
-  "/exchange",
   "/challenges",
+  "/chains",
+  "/crates",
   "/pricing",
-  "/packs",
-  "/momentum",
-  "/scoreboard",
-  "/index",
-  "/domination",
-  "/labs",
-  "/enterprise",
   "/partner",
   "/legal",
   "/legal/terms",
@@ -29,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map((route, index) => ({
     url: `${origin}${route}`,
     lastModified: new Date(),
-    changeFrequency: index < 5 ? "weekly" : "monthly",
-    priority: route === "" ? 1 : index < 5 ? 0.9 : 0.6,
+    changeFrequency: index < 7 ? "weekly" : "monthly",
+    priority: route === "" ? 1 : index < 7 ? 0.9 : 0.6,
   }))
 }

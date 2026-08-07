@@ -1,11 +1,17 @@
 # Mashups Product Execution Plan
 
-**Status:** Authoritative implementation backlog
+**Status:** Authoritative rights and commercial infrastructure backlog
 **Version:** 1.0
 **Created:** August 6, 2026
 **Target branch:** `claude/mashups-dev`
 **Strategy source:** `docs/MASHUPS_BUSINESS_MODEL.html`
 **Supersedes for priority:** `docs/Backend Implementation Master Plan.md`
+
+> **August 7, 2026 strategy amendment:** `docs/PRODUCT_RESET_GREEN_ROOM.md` is
+> authoritative for the public consumer product and feature sequence. This plan
+> remains authoritative for rights, security, campaigns, settlement, and partner
+> infrastructure. Campaign infrastructure must support the consumer remix loop;
+> it no longer defines the public homepage or primary navigation.
 
 ## 1. Objective
 

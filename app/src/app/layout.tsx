@@ -36,23 +36,23 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.mashups.agency"),
   title: {
-    default: "Mashups | Turn Tracks Into Campaigns",
+    default: "Mashups | Make The Version You Wish Existed",
     template: "%s | Mashups",
   },
   description:
-    "Cut hook-ready shorts, prove usage rights, publish with attribution, and learn what moves your audience.",
+    "Pick two rights-cleared tracks, hear three real arrangements, and publish a version the next creator can fork.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Mashups | Turn Tracks Into Campaigns",
+    title: "Mashups | Make The Version You Wish Existed",
     description:
-      "The rights-aware campaign studio for short-form music creators.",
+      "The rights-cleared social playground for making, sharing, and forking mashups.",
     siteName: "Mashups",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mashups | Turn Tracks Into Campaigns",
-    description: "One track. Three hooks. Rights proof. Measurable lift.",
+    title: "Mashups | Make The Version You Wish Existed",
+    description: "Two tracks in. Three arrangements out. Every source credited.",
   },
 }
 

@@ -10,16 +10,38 @@
 
 ## Product Direction
 
-Mashups is no longer positioned as a generic mashup community. It is the short-form music operating system for the loop:
+Mashups is a consumer creation product first. The active public loop is:
 
-`track -> hook cuts -> rights proof -> attributed export -> performance brief -> next post`
+`two green tracks -> three arrangements -> keep one -> publish -> fork`
 
-Primary navigation is deliberately limited to Discover, Create, Challenges, Analytics, and Earnings. Broader experiments live under Labs.
+Primary navigation is Create, Discover, Challenges, Remix Trees, and Crates. The
+rights, campaign, attribution, growth, and operator systems remain implemented as
+infrastructure and a later `Mashups for Artists` product. They must not dictate the
+consumer homepage or primary navigation.
 
-The authoritative implementation backlog is `app/docs/PRODUCT_EXECUTION_PLAN.md`.
-It converts the business strategy into dependency-ordered releases, tickets,
-acceptance criteria, migration plans, test gates, and a reusable next-session prompt.
-Older backend plans remain historical references and do not override its priority.
+`app/docs/PRODUCT_RESET_GREEN_ROOM.md` is authoritative for public product direction
+and feature sequence. `app/docs/PRODUCT_EXECUTION_PLAN.md` remains authoritative for
+rights, security, campaign, settlement, and partner infrastructure.
+
+## Green Room Reset Shipped
+
+- Rebuilt `/` around the consumer promise: pick two cleared tracks, hear three
+  arrangements, keep one, and let the next creator fork it.
+- Replaced `/create` with a public, mobile-first green-catalog studio. It scores BPM
+  and Camelot compatibility, chooses a topline source and energy, renders Clean
+  Blend, Drop Switch, and Back to Back arrangements in the browser, plays them,
+  and exports a personal WAV preview.
+- Added four deterministic Mashups Original prototype sources with no third-party
+  recordings or samples. Each exposes a narrow prototype Rights Passport allowing
+  create, share, and personal preview export while disallowing paid media.
+- Rebuilt `/discover` around the green crate, recommended source collisions, and
+  public remix branches.
+- Removed commercial-song audio files and mock records from the public bundle. The
+  old standalone mashup demo is retired and routes visitors to the green studio.
+- Redirected the legacy arbitrary-upload `/create/ai` route to `/create`; its
+  implementation components remain available for verified-source refactoring.
+- Removed internal campaign and operator systems from public navigation, sitemap,
+  and crawler discovery without deleting their implementation.
 
 The electronic-music entry and label-acquisition package is documented in:
 
@@ -150,9 +172,11 @@ The electronic-music entry and label-acquisition package is documented in:
 
 ```md
 Start in C:\Dev\Mashups on branch claude/mashups-dev.
-Read app/docs/SESSION_HANDOFF.md first.
+Read app/docs/SESSION_HANDOFF.md and app/docs/PRODUCT_RESET_GREEN_ROOM.md first.
 Verify migration 019 and production environment variables before changing live billing or AI routes.
-Continue the core creator loop, not broad feature count: track -> hooks -> rights -> attributed export -> analytics.
+Continue the green creator loop, not broad feature count: two tracks -> three arrangements -> keep -> publish -> fork.
+Do not reintroduce arbitrary commercial uploads, Spotify/YouTube audio ingestion, or
+campaign language into the consumer path. Keep the public catalog green-only.
 Implement directly, run npm run check, commit only in-scope files, and push origin/claude/mashups-dev.
 ```
 # Pilot Operations Release

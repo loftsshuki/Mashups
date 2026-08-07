@@ -6,8 +6,8 @@ const product = primaryNavigation.map(({ href, label }) => [href, label] as cons
 
 const company = [
   ["/pricing", "Pricing"],
-  ["/enterprise", "Enterprise"],
-  ["/sponsors", "Sponsor a challenge"],
+  ["/partner", "For artists"],
+  ["/labs", "Product laboratory"],
   ["/legal/terms", "Terms"],
   ["/legal/copyright", "Copyright"],
 ] as const
@@ -23,10 +23,10 @@ export function Footer() {
               <span className="display-type text-2xl">Mashups</span>
             </Link>
             <p className="mt-7 max-w-lg text-xl leading-snug text-background/72 sm:text-2xl">
-              Turn one track into the clip, proof, link, and feedback loop that grows your next one.
+              Two cleared tracks go in. One new obsession comes out. Then somebody else takes it further.
             </p>
-            <Link href="/campaigns/new" className="mt-8 inline-flex items-center gap-2 border-b border-primary pb-1 font-mono text-xs font-semibold uppercase tracking-widest hover:text-primary">
-              Make the next sound <ArrowUpRight className="size-4" />
+            <Link href="/create" className="mt-8 inline-flex items-center gap-2 border-b border-primary pb-1 font-mono text-xs font-semibold uppercase tracking-widest hover:text-primary">
+              Make a mashup <ArrowUpRight className="size-4" />
             </Link>
           </div>
 
@@ -38,7 +38,7 @@ export function Footer() {
 
         <div className="flex flex-col gap-3 border-t border-background/30 py-6 font-mono text-[10px] uppercase tracking-[0.12em] text-background/60 sm:flex-row sm:items-center sm:justify-between">
           <span>&copy; {new Date().getFullYear()} Mashups Agency</span>
-          <span>Built for creators who ship</span>
+          <span>Built to be remixed</span>
           <a href="mailto:hello@mashups.agency" className="hover:text-primary">hello@mashups.agency</a>
         </div>
       </div>

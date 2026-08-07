@@ -1,80 +1,63 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowUpRight, BadgeCheck, Radio, Sparkles, TrendingUp } from "lucide-react"
+import { ArrowRight, ArrowUpRight, BadgeCheck, GitFork, Radio, Sparkles } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DEMO_TRACKS } from "@/lib/demo/catalog"
-import { isDemoQuery } from "@/lib/demo/runtime"
+import { getRecommendedGreenPairs, GREEN_CATALOG, type GreenCatalogTrack } from "@/lib/catalog/green-catalog"
 import { getMomentumFeed } from "@/lib/data/momentum-feed"
 
 export const metadata: Metadata = {
-  title: "Discover Rising Tracks",
-  description: "Find rights-aware tracks ranked by current momentum rather than legacy popularity.",
+  title: "Discover Remixable Music",
+  description: "Find rights-cleared tracks, compatible pairings, and public mashups worth taking further.",
   alternates: { canonical: "/discover" },
 }
 
-type DiscoverTrack = {
-  id: string
-  title: string
-  creator: string
-  genre: string
-  bpm: number
-  momentum: number
-  uses: number
-  rights: string
-}
+export default async function DiscoverPage() {
+  const pairs = getRecommendedGreenPairs(3)
+  const momentum = await getMomentumFeed(6)
 
-export default async function DiscoverPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const params = await searchParams
-  const demo = isDemoQuery(typeof params.demo === "string" ? params.demo : null)
-  const liveItems = demo ? [] : await getMomentumFeed(12)
-  const tracks: DiscoverTrack[] = demo
-    ? DEMO_TRACKS.map((track) => ({ id: track.id, title: track.title, creator: track.creator.username, genre: track.genre, bpm: track.bpm, momentum: track.momentum, uses: track.weeklyUses, rights: track.rightsMode }))
-    : liveItems.map((track) => ({ id: track.id, title: track.title, creator: track.creator.username, genre: track.genre, bpm: track.bpm, momentum: Math.round(track.momentumScore), uses: track.playCount, rights: track.sponsoredEligible ? "Quality cleared" : "Review rights" }))
+  return <div className="pt-28">
+    <section className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 md:pb-24 lg:px-8">
+      <div className="grid gap-8 border-b border-foreground pb-10 lg:grid-cols-12 lg:items-end">
+        <div className="lg:col-span-8"><p className="signal-label">The open crate</p><h1 className="display-type mt-6 text-6xl leading-[0.8] sm:text-8xl xl:text-[8.5rem]">Find a sound.<br /><span className="text-primary">Take it further.</span></h1></div>
+        <div className="lg:col-span-4 lg:pb-2"><p className="max-w-md text-lg leading-relaxed text-muted-foreground">Everything in the green crate is structurally analyzed and permissioned for the exact uses shown.</p><Button className="mt-6" asChild><Link href="/create">Open the mixer <ArrowUpRight /></Link></Button></div>
+      </div>
 
-  return (
-    <div className={demo ? "pt-40" : "pt-28"}>
-      <section className="mx-auto max-w-[1440px] px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 border-b border-foreground pb-10 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-8">
-            <p className="signal-label">Momentum discovery</p>
-            <h1 className="display-type mt-6 text-6xl leading-[0.82] sm:text-8xl xl:text-[8.5rem]">Catch the rise.<br /><span className="text-primary">Before the peak.</span></h1>
-          </div>
-          <div className="lg:col-span-4 lg:pb-2">
-            <p className="max-w-md text-lg leading-relaxed text-muted-foreground">Tracks are ordered by acceleration, saves, and recent creator use, not lifetime plays.</p>
-            <div className="mt-6 flex flex-wrap gap-3"><Button asChild><Link href="/campaigns/new">Build with a track<ArrowUpRight /></Link></Button><Button variant="outline" asChild><Link href="/packs">Monday pack</Link></Button></div>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground py-4">
+        <div className="flex items-center gap-2"><Radio className="size-4 text-primary" /><span className="font-mono text-xs font-semibold uppercase tracking-wider">Green catalog / {GREEN_CATALOG.length} sources</span></div>
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Original synthesis / no third-party samples</span>
+      </div>
+
+      <div className="grid border-x border-b border-foreground md:grid-cols-2">
+        {GREEN_CATALOG.map((track, index) => <TrackTile key={track.id} track={track} index={index} />)}
+      </div>
+
+      <section className="mt-16">
+        <div className="flex flex-wrap items-end justify-between gap-5 border-b border-foreground pb-5"><div><p className="mono-label text-primary">Recommended collisions</p><h2 className="display-type mt-4 text-5xl">Start with a strong match.</h2></div><span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Tempo + Camelot + energy</span></div>
+        <div className="grid gap-px border-x border-b border-foreground bg-foreground lg:grid-cols-3">
+          {pairs.map(({ left, right, assessment }, index) => <Link key={`${left.id}-${right.id}`} href={`/create?left=${left.id}&right=${right.id}`} className="group bg-card p-5 hover:bg-secondary sm:p-6">
+            <div className="flex items-center justify-between"><span className="font-mono text-xs">0{index + 1}</span><span className="display-type text-4xl text-primary">{assessment.score}</span></div>
+            <div className="mt-12 flex items-center gap-3"><span className="size-10 rounded-full border border-foreground" style={{ background: left.color }} /><span className="display-type min-w-0 flex-1 truncate text-2xl">{left.title}</span></div>
+            <div className="mt-3 flex items-center gap-3"><span className="size-10 rounded-full border border-foreground" style={{ background: right.color }} /><span className="display-type min-w-0 flex-1 truncate text-2xl">{right.title}</span></div>
+            <p className="mt-7 text-sm text-muted-foreground">{assessment.summary}</p>
+            <span className="mt-5 flex items-center justify-between border-t border-foreground/30 pt-4 font-mono text-[10px] font-semibold uppercase tracking-wider">Make this collision <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
+          </Link>)}
         </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground py-4">
-          <div className="flex items-center gap-2"><Radio className="size-4 text-primary" /><span className="font-mono text-xs font-semibold uppercase tracking-wider">{demo ? "Labeled demo signal" : "Live momentum signal"}</span></div>
-          <div className="flex flex-wrap gap-2"><Badge variant="outline" className="rounded-none">Rising now</Badge><Badge variant="outline" className="rounded-none">Rights-aware</Badge><Badge variant="outline" className="rounded-none">Under 7 days</Badge></div>
-        </div>
-
-        {tracks.length ? (
-          <ol className="stagger-children border-b border-foreground">
-            {tracks.map((track, index) => <TrackRow key={track.id} track={track} rank={index + 1} demo={demo} />)}
-          </ol>
-        ) : (
-          <div className="grid min-h-[25rem] place-items-center border-b border-foreground py-16 text-center">
-            <div className="max-w-lg"><Sparkles className="mx-auto size-8 text-primary" /><h2 className="display-type mt-5 text-4xl">The live feed is warming up.</h2><p className="mt-4 text-muted-foreground">No production momentum events are available yet. Explore the labeled demo or publish the first attributed campaign.</p><div className="mt-7 flex flex-wrap justify-center gap-3"><Button asChild><Link href="/discover?demo=1">View demo signal</Link></Button><Button variant="outline" asChild><Link href="/campaigns/new">Create campaign</Link></Button></div></div>
-          </div>
-        )}
       </section>
-    </div>
-  )
+
+      <section className="mt-16">
+        <div className="flex flex-wrap items-end justify-between gap-5 border-b border-foreground pb-5"><div><p className="mono-label text-primary">Community signal</p><h2 className="display-type mt-4 text-5xl">Fresh branches.</h2></div><Button variant="outline" asChild><Link href="/chains">See remix trees <GitFork /></Link></Button></div>
+        {momentum.length ? <div className="divide-y divide-foreground border-b border-foreground">{momentum.map((item, index) => <Link key={item.id} href={`/mashup/${item.id}`} className="group grid gap-4 py-5 md:grid-cols-[4rem_1fr_auto] md:items-center"><span className="display-type text-4xl text-muted-foreground group-hover:text-primary">{String(index + 1).padStart(2, "0")}</span><span><span className="block text-xl font-semibold">{item.title}</span><span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">@{item.creator.username} / {item.genre} / {item.bpm} BPM</span></span><ArrowUpRight className="size-5" /></Link>)}</div> : <div className="grid min-h-64 place-items-center border-b border-foreground text-center"><div className="max-w-lg p-8"><Sparkles className="mx-auto size-7 text-primary" /><h3 className="display-type mt-4 text-3xl">The first public branch is still open.</h3><p className="mt-3 text-sm text-muted-foreground">The green crate is playable now. Community rankings begin when creators publish signed-in versions.</p><Button className="mt-6" asChild><Link href="/create">Make the first one</Link></Button></div></div>}
+      </section>
+    </section>
+  </div>
 }
 
-function TrackRow({ track, rank, demo }: { track: DiscoverTrack; rank: number; demo: boolean }) {
-  const bars = [38, 72, 52, 88, 64, 96, 58, 78, 44, 84, 66, 92]
-  return (
-    <li className="group grid gap-5 border-t border-foreground py-5 first:border-t-0 md:grid-cols-[4rem_1.2fr_1fr_auto] md:items-center">
-      <span className="display-type text-4xl text-muted-foreground group-hover:text-primary">{String(rank).padStart(2, "0")}</span>
-      <div><div className="flex flex-wrap items-center gap-2"><h2 className="text-xl font-semibold sm:text-2xl">{track.title}</h2>{demo ? <Badge variant="secondary" className="rounded-none">Demo</Badge> : null}</div><p className="mt-1 font-mono text-xs text-muted-foreground">@{track.creator} / {track.genre} / {track.bpm} BPM</p></div>
-      <div className="flex h-14 items-center gap-1" aria-label={`Momentum waveform for ${track.title}`}>{bars.map((height, index) => <span key={index} className="w-1.5 bg-foreground transition-colors group-hover:bg-primary" style={{ height: `${Math.max(16, (height * track.momentum) / 100)}%` }} />)}</div>
-      <div className="flex items-center justify-between gap-6 md:justify-end"><div className="text-right"><span className="display-type block text-3xl text-primary">{track.momentum}</span><span className="mono-label text-muted-foreground">Momentum</span></div><Button variant="outline" size="icon" asChild aria-label={`Build a campaign with ${track.title}`}><Link href={`/campaigns/new?${demo ? "demo=1&" : ""}track=${track.id}`}><ArrowUpRight /></Link></Button></div>
-      <div className="md:col-start-2 md:col-span-3 flex flex-wrap gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><BadgeCheck className="size-3.5" />{track.rights}</span><span className="flex items-center gap-1"><TrendingUp className="size-3.5" />{track.uses.toLocaleString()} recent uses</span></div>
-    </li>
-  )
+function TrackTile({ track, index }: { track: GreenCatalogTrack; index: number }) {
+  return <article className="group relative min-h-[25rem] overflow-hidden border-t border-foreground p-5 first:border-t-0 md:border-l md:odd:border-l-0 md:[&:nth-child(2)]:border-t-0 sm:p-7">
+    <div className="absolute right-0 top-0 size-52 rounded-full opacity-90 transition-transform duration-500 group-hover:scale-125" style={{ background: track.color, transform: "translate(35%, -35%)" }} />
+    <div className="relative flex items-start justify-between"><span className="font-mono text-xs">0{index + 1} / 04</span><span className="flex items-center gap-1.5 bg-background px-2 py-1 font-mono text-[9px] font-bold uppercase"><BadgeCheck className="size-3 text-primary" /> Green</span></div>
+    <div className="relative mt-24"><p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{track.genre} / {track.bpm} BPM / {track.camelot}</p><h2 className="display-type mt-3 text-5xl leading-[0.86]">{track.title}</h2><p className="mt-3 text-sm">{track.artist}</p></div>
+    <div className="absolute inset-x-5 bottom-5 flex items-center justify-between border-t border-foreground pt-4 sm:inset-x-7"><span className="font-mono text-[9px] uppercase tracking-wider">{track.rights.passportId}</span><Button size="sm" asChild><Link href={`/create?left=${track.id}`}>Use this track <ArrowRight /></Link></Button></div>
+  </article>
 }

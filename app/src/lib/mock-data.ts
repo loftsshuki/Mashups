@@ -226,54 +226,6 @@ export const mockMashups: MockMashup[] = [
       { title: "Festival Anthem", artist: "Drop Zone" },
     ],
   },
-  {
-    id: "mash-009",
-    title: "NO BATIDÃO Phonk Remix",
-    description:
-      "Brazilian phonk meets trap funk. Heavy 808s, cowbell rhythms, and that signature phonk atmosphere. Perfect for late-night drives and workout sessions.",
-    creator: {
-      username: "funkphonk",
-      displayName: "Funk Phonk",
-      avatarUrl: "https://placehold.co/100x100/7c3aed/white?text=FP",
-    },
-    coverUrl: "https://placehold.co/400x400/ea580c/white?text=NB",
-    audioUrl: "/audio/no-batidao.mp3",
-    genre: "Phonk / Funk",
-    bpm: 140,
-    duration: 120,
-    playCount: 892000,
-    likeCount: 45600,
-    commentCount: 2103,
-    createdAt: "2026-02-10T22:00:00Z",
-    sourceTracks: [
-      { title: "NO BATIDÃO", artist: "ZXKAI & slxughter" },
-      { title: "Funk Brasileiro", artist: "Baile Sound" },
-    ],
-  },
-  {
-    id: "mash-010",
-    title: "Not Like Us (Mashups Remix)",
-    description:
-      "Kendrick's iconic West Coast anthem flipped with heavy phonk influences. Mustard's bounce meets 808 cowbells. Certified banger for the culture.",
-    creator: {
-      username: "westcoastwizard",
-      displayName: "West Coast Wizard",
-      avatarUrl: "https://placehold.co/100x100/7c3aed/white?text=WW",
-    },
-    coverUrl: "https://placehold.co/400x400/1e40af/white?text=NLU",
-    audioUrl: "/audio/not-like-us.mp3",
-    genre: "West Coast / Hip-Hop",
-    bpm: 98,
-    duration: 274,
-    playCount: 2100000,
-    likeCount: 128000,
-    commentCount: 5600,
-    createdAt: "2026-02-12T18:30:00Z",
-    sourceTracks: [
-      { title: "Not Like Us", artist: "Kendrick Lamar" },
-      { title: "West Coast Phonk", artist: "Mustard Style" },
-    ],
-  },
 ]
 
 export const mockCreators: MockCreator[] = [

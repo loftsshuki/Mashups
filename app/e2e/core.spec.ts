@@ -18,8 +18,24 @@ test.afterEach(async ({ page }) => {
 test("canonical product routes load without silent sample data", async ({ page }) => {
   await page.goto("/explore")
   await expect(page).toHaveURL(/\/discover$/)
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Catch the rise")
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Find a sound")
   await expect(page.getByText("Demo", { exact: true })).toHaveCount(0)
+})
+
+test("public creation starts inside the green catalog", async ({ page }) => {
+  await page.goto("/create")
+
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Pick two")
+  await expect(page.getByText(/No rips. No mystery samples/i)).toBeVisible()
+  await expect(page.getByTestId("generate-mashups")).toBeEnabled()
+  await expect(page.getByText("MASH-GREEN-0001", { exact: true })).toBeVisible()
+  await expect(page.getByText("MASH-GREEN-0002", { exact: true })).toBeVisible()
+})
+
+test("legacy arbitrary-upload creation redirects into the green studio", async ({ page }) => {
+  await page.goto("/create/ai")
+  await expect(page).toHaveURL(/\/create$/)
+  await expect(page.getByTestId("generate-mashups")).toBeEnabled()
 })
 
 test("creator completes and exports the labeled demo campaign", async ({ page }) => {

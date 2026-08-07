@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   ArrowUpRight,
-  ChevronDown,
   FlaskConical,
   LogOut,
   Menu,
@@ -21,13 +20,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetTrigger } from "@/components/ui/sheet"
 import { logout } from "@/lib/auth/auth-actions"
-import { labNavigation, primaryNavigation } from "@/lib/navigation/product-map"
+import { primaryNavigation } from "@/lib/navigation/product-map"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
@@ -131,30 +129,12 @@ export function Header() {
             </Link>
           ))}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] hover:bg-secondary">
-              Labs <ChevronDown className="size-3" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72 rounded-none border-foreground bg-popover p-2 shadow-[5px_5px_0_var(--foreground)]">
-              <DropdownMenuLabel className="mono-label px-2 py-3 text-muted-foreground">
-                Experimental surfaces
-              </DropdownMenuLabel>
-              {labNavigation.map((link) => (
-                <DropdownMenuItem key={link.href} asChild className="rounded-none p-0 focus:bg-secondary">
-                  <Link href={link.href} className="flex items-center justify-between gap-4 px-2 py-2.5">
-                    <span>
-                      <span className="block text-sm font-semibold">{link.label}</span>
-                      <span className="block text-xs text-muted-foreground">{link.note}</span>
-                    </span>
-                    <ArrowUpRight className="size-4 shrink-0" />
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
+          <Link href="/partner" className="mr-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground">
+            For artists
+          </Link>
           <Button variant="ghost" size="icon" asChild aria-label="Search">
             <Link href="/search"><Search className="size-4" /></Link>
           </Button>

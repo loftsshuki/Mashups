@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
-export default function AIMashupRedirect() {
-  redirect("/create?mode=auto")
+export default function LegacyAutoMashupPage() {
+  redirect("/create")
 }
