@@ -94,8 +94,8 @@ The electronic-music entry and label-acquisition package is documented in:
 ## Required Deployment Work
 
 1. Create/link the replacement Supabase project, then apply migrations in order,
-   including `019_production_foundations.sql`, `020_viral_launch_network.sql`, and
-   `021_growth_operating_system.sql`.
+   including `019_production_foundations.sql`, `020_viral_launch_network.sql`,
+   `021_growth_operating_system.sql`, and `022_domination_operating_layer.sql`.
 2. Configure every production variable in `app/.env.local.example`.
 3. Set `NEXT_PUBLIC_APP_URL=https://mashups.agency`.
 4. Add `mashups.agency` and `www.mashups.agency` to the Vercel project and choose a canonical redirect.
@@ -110,6 +110,33 @@ The electronic-music entry and label-acquisition package is documented in:
 9. Complete required Google, TikTok, and Meta app verification before enabling
    public posting. Unreviewed apps must remain test-only.
 10. Keep `DEMO_MODE=false` and `NEXT_PUBLIC_DEMO_MODE=false` in production.
+11. Configure `PARTNER_DELIVERY_URL` and `PARTNER_DELIVERY_SECRET` before enabling
+    signed Linkfire, Feature.fm, distributor, or paid-media deliveries.
+
+## Domination Operating Layer Shipped
+
+- `/domination?demo=1` is the fourteen-system commercial control plane: Guaranteed
+  Launch, Campaign Truth Graph, Mashups Growth License, exclusive rights inventory,
+  creator liquidity, five-city EDM/house scenes, organic-to-paid allocation, artist
+  obligations, partner delivery, fraud/trust, Mashups Index, A&R intelligence,
+  campaign pricing, and non-insurance Launch Protection.
+- `/index?demo=1` is the public weekly evidence ranking. Live inclusion requires an
+  accepted growth license, credible matched-control lift, minimum trust, and
+  qualified posts. Paid reach cannot buy rank.
+- `/growth-license?demo=1` is the signer-facing terms and attestation surface.
+  Production acceptance is authorized against rightsholder ownership or a rights
+  role and seals the versioned terms snapshot and verification code.
+- `/reports/[slug]?demo=1` is the owner-only A&R decision memo with lift cohorts,
+  confidence gates, hook/city recommendations, paid readiness, and a traceable
+  campaign truth graph.
+- Domination write APIs live under `/api/domination`; explicit demo requests do not
+  persist. `/api/cron/domination` publishes the weekly Index, snapshots creator
+  liquidity, and expires elapsed licenses, inventory windows, and protection terms.
+- `022_domination_operating_layer.sql` is the production schema and seeds the
+  versioned MGL 1.0 instrument plus the Miami, London, Berlin, New York, and Los
+  Angeles electronic scene programs.
+- Launch Protection is an operational platform-fee service credit. It is explicitly
+  not insurance and never guarantees streams, revenue, chart position, or virality.
 
 ## Quality State
 

@@ -421,6 +421,43 @@
   animation: club-sweep 9s ease-in-out infinite alternate;
 }
 
+.domination-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 18%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 18%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 20rem);
+  background-size: 30px 30px, 30px 30px, auto;
+  mask-image: linear-gradient(125deg, black, transparent 78%);
+}
+
+.domination-os > section > * {
+  animation: domination-lock 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.domination-os,
+.domination-os .grid > *,
+.index-page .grid > *,
+.license-page .grid > *,
+.report-page .grid > * {
+  min-width: 0;
+}
+
+.domination-os {
+  overflow-x: clip;
+}
+
+.domination-os > section > *:nth-child(2) { animation-delay: 70ms; }
+.domination-os > section > *:nth-child(3) { animation-delay: 140ms; }
+.domination-os > section > *:nth-child(4) { animation-delay: 210ms; }
+
+.index-scan {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 7.9%, color-mix(in srgb, var(--foreground) 13%, transparent) 8% 8.15%),
+    linear-gradient(112deg, transparent 0 58%, color-mix(in srgb, var(--secondary) 38%, transparent) 58.2% 62%, transparent 62.2%);
+  transform-origin: center;
+  animation: index-scan 11s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
 @keyframes radar-sweep {
   to { transform: rotate(360deg) scale(1.08); }
 }
@@ -433,6 +470,16 @@
 @keyframes club-sweep {
   from { transform: rotate(-2deg) scale(1.02); }
   to { transform: rotate(3deg) scale(1.08); }
+}
+
+@keyframes domination-lock {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes index-scan {
+  from { transform: translateX(-1.5%) skewX(-0.5deg); }
+  to { transform: translateX(1.5%) skewX(0.5deg); }
 }
 
 @media (min-width: 640px) {

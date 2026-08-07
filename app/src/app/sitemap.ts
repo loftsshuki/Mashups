@@ -14,6 +14,8 @@ const routes = [
   "/packs",
   "/momentum",
   "/scoreboard",
+  "/index",
+  "/domination",
   "/labs",
   "/enterprise",
   "/legal",

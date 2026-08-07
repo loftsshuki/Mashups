@@ -21,5 +21,11 @@ export async function POST(request: Request) {
   if (!launch) return NextResponse.json({ error: "Launch not found." }, { status: 404 })
   const { data, error } = await admin.from("paid_media_handoffs").insert({ launch_id: launch.id, genome_id: parsed.data.genomeId, creator_id: parsed.data.creatorId, requested_by: user.id, organic_proof: parsed.data.organicProof, spend_cap_cents: parsed.data.spendCapCents, target_markets: parsed.data.targetMarkets, terms: { creatorConsentRequired: true, rightsRecheckRequired: true } }).select("id").single()
   if (error || !data) return NextResponse.json({ error: "Unable to create handoff." }, { status: 500 })
-  return NextResponse.json({ ok: true, handoffId: data.id, consentStatus: "pending", licenseStatus: "pending" }, { status: 201 })
+  const recommendedSpendCents = Math.min(parsed.data.spendCapCents, Math.max(5_000, Math.round(parsed.data.organicProof.qualifiedViews * parsed.data.organicProof.saveRate * 100)))
+  const { data: allocation, error: allocationError } = await admin.from("amplification_allocations").insert({ handoff_id: data.id, launch_id: launch.id, creator_id: parsed.data.creatorId, recommended_spend_cents: recommendedSpendCents, status: "awaiting_consent", outcome: { source: "organic_proof", lift: parsed.data.organicProof.lift } }).select("id").single()
+  if (allocationError || !allocation) {
+    await admin.from("paid_media_handoffs").delete().eq("id", data.id)
+    return NextResponse.json({ error: "Unable to create amplification allocation." }, { status: 500 })
+  }
+  return NextResponse.json({ ok: true, handoffId: data.id, allocationId: allocation.id, recommendedSpendCents, consentStatus: "pending", licenseStatus: "pending" }, { status: 201 })
 }

@@ -37,6 +37,11 @@ Apply migrations in `supabase/migrations/` in order. Migration `019_production_f
 - distributed API rate-limit buckets
 - unique provider-event accounting
 
+Migrations `020_viral_launch_network.sql`, `021_growth_operating_system.sql`, and
+`022_domination_operating_layer.sql` add the launch network, growth execution
+rails, standardized rights, causal measurement, public Index, commercial offers,
+and service-credit protection.
+
 The deployed app requires `SUPABASE_SERVICE_ROLE_KEY` for webhook, cron, rate-limit, and metering operations. Never expose it through a `NEXT_PUBLIC_` variable.
 
 ## Quality Gates
