@@ -8,6 +8,8 @@ This runbook turns the EDM/house business thesis into one executable path:
 4. Refuse launch until required infrastructure and operating evidence pass `/readiness`.
 5. Operate the campaign through `/domination` and preserve the resulting evidence graph.
 
+Until hosted persistence is available, `?demo=1` enables a labeled device-local operating kit. Intake, operator terms, and outreach records can be restored from the same browser. Export campaign packets and pipeline CSVs after every working session; local browser storage is not an encrypted team database.
+
 ## Founding Offer
 
 - Program: `FOUNDING-HOUSE-001`
@@ -52,6 +54,8 @@ npm run test:e2e
 ```
 
 The Playwright suite runs desktop Chromium and a Pixel 7 viewport. It verifies intake submission, operator configuration, outreach advancement, CSV export, production blockers, mobile containment, and all fourteen Domination systems.
+
+The ten-day acquisition cadence and qualification script live in `docs/OUTREACH_SPRINT.md`.
 
 ## Production Launch Gate
 

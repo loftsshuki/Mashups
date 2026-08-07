@@ -163,4 +163,5 @@ The feature-forward continuation now includes a production-backed founding pilot
 - `/operator?demo=1`: guarantees, rights, participation, measurement, economics, and protection
 - `/outreach?demo=1`: rightsholder CRM, stage movement, playbooks, and CSV export
 - `/readiness?demo=1`: evidence-based launch blockers
+- `/partner`: public founding-label offer with a portable, device-local planning path
 - `supabase/migrations/023_pilot_operations.sql`: operating schema and production-safe EDM/house configuration

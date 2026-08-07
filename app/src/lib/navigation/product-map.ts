@@ -7,6 +7,7 @@ export const primaryNavigation = [
 ] as const
 
 export const labNavigation = [
+  { href: "/partner", label: "Founding label pilot", note: "The rightsholder offer" },
   { href: "/operator?demo=1", label: "Pilot operator", note: "Guarantees, rights, and launch gates" },
   { href: "/outreach?demo=1", label: "Outreach desk", note: "Independent rightsholder pipeline" },
   { href: "/domination?demo=1", label: "Domination OS", note: "Commercial proof and control" },

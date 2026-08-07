@@ -18,6 +18,7 @@ const routes = [
   "/domination",
   "/labs",
   "/enterprise",
+  "/partner",
   "/legal",
   "/legal/terms",
   "/legal/copyright",
