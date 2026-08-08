@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/config/runtime"
 import { DEMO_OUTREACH_WORKSPACE, DEMO_PILOT_WORKSPACE } from "@/lib/pilot/demo"
 import type { OutreachProspect, OutreachTemplate, OutreachWorkspace, PilotChecklistItem, PilotIntake, PilotMarket, PilotOperatorConfig, PilotProgram, PilotWorkspace, ReadinessItem, ReadinessSnapshot } from "@/lib/pilot/types"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getGreenPilotMetrics } from "@/lib/green-room/service"
 
 type Row = Record<string, unknown>
 
@@ -41,22 +42,30 @@ export async function getReadinessSnapshot(userId: string | null, demo = false):
   let schemaReady = false
   let hasIntake = false
   let hasOperatorConfig = false
+  let greenSchemaReady = false
   if (databaseConfigured && admin) {
     const schema = await admin.from("pilot_program_templates").select("id", { count: "exact", head: true })
     schemaReady = !schema.error
+    const greenSchema = await admin.from("green_catalog_tracks").select("id", { count: "exact", head: true })
+    greenSchemaReady = !greenSchema.error
     if (schemaReady && userId) {
       const { data: intake } = await admin.from("pilot_campaign_intakes").select("id").eq("owner_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle()
       hasIntake = Boolean(intake)
       if (intake) { const { data: config } = await admin.from("pilot_operator_configs").select("id,status").eq("intake_id", intake.id).maybeSingle(); hasOperatorConfig = config?.status === "ready" || config?.status === "activated" }
     }
   }
+  const greenMetrics = greenSchemaReady ? await getGreenPilotMetrics() : { sessions: 0, rendersStarted: 0, rendersCompleted: 0, candidatesKept: 0, sharesStarted: 0, renderCompletionRate: 0, keepRate: 0, shareRate: 0, d30Eligible: 0, d30Retained: 0, d30RetentionRate: 0 }
   const items: ReadinessItem[] = [
     { key: "database", category: "infrastructure", label: "Production Supabase reachable", status: schemaReady ? "ready" : "blocked", required: true, detail: schemaReady ? "Pilot and Domination schemas respond through the service role." : "Create the replacement project, apply migrations, and update Supabase environment variables.", actionHref: "/readiness", actionLabel: "Review backend blocker" },
     { key: "blob", category: "infrastructure", label: "Vercel Blob configured", status: process.env.BLOB_READ_WRITE_TOKEN ? "ready" : "blocked", required: true, detail: process.env.BLOB_READ_WRITE_TOKEN ? "Authenticated campaign asset storage is available." : "Set BLOB_READ_WRITE_TOKEN for master and export storage." },
+    { key: "green-private-blob", category: "infrastructure", label: "Private Green Room master store", status: process.env.GREEN_ROOM_READ_WRITE_TOKEN || process.env.GREEN_ROOM_BLOB_READ_WRITE_TOKEN ? "ready" : "blocked", required: true, detail: process.env.GREEN_ROOM_READ_WRITE_TOKEN || process.env.GREEN_ROOM_BLOB_READ_WRITE_TOKEN ? "Artist masters use an isolated private Blob store and signed processor delivery." : "Create a private Blob store and link its GREEN_ROOM_READ_WRITE_TOKEN. Never reuse the public campaign store." },
+    { key: "green-processor", category: "infrastructure", label: "Green Room audio processor", status: process.env.GREEN_ROOM_PROCESSOR_URL && process.env.GREEN_ROOM_PROCESSOR_SECRET ? "ready" : "attention", required: true, detail: process.env.GREEN_ROOM_PROCESSOR_URL && process.env.GREEN_ROOM_PROCESSOR_SECRET ? "Queued fingerprint and analysis jobs have an authenticated worker handoff." : "Set GREEN_ROOM_PROCESSOR_URL and GREEN_ROOM_PROCESSOR_SECRET before artist masters enter processing." },
     { key: "cron", category: "infrastructure", label: "Cron signing configured", status: process.env.CRON_SECRET ? "ready" : "blocked", required: true, detail: process.env.CRON_SECRET ? "Autopilot and weekly Index schedules fail closed with a secret." : "Set CRON_SECRET before scheduled operations." },
     { key: "ai", category: "infrastructure", label: "AI model routing configured", status: process.env.OPENAI_API_KEY ? "ready" : "blocked", required: true, detail: process.env.OPENAI_API_KEY ? "Hook and campaign intelligence workloads can execute." : "Set OPENAI_API_KEY before AI-assisted campaigns." },
     { key: "domination", category: "product", label: "Domination OS verified", status: "ready", required: true, detail: "Fourteen commercial systems build and pass browser regression checks.", actionHref: `/domination${demo ? "?demo=1" : ""}`, actionLabel: "Open control plane" },
     { key: "pilot-schema", category: "product", label: "Pilot operations migration", status: schemaReady ? "ready" : "attention", required: true, detail: schemaReady ? "Migration 023 and production-safe operating seeds are present." : "Migration 023 is code-complete and validated locally, pending production database access." },
+    { key: "green-schema", category: "product", label: "Green Room rights and render ledger", status: greenSchemaReady ? "ready" : "attention", required: true, detail: greenSchemaReady ? "Migration 024 enforces rights, quality, listening, and publication gates." : "Apply migration 024_green_room_pilot.sql to the replacement database." },
+    { key: "green-funnel", category: "pilot", label: "Green Room activation funnel", status: greenMetrics.sessions >= 100 && greenMetrics.renderCompletionRate >= 0.6 ? "ready" : "attention", required: false, detail: `${greenMetrics.sessions} sessions / ${Math.round(greenMetrics.renderCompletionRate * 100)}% render completion / ${Math.round(greenMetrics.keepRate * 100)}% keep / ${Math.round(greenMetrics.shareRate * 100)}% share start / ${Math.round(greenMetrics.d30RetentionRate * 100)}% D30 (${greenMetrics.d30Eligible} eligible). Native app investment waits for retention evidence.` },
     { key: "portable-kit", category: "product", label: "Portable pilot operating kit", status: "ready", required: true, detail: "Device-local intake, operator terms, CSV pipeline import/export, and campaign packet generation work without server persistence.", actionHref: "/pilot/new?demo=1", actionLabel: "Open portable intake" },
     { key: "intake", category: "pilot", label: "Founding campaign intake", status: demo || hasIntake ? "ready" : "attention", required: true, detail: demo || hasIntake ? "Track, rights, market, creator, and budget inputs are captured." : "Submit the first real pilot campaign.", actionHref: `/pilot/new${demo ? "?demo=1" : ""}`, actionLabel: "Open intake" },
     { key: "operator", category: "pilot", label: "Operator configuration", status: demo || hasOperatorConfig ? "ready" : "attention", required: true, detail: demo || hasOperatorConfig ? "Guarantees, rights, measurement, economics, and protection are configured." : "Complete the operator setup for the selected intake.", actionHref: `/operator${demo ? "?demo=1" : ""}`, actionLabel: "Configure pilot" },

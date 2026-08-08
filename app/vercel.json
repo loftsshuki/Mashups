@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/domination",
       "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/cron/green-room",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

@@ -22,6 +22,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { trackGreenEvent } from "@/lib/analytics/green-room"
 import {
   renderGreenMashup,
   renderGreenTrackPreview,
@@ -50,10 +51,17 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const objectUrlsRef = useRef(new Set<string>())
+  const viewedRef = useRef(false)
 
   const left = getGreenTrack(leftId) ?? GREEN_CATALOG[0]
   const right = getGreenTrack(rightId) ?? GREEN_CATALOG[1]
   const assessment = useMemo(() => assessGreenPair(left, right), [left, right])
+
+  useEffect(() => {
+    if (viewedRef.current) return
+    viewedRef.current = true
+    trackGreenEvent("create_viewed", { catalog: "mashups_originals", left_id: left.id, right_id: right.id })
+  }, [left.id, right.id])
 
   useEffect(() => () => {
     audioRef.current?.pause()
@@ -81,6 +89,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
 
   async function previewTrack(track: GreenCatalogTrack) {
     setError(null)
+    trackGreenEvent("source_previewed", { track_id: track.id, source_type: track.rights.sourceType })
     try {
       const cached = previewUrls[track.id]
       if (cached) {
@@ -117,12 +126,14 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
       if (id === leftId) setLeftId(rightId)
     }
     resetRenders()
+    trackGreenEvent("pair_selected", { deck, track_id: id })
   }
 
   async function generateVersions() {
     if (!assessment.compatible) return
     resetRenders()
     setError(null)
+    trackGreenEvent("render_started", { left_id: left.id, right_id: right.id, compatibility_score: assessment.score, vocal_source: vocalSource })
     try {
       setRenderingStyle("clean-blend")
       const outcomes = await Promise.allSettled(
@@ -136,6 +147,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
       for (const render of nextRenders) objectUrlsRef.current.add(render.audioUrl)
       setRenders(nextRenders)
       setSelectedStyle(nextRenders[0]?.style ?? null)
+      trackGreenEvent("render_completed", { left_id: left.id, right_id: right.id, candidate_count: nextRenders.length })
     } catch {
       setError("The local render failed. Close other audio apps and try again.")
     } finally {
@@ -268,10 +280,10 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
                     {waveformFor(index).map((height, barIndex) => <span key={barIndex} className={cn("flex-1 bg-background/65", isSelected && "bg-primary-foreground/70")} style={{ height: `${height}%` }} />)}
                   </div>
                   <div className="absolute inset-x-5 bottom-5 flex gap-2 sm:inset-x-6">
-                    <Button variant={isSelected ? "secondary" : "outline"} className={cn("flex-1", !isSelected && "border-background/55 bg-transparent text-background hover:bg-background hover:text-foreground")} disabled={!render || isLoading} onClick={() => render && void playUrl(`render-${style}`, render.audioUrl)}>
+                    <Button variant={isSelected ? "secondary" : "outline"} className={cn("flex-1", !isSelected && "border-background/55 bg-transparent text-background hover:bg-background hover:text-foreground")} disabled={!render || isLoading} onClick={() => { if (render) { trackGreenEvent("candidate_played", { style }); void playUrl(`render-${style}`, render.audioUrl) } }}>
                       {isLoading ? <Loader2 className="animate-spin" /> : previewingId === `render-${style}` ? <Pause /> : <Play />} {isLoading ? "Rendering" : previewingId === `render-${style}` ? "Pause" : "Hear it"}
                     </Button>
-                    <Button variant={isSelected ? "outline" : "ghost"} className={cn("flex-1", isSelected ? "border-primary-foreground" : "text-background hover:bg-background hover:text-foreground")} disabled={!render} onClick={() => setSelectedStyle(style)}>{isSelected ? <Check /> : <CircleStop />} {isSelected ? "Kept" : "Keep"}</Button>
+                    <Button variant={isSelected ? "outline" : "ghost"} className={cn("flex-1", isSelected ? "border-primary-foreground" : "text-background hover:bg-background hover:text-foreground")} disabled={!render} onClick={() => { setSelectedStyle(style); trackGreenEvent("candidate_kept", { style }) }}>{isSelected ? <Check /> : <CircleStop />} {isSelected ? "Kept" : "Keep"}</Button>
                   </div>
                 </article>
               )
@@ -288,11 +300,11 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
             <p className="mt-5 max-w-2xl text-base leading-relaxed sm:text-lg">This prototype exports a personal WAV preview. Public publishing, attribution, and remix lineage switch on after sign-in and a final rights check.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:col-span-5">
-            <Button size="lg" disabled={!selectedRender} onClick={() => selectedRender && downloadRender(selectedRender, left, right)}>
+            <Button size="lg" disabled={!selectedRender} onClick={() => { if (selectedRender) { trackGreenEvent("preview_downloaded", { style: selectedRender.style, catalog: "mashups_originals" }); downloadRender(selectedRender, left, right) } }}>
               <Download /> Download preview
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href={selectedRender ? "/signup?next=/create" : "/discover"}>{selectedRender ? <><GitFork /> Publish after sign-in</> : <><ArrowRight /> Find a pairing</>}</Link>
+              <Link onClick={() => selectedRender && trackGreenEvent("share_started", { style: selectedRender.style, destination: "publish_signup" })} href={selectedRender ? "/signup?next=/create" : "/discover"}>{selectedRender ? <><GitFork /> Publish after sign-in</> : <><ArrowRight /> Find a pairing</>}</Link>
             </Button>
           </div>
         </div>

@@ -15,28 +15,22 @@ const ALLOWED_AUDIO_TYPES = [
 ]
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user?.id) {
-    return NextResponse.json({ error: "Sign in to upload audio." }, { status: 401 })
-  }
-
-  const rate = await consumeRateLimit({
-    key: resolveRateLimitKey(request, "upload.token", user.id),
-    limit: 12,
-    windowMs: 60_000,
-  })
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: "Upload limit exceeded. Try again shortly." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
-    )
-  }
-
   try {
     const body = (await request.json()) as HandleUploadBody
+    let requestUserId: string | null = null
+    if (body.type === "blob.generate-client-token") {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.id) return NextResponse.json({ error: "Sign in to upload audio." }, { status: 401 })
+      const rate = await consumeRateLimit({ key: resolveRateLimitKey(request, "upload.token", user.id), limit: 12, windowMs: 60_000 })
+      if (!rate.allowed) return NextResponse.json({ error: "Upload limit exceeded. Try again shortly." }, { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } })
+      requestUserId = user.id
+    } else {
+      const payload = JSON.parse(body.payload.tokenPayload ?? "{}") as { userId?: string }
+      requestUserId = payload.userId ?? null
+    }
+    if (!requestUserId) return NextResponse.json({ error: "Upload ownership is missing." }, { status: 403 })
+    const userId = requestUserId
     const jsonResponse = await handleUpload({
       body,
       request,
@@ -49,12 +43,12 @@ export async function POST(request: Request) {
           allowedContentTypes: ALLOWED_AUDIO_TYPES,
           maximumSizeInBytes: 50 * 1024 * 1024,
           addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ userId: user.id }),
+          tokenPayload: JSON.stringify({ userId }),
         }
       },
       onUploadCompleted: async ({ tokenPayload }) => {
         const payload = JSON.parse(tokenPayload ?? "{}") as { userId?: string }
-        if (payload.userId !== user.id) {
+        if (payload.userId !== userId) {
           throw new Error("Upload ownership validation failed.")
         }
       },
