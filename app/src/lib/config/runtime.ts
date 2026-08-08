@@ -1,3 +1,5 @@
+import { normalizePostHogKey } from "@/lib/analytics/config"
+
 export function isDemoMode(): boolean {
   return process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true"
 }
@@ -25,7 +27,7 @@ export function getRuntimeCapabilities(): Record<string, RuntimeCapability> {
     storage: { label: "Vercel Blob", configured: Boolean(process.env.BLOB_READ_WRITE_TOKEN), required: true },
     billing: { label: "Stripe", configured: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET), required: false },
     separation: { label: "Replicate", configured: Boolean(process.env.REPLICATE_API_TOKEN), required: false },
-    analytics: { label: "PostHog", configured: Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY), required: false },
+    analytics: { label: "PostHog", configured: Boolean(normalizePostHogKey(process.env.NEXT_PUBLIC_POSTHOG_KEY)), required: false },
     cron: { label: "Cron signing", configured: Boolean(process.env.CRON_SECRET), required: true },
   }
 }
