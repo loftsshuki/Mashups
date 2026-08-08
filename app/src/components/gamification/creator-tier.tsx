@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, TrendingUp, Award, Zap } from "lucide-react"
+import { Star, Award, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 

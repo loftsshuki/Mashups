@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
-    const rate = consumeRateLimit({
+    const rate = await consumeRateLimit({
       key: resolveRateLimitKey(request, "hooks.generate", user?.id ?? null),
       limit: 30,
       windowMs: 60_000,

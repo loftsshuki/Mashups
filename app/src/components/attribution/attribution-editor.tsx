@@ -23,7 +23,7 @@ interface AttributionEditorProps {
 export function AttributionEditor({
   initialSources = [],
   onSourcesChange,
-  mashupDuration = 180,
+  mashupDuration: _mashupDuration = 180,
   className,
 }: AttributionEditorProps) {
   const [sources, setSources] = useState<AttributionSource[]>(
@@ -147,7 +147,7 @@ export function AttributionEditor({
                   <Label>Platform</Label>
                   <Select
                     value={source.platform}
-                    onValueChange={(v) => updateSource(source.id, { platform: v as any })}
+                    onValueChange={(v) => updateSource(source.id, { platform: v as AttributionSource["platform"] })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -188,7 +188,7 @@ export function AttributionEditor({
                 <Label>License Type</Label>
                 <Select
                   value={source.licenseType}
-                  onValueChange={(v) => updateSource(source.id, { licenseType: v as any })}
+                  onValueChange={(v) => updateSource(source.id, { licenseType: v as AttributionSource["licenseType"] })}
                 >
                   <SelectTrigger>
                     <SelectValue />

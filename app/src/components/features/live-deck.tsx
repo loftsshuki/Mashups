@@ -1,11 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
-import { Play, Square, Circle, Mic2, Music2, Drum, Activity, Volume2, Twitch, Globe } from "lucide-react"
+import { Play, Square, Circle, Volume2, Twitch, Globe } from "lucide-react"
 import { useTwitchChat } from "@/lib/hooks/use-twitch-chat"
 // import * as Tone from "tone"
 
@@ -17,6 +15,10 @@ interface ClipSlot {
     hasClip: boolean
     isPlaying: boolean
     color: string
+}
+
+interface TriggerableSynth {
+    triggerAttackRelease(note: string, duration: string, time: number): void
 }
 
 // Global Macro Controls
@@ -31,8 +33,8 @@ export function LivePerformanceDeck() {
     const [grid, setGrid] = useState<ClipSlot[]>([])
     const [activeScene, setActiveScene] = useState<number | null>(null)
     const [audioReady, setAudioReady] = useState(false)
-    const [synths, setSynths] = useState<any[] | null>(null)
-    const toneRef = useRef<any>(null)
+    const [synths, setSynths] = useState<TriggerableSynth[] | null>(null)
+    const toneRef = useRef<typeof import("tone") | null>(null)
 
     // Streamer Mode State
     const [streamerMode, setStreamerMode] = useState(false)
@@ -50,7 +52,6 @@ export function LivePerformanceDeck() {
         } else if (command === "!glitch") {
             // Randomly trigger stutter macro
             // This would set macro value temporarily
-            const originalVal = MACROS[2].value
             // Simulate knob turn
             const interval = setInterval(() => {
                 MACROS[2].value = Math.random() * 100
@@ -84,7 +85,7 @@ export function LivePerformanceDeck() {
         // simple membrane synth for drums
         const membrane = new Tone.MembraneSynth().toDestination()
 
-        setSynths([poly, membrane] as any)
+        setSynths([poly, membrane])
         setAudioReady(true)
         console.log("Audio Engine Started")
     }
@@ -121,11 +122,9 @@ export function LivePerformanceDeck() {
 
             if (trackId < 4) {
                 // First 4 tracks use synth
-                // @ts-ignore
                 synths[0].triggerAttackRelease(note, "8n", now)
             } else {
                 // Last 4 tracks use drums
-                // @ts-ignore
                 synths[1].triggerAttackRelease(note, "8n", now)
             }
         }

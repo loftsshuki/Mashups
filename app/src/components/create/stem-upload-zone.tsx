@@ -55,11 +55,29 @@ const stemTypeColors = {
   other: "text-blue-400",
 }
 
+const DEFAULT_ACCEPTED_TYPES = [".mp3", ".wav", ".m4a", ".flac", ".ogg"]
+
+async function separateUploadedStems(uploadedUrl: string, duration: number): Promise<SeparatedStems> {
+  const response = await fetch("/api/audio/separate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audioUrl: uploadedUrl, duration }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || "Stem separation failed")
+  }
+
+  const data = await response.json()
+  return data.stems
+}
+
 export function StemUploadZone({
   onFilesAdded,
   disabled = false,
   maxFiles = 10,
-  acceptedTypes = [".mp3", ".wav", ".m4a", ".flac", ".ogg"],
+  acceptedTypes = DEFAULT_ACCEPTED_TYPES,
 }: StemUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [enableStemSeparation, setEnableStemSeparation] = useState(true)
@@ -90,23 +108,7 @@ export function StemUploadZone({
     setIsDragging(false)
   }, [])
 
-  const separateStems = async (uploadedUrl: string, duration: number): Promise<SeparatedStems> => {
-    const response = await fetch("/api/audio/separate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ audioUrl: uploadedUrl, duration }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || "Stem separation failed")
-    }
-
-    const data = await response.json()
-    return data.stems
-  }
-
-  const processFiles = async (files: FileList | null) => {
+  const processFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return
 
     const audioFiles = Array.from(files).filter((file) =>
@@ -179,7 +181,7 @@ export function StemUploadZone({
         // Separate stems if enabled
         if (enableStemSeparation && isConfigured) {
           try {
-            stems = await separateStems(uploadedUrl, duration)
+            stems = await separateUploadedStems(uploadedUrl, duration)
           } catch (error) {
             stemError = error instanceof Error ? error.message : "Stem separation failed"
           }
@@ -207,7 +209,7 @@ export function StemUploadZone({
         onFilesAdded([updatedResult])
       }
     }
-  }
+  }, [acceptedTypes, enableStemSeparation, isConfigured, maxFiles, onFilesAdded])
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -216,7 +218,7 @@ export function StemUploadZone({
       if (disabled) return
       void processFiles(e.dataTransfer.files)
     },
-    [disabled, enableStemSeparation, isConfigured]
+    [disabled, processFiles]
   )
 
   const handleFileInput = useCallback(
@@ -225,7 +227,7 @@ export function StemUploadZone({
       void processFiles(e.target.files)
       e.target.value = "" // Reset input
     },
-    [disabled, enableStemSeparation, isConfigured]
+    [disabled, processFiles]
   )
 
   return (

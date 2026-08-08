@@ -1,21 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Wand2, Play, Download, Settings2, Sparkles } from "lucide-react"
+import { Mic, Wand2, Play, Download, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
+
+
 import {
   applyVocalEffects,
   vocalPresets,

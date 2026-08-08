@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
-import { GitBranch, Play, ZoomIn, ZoomOut, Move, Maximize2, ArrowRight } from "lucide-react"
+import NextImage from "next/image"
+import { GitBranch, ZoomIn, ZoomOut, Move, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -87,7 +88,6 @@ export function RemixFamilyTree({
     }
     
     // Add fork nodes (going downward, spread horizontally)
-    const forkWidth = Math.min(forks.length * 150, 600)
     forks.forEach((fork, index) => {
       const offsetX = forks.length === 1 
         ? 0 
@@ -375,7 +375,10 @@ export function RemixFamilyTree({
                   href={`/mashup/${fork.id}`}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors"
                 >
-                  <img
+                  <NextImage
+                    unoptimized
+                    width={32}
+                    height={32}
                     src={fork.coverUrl}
                     alt={fork.title}
                     className="w-8 h-8 rounded object-cover"

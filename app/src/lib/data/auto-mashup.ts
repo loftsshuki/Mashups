@@ -1,6 +1,12 @@
 // Auto-Mashup AI — real Web Audio API mixing with vibe presets
 
 import { audioBufferToWav } from "@/lib/audio/stem-engine"
+import {
+  buildMashupArrangementPlan,
+  estimateTempoGridFromPcm,
+  findStrongPhraseStart,
+  type TempoGridAnalysis,
+} from "@/lib/audio/mashup-arrangement"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -16,6 +22,7 @@ export interface AIMashupTrack {
   bpm: number
   key: string
   analyzed: boolean
+  timing?: TempoGridAnalysis
   audioBuffer?: AudioBuffer
   file?: File
   stems?: {
@@ -182,14 +189,19 @@ export async function analyzeTracks(files: File[]): Promise<AIMashupTrack[]> {
     try {
       const arrayBuffer = await file.arrayBuffer()
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer)
+      const timing = estimateTempoGridFromPcm(
+        getBufferChannels(audioBuffer),
+        audioBuffer.sampleRate,
+      )
 
       tracks.push({
         id: `track_${i}`,
         fileName: file.name,
         duration: Math.round(audioBuffer.duration),
-        bpm: estimateBpmFromBuffer(audioBuffer),
-        key: ["C", "G", "D", "A", "F", "Am", "Em"][i % 7],
+        bpm: timing.bpm,
+        key: "Unknown",
         analyzed: true,
+        timing,
         audioBuffer,
         file,
       })
@@ -200,7 +212,7 @@ export async function analyzeTracks(files: File[]): Promise<AIMashupTrack[]> {
         fileName: file.name,
         duration: 0,
         bpm: 120,
-        key: "C",
+        key: "Unknown",
         analyzed: false,
       })
     }
@@ -210,209 +222,208 @@ export async function analyzeTracks(files: File[]): Promise<AIMashupTrack[]> {
   return tracks
 }
 
-// Simple BPM estimation using peak detection on the low-frequency energy
-function estimateBpmFromBuffer(buffer: AudioBuffer): number {
-  const data = buffer.getChannelData(0)
-  const sampleRate = buffer.sampleRate
-
-  // Downsample to ~200 Hz for energy analysis
-  const hopSize = Math.floor(sampleRate / 200)
-  const energies: number[] = []
-  for (let i = 0; i < data.length - hopSize; i += hopSize) {
-    let energy = 0
-    for (let j = 0; j < hopSize; j++) {
-      energy += data[i + j] * data[i + j]
-    }
-    energies.push(energy / hopSize)
-  }
-
-  // Find peaks (onset detection)
-  const threshold = energies.reduce((a, b) => a + b, 0) / energies.length * 1.5
-  let peakCount = 0
-  let lastPeak = -10
-  for (let i = 1; i < energies.length - 1; i++) {
-    if (energies[i] > threshold && energies[i] > energies[i - 1] && energies[i] > energies[i + 1] && i - lastPeak > 10) {
-      peakCount++
-      lastPeak = i
-    }
-  }
-
-  const durationSeconds = buffer.duration
-  if (durationSeconds < 5 || peakCount < 4) return 120 // fallback
-
-  // peaks per second * 60 = BPM (roughly — assumes peaks align with beats)
-  const rawBpm = (peakCount / durationSeconds) * 60
-  // Clamp to reasonable range and snap to nearest likely BPM
-  if (rawBpm < 60) return Math.round(rawBpm * 2)
-  if (rawBpm > 200) return Math.round(rawBpm / 2)
-  return Math.round(rawBpm)
+function getBufferChannels(buffer: AudioBuffer): Float32Array[] {
+  return Array.from(
+    { length: buffer.numberOfChannels },
+    (_, channel) => buffer.getChannelData(channel),
+  )
 }
 
 // ---------------------------------------------------------------------------
-// Generate auto-mashup — vocals from one track + beat from another
-// Uses Replicate stem separation when available, frequency filtering as fallback
+// Generate a short, phrase-aligned stem swap instead of overlaying full mixes.
 // ---------------------------------------------------------------------------
 
 export type ProgressCallback = (message: string, percent: number) => void
+
+interface SeparatedMashupBuffers {
+  vocalsBuffer: AudioBuffer
+  sourceHarmonyBuffer: AudioBuffer
+  beatDrumsBuffer: AudioBuffer
+}
 
 export async function generateAutoMashup(
   config: AIMashupConfig,
   onProgress?: ProgressCallback,
 ): Promise<AIMashupResult> {
   const buffers = config.tracks
-    .map(t => t.audioBuffer)
-    .filter((b): b is AudioBuffer => b != null)
+    .map((track) => track.audioBuffer)
+    .filter((buffer): buffer is AudioBuffer => buffer != null)
 
   if (buffers.length < 2) {
     throw new Error("Need at least 2 tracks with audio data")
   }
 
   const vibe = vibePresets[config.vibe]
-  const sampleRate = 44100
-
-  // Track A = vocals source, Track B = beat source
-  // (first track provides vocals, second provides instrumentals)
   const trackA = config.tracks[0]
   const trackB = config.tracks[1]
-  const bufferA = trackA.audioBuffer!
-  const bufferB = trackB.audioBuffer!
+  const plan = buildMashupArrangementPlan(trackA.bpm, trackB.bpm)
 
-  // --- Step 1: Try Replicate stem separation ---
-  let stemBuffers: { vocalsBuffer: AudioBuffer; beatsBuffer: AudioBuffer } | null = null
+  if (!plan.compatible) {
+    throw new Error(
+      `${plan.reason}. Choose tracks with a direct, half-time, or 3:4 tempo relationship.`,
+    )
+  }
 
+  let stemBuffers: SeparatedMashupBuffers | null = null
   if (trackA.file && trackB.file) {
-    onProgress?.("Uploading tracks for stem separation...", 10)
+    onProgress?.("Separating musical stems...", 10)
     stemBuffers = await tryStemSeparation(trackA.file, trackB.file, onProgress)
   }
 
-  // --- Step 2: Mix using stems or frequency fallback ---
-  const usedStems = stemBuffers != null
-  const maxDuration = Math.max(
-    bufferA.duration / vibe.settings.tempoMultiplier,
-    bufferB.duration / vibe.settings.tempoMultiplier,
+  if (!stemBuffers) {
+    throw new Error(
+      "Studio-quality stem separation is unavailable. Mashups will not publish a fake frequency-filtered blend.",
+    )
+  }
+
+  onProgress?.("Finding strong phrases and matching downbeats...", 68)
+  const vocalTiming = trackA.timing ?? {
+    bpm: trackA.bpm,
+    confidence: 0,
+    beatOffset: 0,
+    downbeatOffset: 0,
+    beatInterval: 60 / trackA.bpm,
+  }
+  const beatTiming = trackB.timing ?? {
+    bpm: trackB.bpm,
+    confidence: 0,
+    beatOffset: 0,
+    downbeatOffset: 0,
+    beatInterval: 60 / trackB.bpm,
+  }
+  const vocalStart = findStrongPhraseStart(
+    getBufferChannels(stemBuffers.vocalsBuffer),
+    stemBuffers.vocalsBuffer.sampleRate,
+    vocalTiming,
+    plan.sourceBodyBars,
   )
-  const outputLength = Math.ceil(maxDuration * sampleRate)
+  const beatStart = findStrongPhraseStart(
+    getBufferChannels(stemBuffers.beatDrumsBuffer),
+    stemBuffers.beatDrumsBuffer.sampleRate,
+    beatTiming,
+    plan.totalBars,
+  )
 
-  onProgress?.(usedStems ? "Mixing separated stems..." : "Mixing with frequency isolation...", 70)
-
+  const sampleRate = 44_100
+  const outputLength = Math.ceil(plan.totalDuration * sampleRate)
   const offline = new OfflineAudioContext(2, outputLength, sampleRate)
   const masterGain = offline.createGain()
-  masterGain.gain.value = config.intensity / 100
-  masterGain.connect(offline.destination)
+  masterGain.gain.value = 0.82 + (config.intensity / 100) * 0.16
 
-  if (stemBuffers) {
-    // --- Real stems: vocals from A + beat from B ---
-    const vocSrc = offline.createBufferSource()
-    vocSrc.buffer = stemBuffers.vocalsBuffer
-    vocSrc.playbackRate.value = vibe.settings.tempoMultiplier
-    const vocGain = offline.createGain()
-    vocGain.gain.value = config.vocalFocus ? 1.0 : 0.7
-    vocSrc.connect(vocGain)
-    vocGain.connect(masterGain)
-    vocSrc.start(0)
+  const limiter = offline.createDynamicsCompressor()
+  limiter.threshold.value = -7
+  limiter.knee.value = 8
+  limiter.ratio.value = 10
+  limiter.attack.value = 0.003
+  limiter.release.value = 0.12
+  masterGain.connect(limiter)
+  limiter.connect(offline.destination)
 
-    const beatSrc = offline.createBufferSource()
-    beatSrc.buffer = stemBuffers.beatsBuffer
-    beatSrc.playbackRate.value = vibe.settings.tempoMultiplier
-    const beatGain = offline.createGain()
-    beatGain.gain.value = config.vocalFocus ? 0.75 : 1.0
-    beatSrc.connect(beatGain)
-    beatGain.connect(masterGain)
-    beatSrc.start(0)
-  } else {
-    // --- Frequency fallback: aggressive filtering to isolate vocals vs beat ---
-    // This is an approximation — real stem separation (Modal/Replicate) is much better
+  const beatSource = offline.createBufferSource()
+  beatSource.buffer = stemBuffers.beatDrumsBuffer
+  beatSource.playbackRate.value = plan.beatPlaybackRate
+  const beatGain = offline.createGain()
+  const bodyBeatGain = config.vocalFocus ? 0.52 : 0.62
+  beatGain.gain.setValueAtTime(0.74, 0)
+  beatGain.gain.setValueAtTime(0.74, Math.max(0, plan.introDuration - 0.08))
+  beatGain.gain.linearRampToValueAtTime(bodyBeatGain, plan.introDuration + 0.08)
+  beatGain.gain.setValueAtTime(
+    bodyBeatGain,
+    plan.introDuration + plan.bodyDuration - 0.08,
+  )
+  beatGain.gain.linearRampToValueAtTime(
+    0.68,
+    plan.introDuration + plan.bodyDuration + 0.08,
+  )
+  beatSource.connect(beatGain)
+  beatGain.connect(masterGain)
+  beatSource.start(0, beatStart)
+  beatSource.stop(plan.totalDuration)
 
-    // Track A → cascade two steep highpass filters at 500 Hz + bandpass 800-4000 Hz
-    // Vocals live mostly in 300-3500 Hz range; this aggressively cuts low-end
-    const srcA = offline.createBufferSource()
-    srcA.buffer = bufferA
-    srcA.playbackRate.value = vibe.settings.tempoMultiplier
-    const gainA = offline.createGain()
-    gainA.gain.value = config.vocalFocus ? 1.2 : 0.8
+  const harmonySource = offline.createBufferSource()
+  harmonySource.buffer = stemBuffers.sourceHarmonyBuffer
+  harmonySource.playbackRate.value = plan.vocalPlaybackRate
+  const harmonyFilter = offline.createBiquadFilter()
+  harmonyFilter.type = "lowpass"
+  harmonyFilter.frequency.value = 12_500
+  const harmonyGain = offline.createGain()
+  harmonyGain.gain.setValueAtTime(0, plan.introDuration)
+  harmonyGain.gain.linearRampToValueAtTime(0.24, plan.introDuration + 0.08)
+  harmonyGain.gain.setValueAtTime(
+    0.24,
+    plan.introDuration + plan.bodyDuration - 0.25,
+  )
+  harmonyGain.gain.linearRampToValueAtTime(
+    0,
+    plan.introDuration + plan.bodyDuration,
+  )
+  harmonySource.connect(harmonyFilter)
+  harmonyFilter.connect(harmonyGain)
+  harmonyGain.connect(masterGain)
+  harmonySource.start(plan.introDuration, vocalStart)
+  harmonySource.stop(plan.introDuration + plan.bodyDuration)
 
-    // First highpass — kill sub-bass and bass
-    const hp1 = offline.createBiquadFilter()
-    hp1.type = "highpass"
-    hp1.frequency.value = 500
-    hp1.Q.value = 1.0
+  const vocalSource = offline.createBufferSource()
+  vocalSource.buffer = stemBuffers.vocalsBuffer
+  vocalSource.playbackRate.value = plan.vocalPlaybackRate
+  const vocalHighpass = offline.createBiquadFilter()
+  vocalHighpass.type = "highpass"
+  vocalHighpass.frequency.value = 90
+  const vocalCompressor = offline.createDynamicsCompressor()
+  vocalCompressor.threshold.value = -24
+  vocalCompressor.knee.value = 12
+  vocalCompressor.ratio.value = 3.5
+  vocalCompressor.attack.value = 0.006
+  vocalCompressor.release.value = 0.13
+  const vocalGain = offline.createGain()
+  const vocalLevel = config.vocalFocus ? 1 : 0.82
+  vocalGain.gain.setValueAtTime(0, plan.introDuration)
+  vocalGain.gain.linearRampToValueAtTime(
+    vocalLevel,
+    plan.introDuration + 0.06,
+  )
+  vocalGain.gain.setValueAtTime(
+    vocalLevel,
+    plan.introDuration + plan.bodyDuration - 0.22,
+  )
+  vocalGain.gain.linearRampToValueAtTime(
+    0,
+    plan.introDuration + plan.bodyDuration,
+  )
+  vocalSource.connect(vocalHighpass)
+  vocalHighpass.connect(vocalCompressor)
+  vocalCompressor.connect(vocalGain)
+  vocalGain.connect(masterGain)
+  vocalSource.start(plan.introDuration, vocalStart)
+  vocalSource.stop(plan.introDuration + plan.bodyDuration)
 
-    // Second highpass — steeper rolloff
-    const hp2 = offline.createBiquadFilter()
-    hp2.type = "highpass"
-    hp2.frequency.value = 400
-    hp2.Q.value = 1.0
-
-    // Low-pass to cut harsh highs (cymbals, hats from the instrumental)
-    const lpVocal = offline.createBiquadFilter()
-    lpVocal.type = "lowpass"
-    lpVocal.frequency.value = 4000
-    lpVocal.Q.value = 0.5
-
-    srcA.connect(gainA)
-    gainA.connect(hp1)
-    hp1.connect(hp2)
-    hp2.connect(lpVocal)
-    lpVocal.connect(masterGain)
-    srcA.start(0)
-
-    // Track B → cascade two steep lowpass filters at 800 Hz
-    // Keep only kick, bass, and low-end body
-    const srcB = offline.createBufferSource()
-    srcB.buffer = bufferB
-    srcB.playbackRate.value = vibe.settings.tempoMultiplier
-    const gainB = offline.createGain()
-    gainB.gain.value = config.vocalFocus ? 0.8 : 1.0
-
-    // First lowpass — cut mids and highs
-    const lp1 = offline.createBiquadFilter()
-    lp1.type = "lowpass"
-    lp1.frequency.value = 800
-    lp1.Q.value = 1.0
-
-    // Second lowpass — steeper rolloff
-    const lp2 = offline.createBiquadFilter()
-    lp2.type = "lowpass"
-    lp2.frequency.value = 1200
-    lp2.Q.value = 0.7
-
-    srcB.connect(gainB)
-    gainB.connect(lp1)
-    lp1.connect(lp2)
-    lp2.connect(masterGain)
-    srcB.start(0)
-  }
-
-  // Apply vibe filter on top of the mix
-  if (vibe.settings.filterType !== "none") {
-    // Vibe filter is applied on the master output via a secondary pass
-    // (already applied via per-source routing above, keep clean)
-  }
-
-  onProgress?.("Rendering final mix...", 85)
+  onProgress?.(`Rendering ${plan.reason.toLowerCase()}...`, 85)
   const rendered = await offline.startRendering()
   const wavBlob = audioBufferToWav(rendered)
   const blobUrl = URL.createObjectURL(wavBlob)
-
   onProgress?.("Complete!", 100)
-
-  const baseBpm = trackA.bpm || 120
-  const outputBpm = Math.round(baseBpm * vibe.settings.tempoMultiplier)
 
   const segments: AIMashupResult["segments"] = [
     {
-      startTime: 0,
-      endTime: Math.round(maxDuration),
+      startTime: plan.introDuration,
+      endTime: plan.introDuration + plan.bodyDuration,
       sourceTrack: trackA.id,
       stem: "vocals",
-      effect: usedStems ? "stem-separated" : "highpass",
+      effect: `stem-separated:${plan.mode}:phrase-aligned`,
     },
     {
       startTime: 0,
-      endTime: Math.round(maxDuration),
+      endTime: plan.totalDuration,
       sourceTrack: trackB.id,
       stem: "drums",
-      effect: usedStems ? "stem-separated" : "lowpass",
+      effect: "stem-separated:downbeat-aligned",
+    },
+    {
+      startTime: plan.introDuration,
+      endTime: plan.introDuration + plan.bodyDuration,
+      sourceTrack: trackA.id,
+      stem: "other",
+      effect: "harmonic-bed:key-safe",
     },
   ]
 
@@ -422,14 +433,14 @@ export async function generateAutoMashup(
     status: "complete",
     progress: 100,
     outputUrl: blobUrl,
-    duration: Math.round(maxDuration),
-    bpm: outputBpm,
-    key: trackA.key || "C",
+    duration: Math.round(plan.totalDuration),
+    bpm: Math.round(plan.targetBpm),
+    key: trackA.key,
     aiAnalysis: {
-      energy: Math.min(100, config.intensity * 1.1 + (vibe.settings.tempoMultiplier - 0.8) * 100),
-      danceability: Math.min(100, 40 + config.intensity * 0.6),
-      valence: vibe.id === "dark" ? 30 + Math.random() * 20 : 50 + Math.random() * 40,
-      acousticness: vibe.settings.filterType === "lowpass" ? 50 + Math.random() * 30 : Math.random() * 30,
+      energy: Math.min(100, config.intensity * 1.1 + 15),
+      danceability: Math.min(100, 55 + config.intensity * 0.45),
+      valence: vibe.id === "dark" ? 38 : 68,
+      acousticness: vibe.settings.filterType === "lowpass" ? 45 : 18,
     },
     segments,
     createdAt: new Date().toISOString(),
@@ -456,58 +467,54 @@ async function tryStemSeparation(
   fileA: File,
   fileB: File,
   onProgress?: ProgressCallback,
-): Promise<{ vocalsBuffer: AudioBuffer; beatsBuffer: AudioBuffer } | null> {
+): Promise<SeparatedMashupBuffers | null> {
   try {
-    // Upload both files to get public URLs
-    onProgress?.("Uploading track 1...", 10)
+    onProgress?.("Uploading vocal source...", 10)
     const urlA = await uploadFileForSeparation(fileA)
-    onProgress?.("Uploading track 2...", 20)
+    onProgress?.("Uploading rhythm source...", 20)
     const urlB = await uploadFileForSeparation(fileB)
 
     if (!urlA || !urlB) {
-      console.warn("File upload failed — cannot separate stems")
+      console.warn("File upload failed; cannot separate stems")
       return null
     }
 
-    // Separate track A (we need its vocals)
-    onProgress?.("AI is separating vocals (this takes 30-60s)...", 30)
+    onProgress?.("Separating vocal and harmony stems...", 30)
     const stemsA = await callStemSeparation(urlA)
     if (!stemsA) return null
 
-    // Separate track B (we need its drums + bass + other)
-    onProgress?.("AI is separating beat (this takes 30-60s)...", 50)
+    onProgress?.("Separating destination drums...", 50)
     const stemsB = await callStemSeparation(urlB)
     if (!stemsB) return null
 
-    // Decode the stem audio into AudioBuffers
-    onProgress?.("Decoding separated stems...", 65)
+    onProgress?.("Decoding separated stems...", 62)
     const ctx = new AudioContext()
-
     const vocalsBuffer = await decodeAudioFromUri(ctx, stemsA.vocals)
+    const sourceBassBuffer = await decodeAudioFromUri(ctx, stemsA.bass)
+    const sourceOtherBuffer = await decodeAudioFromUri(ctx, stemsA.other)
+    const beatDrumsBuffer = await decodeAudioFromUri(ctx, stemsB.drums)
 
-    // Mix drums + bass + other from track B into a single "beats" buffer
-    const drumsBuffer = await decodeAudioFromUri(ctx, stemsB.drums)
-    const bassBuffer = await decodeAudioFromUri(ctx, stemsB.bass)
-    const otherBuffer = await decodeAudioFromUri(ctx, stemsB.other)
-
-    // Render the three instrument stems into one buffer
-    const maxLen = Math.max(drumsBuffer.length, bassBuffer.length, otherBuffer.length)
-    const beatOffline = new OfflineAudioContext(2, maxLen, drumsBuffer.sampleRate)
-    const beatMaster = beatOffline.createGain()
-    beatMaster.connect(beatOffline.destination)
-
-    for (const buf of [drumsBuffer, bassBuffer, otherBuffer]) {
-      const src = beatOffline.createBufferSource()
-      src.buffer = buf
-      src.connect(beatMaster)
-      src.start(0)
+    const harmonyLength = Math.max(
+      sourceBassBuffer.length,
+      sourceOtherBuffer.length,
+    )
+    const harmonyOffline = new OfflineAudioContext(
+      2,
+      harmonyLength,
+      sourceOtherBuffer.sampleRate,
+    )
+    for (const buffer of [sourceBassBuffer, sourceOtherBuffer]) {
+      const source = harmonyOffline.createBufferSource()
+      source.buffer = buffer
+      source.connect(harmonyOffline.destination)
+      source.start(0)
     }
-    const beatsBuffer = await beatOffline.startRendering()
+    const sourceHarmonyBuffer = await harmonyOffline.startRendering()
 
     await ctx.close()
-    return { vocalsBuffer, beatsBuffer }
-  } catch (err) {
-    console.warn("Stem separation failed, falling back to frequency filtering:", err)
+    return { vocalsBuffer, sourceHarmonyBuffer, beatDrumsBuffer }
+  } catch (error) {
+    console.warn("Stem separation failed:", error)
     return null
   }
 }
@@ -628,14 +635,14 @@ async function decodeAudioFromUri(ctx: AudioContext, uri: string): Promise<Audio
 }
 
 // Get generation status
-export async function getMashupStatus(id: string): Promise<AIMashupResult | null> {
+export async function getMashupStatus(_id: string): Promise<AIMashupResult | null> {
   return null
 }
 
 // Refine/edit AI result
 export async function refineMashup(
   mashupId: string,
-  adjustments: {
+  _adjustments: {
     segmentIndex: number
     changes: Partial<AIMashupResult["segments"][0]>
   }[]
@@ -684,18 +691,15 @@ export function analyzeCompatibility(tracks: AIMashupTrack[]): {
     return { compatible: false, issues, suggestions }
   }
 
-  // Check BPM compatibility
-  const bpms = tracks.map(t => t.bpm)
-  const bpmRange = Math.max(...bpms) - Math.min(...bpms)
-  if (bpmRange > 20) {
-    suggestions.push("Large BPM difference detected \u2014 AI will auto-adjust tempo for smoother mixing")
+  const plan = buildMashupArrangementPlan(tracks[0].bpm, tracks[1].bpm)
+  if (!plan.compatible) {
+    issues.push(`${plan.reason}. This pair cannot be warped cleanly in-browser.`)
+  } else if (plan.mode !== "direct") {
+    suggestions.push(`${plan.reason}; phrase boundaries still resolve on the bar grid.`)
   }
 
-  // Check key compatibility
-  const keys = tracks.map(t => t.key)
-  const uniqueKeys = new Set(keys)
-  if (uniqueKeys.size > 2) {
-    suggestions.push("Multiple keys detected - AI will auto-shift for harmonic mixing")
+  if (tracks.some((track) => (track.timing?.confidence ?? 1) < 0.15)) {
+    suggestions.push("Low beat confidence detected; confirm the downbeat before publishing.")
   }
 
   return {

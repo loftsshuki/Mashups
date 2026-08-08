@@ -7,6 +7,8 @@ const isSupabaseConfigured = () =>
 
 const PROFILE_SELECT = "id, username, display_name, avatar_url"
 
+type CommentRow = Comment & { user?: Profile | null }
+
 /**
  * Get top-level comments (no parent) for a mashup with reply counts.
  */
@@ -30,13 +32,14 @@ export async function getCommentsV2(mashupId: string): Promise<Comment[]> {
     if (error || !data) return []
 
     // Fetch reply counts for all top-level comments
-    const ids = data.map((c: any) => c.id)
+    const rows = data as CommentRow[]
+    const ids = rows.map((comment) => comment.id)
     const replyCounts = await getReplyCountsBatch(ids)
 
     // Fetch reactions for all top-level comments
     const allReactions = await getReactionsBatch(ids)
 
-    return data.map((row: any) => ({
+    return rows.map((row) => ({
       ...row,
       user: row.user ?? undefined,
       reply_count: replyCounts.get(row.id) ?? 0,
@@ -68,10 +71,11 @@ export async function getCommentReplies(parentId: string): Promise<Comment[]> {
 
     if (error || !data) return []
 
-    const ids = data.map((c: any) => c.id)
+    const rows = data as CommentRow[]
+    const ids = rows.map((comment) => comment.id)
     const allReactions = await getReactionsBatch(ids)
 
-    return data.map((row: any) => ({
+    return rows.map((row) => ({
       ...row,
       user: row.user ?? undefined,
       reactions: allReactions.get(row.id) ?? [],
@@ -131,9 +135,9 @@ export async function addCommentV2(
 
       if (mentionedUsers?.length) {
         await supabase.from("comment_mentions").insert(
-          mentionedUsers.map((u: any) => ({
+          (mentionedUsers as Array<{ id: string }>).map((user) => ({
             comment_id: data.id,
-            mentioned_user_id: u.id,
+            mentioned_user_id: user.id,
           }))
         )
       }
@@ -176,7 +180,7 @@ export async function getTimestampedComments(
 
     if (error || !data) return []
 
-    return data.map((row: any) => ({
+    return (data as CommentRow[]).map((row) => ({
       ...row,
       user: row.user ?? undefined,
     }))

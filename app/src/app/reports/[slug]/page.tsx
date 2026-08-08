@@ -1,0 +1,43 @@
+import type { Metadata } from "next"
+import Link from "next/link"
+import { notFound, redirect } from "next/navigation"
+import { ArrowLeft, Check, Crosshair, DatabaseZap, MapPin, ShieldCheck, Target } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { isSupabaseConfigured } from "@/lib/config/runtime"
+import { isDemoQuery } from "@/lib/demo/runtime"
+import { getDominationSnapshot } from "@/lib/domination/service"
+import { createClient } from "@/lib/supabase/server"
+
+export const metadata: Metadata = { title: "A&R Intelligence Report", description: "Rights-aware campaign intelligence grounded in creator tests, trust, and matched-control lift.", robots: { index: false, follow: false } }
+
+export default async function ArReportPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [{ slug }, query] = await Promise.all([params, searchParams])
+  const demo = isDemoQuery(typeof query.demo === "string" ? query.demo : null)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!demo && isSupabaseConfigured() && !user) redirect(`/login?next=/reports/${encodeURIComponent(slug)}`)
+  const snapshot = await getDominationSnapshot(user?.id ?? null, demo, slug)
+  if (!snapshot || snapshot.launchSlug !== slug) notFound()
+  const lift = snapshot.lift
+  const ar = snapshot.ar
+
+  return <main className="report-page overflow-x-clip pt-[68px]">
+    <div className="border-b border-foreground bg-foreground px-4 py-2 text-background"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 font-mono text-[10px] font-bold uppercase tracking-[0.15em]"><span>Confidential decision intelligence</span><span>{demo ? "Labeled simulation" : "Owner-only evidence"}</span></div></div>
+    <section className="mx-auto max-w-6xl px-4 pb-28 sm:px-6">
+      <header className="grid border-x border-b border-foreground lg:grid-cols-[1fr_20rem]"><div className="relative overflow-hidden p-6 sm:p-10 lg:p-14"><div className="domination-grid absolute inset-0 opacity-25" /><div className="relative"><Button variant="ghost" className="-ml-3" asChild><Link href={`/domination${demo ? "?demo=1" : ""}`}><ArrowLeft />Control plane</Link></Button><p className="signal-label mt-10">A&R intelligence / mashups-ar-v1</p><h1 className="display-type mt-7 text-[clamp(3.4rem,14vw,9rem)] leading-[0.75]">FIND THE<br /><span className="text-primary">PROOF</span><br />BEFORE SCALE.</h1><p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">{snapshot.launchTitle}. A decision memo built from attributable creator behavior, rights standing, and matched-control downstream lift.</p></div></div><aside className="flex flex-col justify-between border-t border-foreground bg-secondary p-6 lg:border-l lg:border-t-0 sm:p-8"><DatabaseZap className="size-7" /><div className="my-14"><p className="display-type text-8xl">{ar.breakoutProbability}%</p><p className="mt-2 font-mono text-[10px] uppercase tracking-widest">modeled breakout probability</p></div><Badge className="w-fit rounded-none" variant={lift.credible ? "default" : "outline"}>{lift.credible ? "CREDIBLE SAMPLE" : "DIRECTIONAL ONLY"}</Badge></aside></header>
+
+      <section className="grid border-x border-b border-foreground lg:grid-cols-4"><ReportMetric icon={Crosshair} label="Incremental save lift" value={`${Math.round(lift.relativeLift * 100)}%`} /><ReportMetric icon={ShieldCheck} label="Evidence trust" value={`${snapshot.trust.score}/100`} /><ReportMetric icon={MapPin} label="Best market" value={ar.recommendedCity} /><ReportMetric icon={Target} label="Strongest hook" value={`${ar.strongestHookSec}s`} /></section>
+
+      <section className="grid border-x border-b border-foreground lg:grid-cols-[1.1fr_0.9fr]"><article className="p-6 sm:p-10 lg:border-r lg:border-foreground"><p className="mono-label text-muted-foreground">Matched-control read</p><h2 className="display-type mt-5 text-5xl">INCREMENTAL,<br />NOT INCIDENTAL.</h2><div className="mt-10 space-y-7"><RateBar label="Activated audience" conversions={lift.treatmentConversions} visitors={lift.treatmentVisitors} rate={lift.treatmentRate} color="bg-primary" /><RateBar label="Matched holdout" conversions={lift.controlConversions} visitors={lift.controlVisitors} rate={lift.controlRate} color="bg-foreground" /></div><div className="mt-10 grid gap-px border border-foreground bg-foreground sm:grid-cols-3"><EvidenceCell label="Absolute lift" value={`${(lift.absoluteLift * 100).toFixed(1)} pts`} /><EvidenceCell label="Confidence" value={`${Math.round(lift.confidence * 100)}%`} /><EvidenceCell label="Verdict" value={lift.credible ? "Scale test" : "Collect more"} /></div><p className="mt-6 text-sm leading-relaxed text-muted-foreground">Confidence uses a two-proportion approximation. Credibility requires at least 100 observations in each cohort and 95% confidence. This measures campaign incrementality, not guaranteed future performance.</p></article><aside className="p-6 sm:p-10"><p className="mono-label text-muted-foreground">A&R recommendation</p><h2 className="display-type mt-5 text-5xl">{ar.recommendedNiche}<br /><span className="text-primary">IN {ar.recommendedCity}.</span></h2><p className="mt-6 text-lg leading-relaxed">Lead with the {ar.strongestHookSec}-second structure. Expected qualified activation cost: <strong>{money(ar.expectedQualifiedActivationCents)}</strong>.</p><div className="mt-8 border-t border-foreground">{ar.explanation.map((item) => <div key={item} className="flex gap-3 border-b border-foreground py-4"><span className="grid size-6 shrink-0 place-items-center bg-secondary"><Check className="size-3" /></span><span className="text-sm font-semibold">{item}</span></div>)}</div><div className="mt-8 bg-foreground p-6 text-background"><p className="mono-label text-background/50">Paid readiness</p><p className="display-type mt-4 text-6xl text-secondary">{ar.paidReadiness}</p><p className="mt-2 text-sm text-background/60">Scale only cleared creator posts with explicit consent and license coverage.</p></div></aside></section>
+
+      <section className="border-x border-b border-foreground p-6 sm:p-10"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="mono-label text-muted-foreground">Campaign truth graph</p><h2 className="display-type mt-5 text-5xl">TRACE EVERY CLAIM.</h2></div><Badge variant="outline" className="rounded-none">{snapshot.graph.edges.length} evidence edges</Badge></div><div className="mt-9 overflow-x-auto"><div className="flex min-w-[700px]">{snapshot.graph.nodes.map((node, index) => <div key={node.id} className="contents"><div className="min-w-32 flex-1 border border-foreground bg-card p-4"><p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{node.kind}</p><p className="mt-7 font-semibold">{node.label}</p><p className="mt-1 text-xs text-muted-foreground">{node.value}</p></div>{index < snapshot.graph.nodes.length - 1 ? <div className="grid w-9 place-items-center border-y border-foreground bg-secondary font-mono text-xs">{index + 1}</div> : null}</div>)}</div></div></section>
+    </section>
+  </main>
+}
+
+function ReportMetric({ icon: Icon, label, value }: { icon: typeof Crosshair; label: string; value: string }) { return <div className="border-b border-foreground p-5 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 sm:p-7"><Icon className="size-5 text-primary" /><p className="display-type mt-8 text-4xl">{value}</p><p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{label}</p></div> }
+function RateBar({ label, conversions, visitors, rate, color }: { label: string; conversions: number; visitors: number; rate: number; color: string }) { return <div><div className="mb-3 flex items-end justify-between gap-4"><span className="font-semibold">{label}</span><span className="font-mono text-xs">{conversions.toLocaleString()} / {visitors.toLocaleString()} / {(rate * 100).toFixed(1)}%</span></div><div className="h-7 border border-foreground bg-muted"><div className={`h-full ${color}`} style={{ width: `${Math.min(100, rate * 500)}%` }} /></div></div> }
+function EvidenceCell({ label, value }: { label: string; value: string }) { return <div className="bg-card p-4"><p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-2 font-semibold">{value}</p></div> }
+function money(cents: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100) }

@@ -28,7 +28,7 @@ export default function DailyFlipPage() {
                                 <span className="mb-1 text-sm text-muted-foreground">days</span>
                             </div>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Keep flipping to unlock the "Consistent Creator" badge.
+                                Keep flipping to unlock the &quot;Consistent Creator&quot; badge.
                             </p>
 
                             <div className="mt-4 flex justify-between gap-1">

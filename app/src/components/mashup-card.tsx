@@ -58,7 +58,7 @@ export function MashupCard({
   creator,
   rightsBadge,
   rightsBadgeVariant = "outline",
-  rightsScore,
+  rightsScore: _rightsScore,
   className,
 }: MashupCardProps) {
   const { state, playTrack, pause } = useAudio();

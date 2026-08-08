@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { z } from "zod"
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
 import { chatJSON } from "@/lib/ai/chat"
+import { isDemoMode } from "@/lib/config/runtime"
 
 interface CompletionOption {
   id: string
@@ -12,6 +14,25 @@ interface CompletionOption {
 }
 
 const SYSTEM_PROMPT = `You are a music production AI for a mashup platform. Given the user's current stems, BPM, and key, suggest exactly 3 ways to complete/extend their mashup. Each option should have a distinct style/mood. Return valid JSON: { "completions": [{ "label": string (2-4 words), "description": string (1-2 sentences), "style": string (one of: "high-energy", "ambient", "drop", "groove", "cinematic", "experimental"), "confidence": number (0.65-0.95), "suggestedStems": [{ "instrument": string, "description": string (specific detail with key/BPM) }] }] }. Each completion should suggest 2-3 stems. Be musically specific.`
+
+const requestSchema = z.object({
+  stems: z.array(z.object({ instrument: z.string().optional(), title: z.string().optional() })).max(24).optional(),
+  bpm: z.number().min(40).max(240).nullable().optional(),
+  key: z.string().trim().max(24).nullable().optional(),
+})
+
+const completionSchema = z.object({
+  completions: z.array(z.object({
+    label: z.string().min(2).max(40),
+    description: z.string().min(10).max(280),
+    style: z.enum(["high-energy", "ambient", "drop", "groove", "cinematic", "experimental"]),
+    confidence: z.number().min(0).max(1),
+    suggestedStems: z.array(z.object({
+      instrument: z.string().min(1).max(40),
+      description: z.string().min(5).max(180),
+    })).min(2).max(3),
+  })).length(3),
+})
 
 function generateFallback(bpm: number | null, key: string | null): CompletionOption[] {
   return [
@@ -52,22 +73,27 @@ function generateFallback(bpm: number | null, key: string | null): CompletionOpt
 }
 
 export async function POST(request: NextRequest) {
+  let usageEventId: string | null = null
   try {
+    const parsed = requestSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid project state." }, { status: 400 })
+    }
+
     const tierCheck = await enforceTierLimit("ai_generations")
     if (tierCheck instanceof NextResponse) return tierCheck
-
-    const body = (await request.json()) as {
-      stems?: { instrument?: string; title?: string }[]
-      bpm?: number | null
-      key?: string | null
-    }
+    usageEventId = tierCheck.usageEventId
+    const body = parsed.data
 
     const stemList = body.stems?.map((s) => s.instrument || s.title || "unknown").join(", ") || "none yet"
     const userMsg = `Current project stems: ${stemList}. BPM: ${body.bpm ?? "not set"}. Key: ${body.key ?? "not set"}. Suggest 3 creative completion options.`
 
-    const ai = await chatJSON<{ completions: Omit<CompletionOption, "id">[] }>({
+    const ai = await chatJSON({
       system: SYSTEM_PROMPT,
       user: userMsg,
+      schema: completionSchema,
+      schemaName: "mashup_completions",
+      workload: "create",
     })
 
     if (ai?.completions) {
@@ -75,11 +101,19 @@ export async function POST(request: NextRequest) {
         ...c,
         id: `comp-${Date.now()}-${i}`,
       }))
+      await finalizeUsage(usageEventId, "completed", { operation: "complete" })
       return NextResponse.json({ completions })
     }
 
-    return NextResponse.json({ completions: generateFallback(body.bpm ?? null, body.key ?? null) })
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+    if (isDemoMode()) {
+      await finalizeUsage(usageEventId, "completed", { operation: "complete", mode: "demo" })
+      return NextResponse.json({ completions: generateFallback(body.bpm ?? null, body.key ?? null), mode: "demo" })
+    }
+    await finalizeUsage(usageEventId, "failed", { operation: "complete", reason: "not_configured" })
+    return NextResponse.json({ error: "AI completion is not configured." }, { status: 503 })
+  } catch (error) {
+    await finalizeUsage(usageEventId, "failed", { operation: "complete" })
+    console.error("[AI Complete] Failed:", error)
+    return NextResponse.json({ error: "Failed to generate completion options." }, { status: 502 })
   }
 }

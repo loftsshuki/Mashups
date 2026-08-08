@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import NextImage from "next/image"
 import { LivePerformanceDeck } from "@/components/features/live-deck"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 
 interface BattleArenaProps {
     opponent: {
@@ -17,7 +16,7 @@ interface BattleArenaProps {
 
 export function BattleArena({ opponent, onEndGame }: BattleArenaProps) {
     const [timeLeft, setTimeLeft] = useState(60) // 60 second battle for demo
-    const [score, setScore] = useState(0)
+    const [score] = useState(0)
     const [opponentScore, setOpponentScore] = useState(0)
 
     // Timer
@@ -65,7 +64,7 @@ export function BattleArena({ opponent, onEndGame }: BattleArenaProps) {
                 {/* Opponent Stats */}
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/50 overflow-hidden">
-                        <img src={opponent.avatar} alt={opponent.username} />
+                        <NextImage unoptimized width={48} height={48} src={opponent.avatar} alt={opponent.username} />
                     </div>
                     <div className="text-left">
                         <div className="font-bold text-lg text-red-400">{opponent.username}</div>

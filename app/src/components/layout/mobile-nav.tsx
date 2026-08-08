@@ -1,102 +1,72 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
-  LayoutGrid,
-  Search,
-  BadgeDollarSign,
-  Radio,
-  ShieldCheck,
-  PlusCircle,
+  ArrowUpRight,
   Compass,
+  FlaskConical,
+  GitFork,
+  Library,
+  Plus,
   Trophy,
-  PackageOpen,
-  Flame,
-  Wand2,
-  Sparkles,
-} from "lucide-react";
+} from "lucide-react"
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
+import { primaryNavigation } from "@/lib/navigation/product-map"
 
-const navLinks = [
-  { href: "/explore", label: "Explore", icon: Compass },
-  { href: "/create", label: "Create", icon: PlusCircle },
-  { href: "/studio", label: "Studio", icon: Radio },
-  { href: "/battles", label: "Battles", icon: Trophy },
-  { href: "/daily-flip", label: "Daily Flip", icon: Flame },
-  { href: "/challenges", label: "Challenges", icon: Trophy },
-  { href: "/scoreboard", label: "Scoreboard", icon: Trophy },
-  { href: "/tools", label: "AI Tools", icon: Wand2 },
-  { href: "/pricing", label: "Pricing", icon: BadgeDollarSign },
-  { href: "/enterprise", label: "Enterprise", icon: ShieldCheck },
-  { href: "/legal", label: "Legal", icon: Search },
-] as const;
+const mainIcons = [Plus, Compass, Trophy, GitFork, Library] as const
 
 export function MobileNav() {
-  const pathname = usePathname();
-
+  const pathname = usePathname()
   return (
-    <SheetContent
-      side="right"
-      className="w-[290px] border-l border-primary/20 bg-background/90 backdrop-blur-2xl sm:w-[330px]"
-    >
-      <SheetHeader>
-        <SheetTitle className="text-left">
-          <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-lg font-bold text-transparent">
-            mashups.com
-          </span>
+    <SheetContent side="right" className="w-[min(92vw,360px)] rounded-none border-l border-foreground bg-background p-0">
+      <SheetHeader className="border-b border-foreground p-5">
+        <SheetTitle className="flex items-center gap-3 text-left">
+          <span className="grid size-9 place-items-center border border-foreground bg-primary font-mono text-sm text-primary-foreground">M/</span>
+          <span className="display-type">Mashups</span>
         </SheetTitle>
       </SheetHeader>
 
-      <nav className="flex flex-col gap-1 px-4">
-        {navLinks.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href;
-          return (
+      <nav className="p-4" aria-label="Mobile navigation">
+        <p className="mono-label mb-3 text-muted-foreground">Make and pass it on</p>
+        <div className="space-y-1">
+          {primaryNavigation.map(({ href, label }, index) => {
+            const Icon = mainIcons[index] ?? Compass
+            return (
             <SheetClose key={href} asChild>
               <Link
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  "flex items-center justify-between border border-transparent px-3 py-3 font-semibold",
+                  (pathname === href || pathname.startsWith(`${href}/`))
+                    ? "border-foreground bg-secondary"
+                    : "hover:border-foreground",
                 )}
               >
-                <Icon className="size-4" />
-                {label}
+                <span>{label}</span><Icon className="size-4" />
               </Link>
             </SheetClose>
-          );
-        })}
+            )
+          })}
+        </div>
+
+        <Separator className="my-5 bg-foreground" />
+        <p className="mono-label mb-3 flex items-center gap-2 text-muted-foreground"><FlaskConical className="size-3" /> Music partners</p>
+        <SheetClose asChild>
+          <Link href="/partner" className="flex items-center justify-between border border-foreground bg-secondary p-4 font-semibold">
+            Bring your music <ArrowUpRight className="size-4" />
+          </Link>
+        </SheetClose>
       </nav>
 
-      <Separator className="mx-4 w-auto" />
-
-      <div className="flex flex-col gap-2 px-4">
-        <SheetClose asChild>
-          <Button
-            variant="outline"
-            className="w-full rounded-full border-primary/30 bg-transparent"
-            asChild
-          >
-            <Link href="/login">Log In</Link>
-          </Button>
-        </SheetClose>
-        <SheetClose asChild>
-          <Button className="neon-outline w-full rounded-full" asChild>
-            <Link href="/signup">Sign Up</Link>
-          </Button>
-        </SheetClose>
+      <div className="mt-auto grid grid-cols-2 gap-2 border-t border-foreground p-4">
+        <SheetClose asChild><Button variant="outline" asChild><Link href="/login">Log in</Link></Button></SheetClose>
+        <SheetClose asChild><Button asChild><Link href="/signup">Start free</Link></Button></SheetClose>
       </div>
     </SheetContent>
-  );
+  )
 }

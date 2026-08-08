@@ -63,7 +63,7 @@ export function StemCard({ stem, onClick, className }: StemCardProps) {
           <div
             key={i}
             className="flex-1 rounded-sm bg-primary/20 group-hover:bg-primary/30 transition-colors"
-            style={{ height: `${20 + Math.sin(i * 0.5) * 30 + Math.random() * 20}%` }}
+            style={{ height: `${20 + Math.sin(i * 0.5) * 30 + ((i * 11) % 20)}%` }}
           />
         ))}
       </div>

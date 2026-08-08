@@ -1,12 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 // import * as Tone from "tone"
-import { Play, Pause, Wand2, Sparkles, Layers, RefreshCw, Volume2, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Play, Sparkles, RefreshCw, Volume2, AlertCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -34,17 +32,16 @@ export function AutoMashupPlayer() {
     const [isPlaying, setIsPlaying] = useState(false)
     const [isReady, setIsReady] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [progress, setProgress] = useState(0)
     const [activeSlice, setActiveSlice] = useState<number | null>(null)
     const [mashupMode, setMashupMode] = useState<"chop" | "blend" | "switch">("chop")
 
     // Audio refs
-    const toneRef = useRef<any>(null)
-    const player1 = useRef<any>(null)
-    const player2 = useRef<any>(null)
-    const loop = useRef<any>(null)
+    const toneRef = useRef<typeof import("tone") | null>(null)
+    const player1 = useRef<import("tone").Player | null>(null)
+    const player2 = useRef<import("tone").Player | null>(null)
+    const loop = useRef<import("tone").Loop | null>(null)
     const visualizerRef = useRef<HTMLCanvasElement>(null)
-    const analyzer = useRef<any>(null)
+    const analyzer = useRef<import("tone").Waveform | null>(null)
 
     // Initialize Audio
     const initAudio = async () => {

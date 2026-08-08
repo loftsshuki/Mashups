@@ -23,11 +23,10 @@ export function AnimatedTerminal({
 }: AnimatedTerminalProps) {
   const [visibleLines, setVisibleLines] = useState<number>(0);
   const [currentLineText, setCurrentLineText] = useState<string>("");
-  const [isTyping, setIsTyping] = useState(true);
+  const isTyping = visibleLines < lines.length;
 
   useEffect(() => {
     if (visibleLines >= lines.length) {
-      setIsTyping(false);
       return;
     }
 

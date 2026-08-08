@@ -153,8 +153,8 @@ export const SCALES: Record<Scale, number[]> = {
 export async function applyVocalEffects(
   audioUrl: string,
   effects: VocalEffectSettings[],
-  autoTune?: AutoTuneSettings,
-  vocalToMidi?: VocalToMidiSettings
+  _autoTune?: AutoTuneSettings,
+  _vocalToMidi?: VocalToMidiSettings
 ): Promise<AIProcessingResult> {
   // Simulate processing
   await new Promise(resolve => setTimeout(resolve, 3000))
@@ -175,7 +175,7 @@ export async function applyVocalEffects(
 // Convert vocals to MIDI
 export async function convertVocalToMidi(
   audioUrl: string,
-  settings: VocalToMidiSettings
+  _settings: VocalToMidiSettings
 ): Promise<{
   midiUrl: string
   notes: Array<{
@@ -232,8 +232,8 @@ export async function cloneVoice(
 // Real-time preview (simulated)
 export async function previewVocalEffect(
   audioUrl: string,
-  effect: VocalEffect,
-  intensity: number
+  _effect: VocalEffect,
+  _intensity: number
 ): Promise<string> {
   // Would process a short segment in real-time
   await new Promise(resolve => setTimeout(resolve, 500))
@@ -241,7 +241,7 @@ export async function previewVocalEffect(
 }
 
 // Analyze vocal characteristics
-export async function analyzeVocals(audioUrl: string): Promise<{
+export async function analyzeVocals(_audioUrl: string): Promise<{
   pitchRange: { min: number; max: number }
   averagePitch: number
   vibratoRate: number

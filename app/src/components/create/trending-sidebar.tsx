@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import NextImage from "next/image"
 import { TrendingUp, Search, RefreshCw, Disc, Play, Plus, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -23,14 +24,13 @@ interface TrendingSidebarProps {
 
 export function TrendingSidebar({ onRemixSound, className }: TrendingSidebarProps) {
   const [sounds, setSounds] = useState<TrendingSound[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [previewingId, setPreviewingId] = useState<string | null>(null)
 
   // Load trending sounds
   const loadSounds = useCallback(async () => {
-    setIsLoading(true)
     const platform = activeTab === "all" ? "all" : (activeTab as "tiktok" | "spotify" | "youtube")
     const data = await getTrendingSounds({ platform, limit: 10 })
     setSounds(data)
@@ -38,8 +38,17 @@ export function TrendingSidebar({ onRemixSound, className }: TrendingSidebarProp
   }, [activeTab])
 
   useEffect(() => {
-    void loadSounds()
-  }, [loadSounds])
+    let cancelled = false
+    const platform = activeTab === "all" ? "all" : (activeTab as "tiktok" | "spotify" | "youtube")
+    void getTrendingSounds({ platform, limit: 10 }).then((data) => {
+      if (cancelled) return
+      setSounds(data)
+      setIsLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab])
 
   // Search sounds
   const handleSearch = useCallback(async () => {
@@ -175,7 +184,10 @@ function TrendingSoundCard({ sound, isPreviewing, onPreview, onRemix }: Trending
 
         {/* Thumbnail */}
         <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-          <img
+          <NextImage
+            unoptimized
+            width={48}
+            height={48}
             src={sound.thumbnailUrl}
             alt={sound.title}
             className="w-full h-full object-cover"

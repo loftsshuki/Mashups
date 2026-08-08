@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
-import { Sparkles, Play, Scissors, TrendingUp, Clock } from "lucide-react"
+import { useState, useCallback } from "react"
+import { Sparkles, Play, TrendingUp, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,7 +33,7 @@ export function HookGenerator({
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [segments, setSegments] = useState<HookSegment[]>([])
   const [selectedSegment, setSelectedSegment] = useState<number | null>(null)
-  const [previewTime, setPreviewTime] = useState<number | null>(null)
+  const [, setPreviewTime] = useState<number | null>(null)
 
   const { data: waveformData } = useWaveform(audioUrl, { barCount: 200 })
 

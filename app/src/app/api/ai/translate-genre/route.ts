@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getMashupById } from "@/lib/data/mashups"
+import { z } from "zod"
+
 import { chatJSON } from "@/lib/ai/chat"
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
+import { isDemoMode } from "@/lib/config/runtime"
+import { getMashupById } from "@/lib/data/mashups"
 
 interface TranslationResult {
   originalGenre: string
@@ -11,7 +15,23 @@ interface TranslationResult {
   previewDescription: string
 }
 
-const SYSTEM_PROMPT = `You are a music theory expert for a mashup platform. Given a mashup with its current genre, stems, BPM, and key, produce a detailed genre translation plan to transform it into a target genre. Use real music theory — choose BPM ranges, keys, and instruments authentic to the target genre. Return valid JSON: { "newBpm": number, "newKey": string (e.g. "Am", "Bb", "F#m"), "replacedStems": [{ "original": string (original track title), "replacement": string (new instrument/sound in genre style), "reason": string (1 sentence music theory justification) }], "previewDescription": string (1-2 sentences summarizing the transformation) }. Be specific about WHY each change fits the target genre.`
+const requestSchema = z.object({
+  mashupId: z.string().trim().min(1).max(100),
+  targetGenre: z.string().trim().min(2).max(60),
+})
+
+const translationSchema = z.object({
+  newBpm: z.number().min(40).max(240),
+  newKey: z.string().min(1).max(24),
+  replacedStems: z.array(z.object({
+    original: z.string().min(1).max(120),
+    replacement: z.string().min(2).max(120),
+    reason: z.string().min(8).max(260),
+  })).max(16),
+  previewDescription: z.string().min(10).max(360),
+})
+
+const SYSTEM_PROMPT = `You are a music theory expert for a creator platform. Build an actionable genre-translation plan from the supplied track facts. Choose authentic tempo, harmony, instrumentation, and production techniques. Explain each replacement with a concrete music-theory or production reason. Do not claim that audio has already been rendered.`
 
 const genrePresets: Record<string, { bpmRange: [number, number]; keys: string[]; instruments: string[] }> = {
   edm: { bpmRange: [128, 140], keys: ["Am", "Cm", "Em"], instruments: ["synth", "drums", "bass"] },
@@ -24,14 +44,17 @@ const genrePresets: Record<string, { bpmRange: [number, number]; keys: string[];
   synthwave: { bpmRange: [100, 120], keys: ["Am", "Em", "Cm"], instruments: ["synth", "drums", "arps"] },
 }
 
-function mockTranslation(mashup: { genre?: string | null; source_tracks?: { title: string }[] | null }, targetGenre: string): TranslationResult {
+function demoTranslation(
+  mashup: { genre?: string | null; source_tracks?: { title: string }[] | null },
+  targetGenre: string,
+): TranslationResult {
   const preset = genrePresets[targetGenre] ?? genrePresets.edm
-  const newBpm = preset.bpmRange[0] + Math.floor(Math.random() * (preset.bpmRange[1] - preset.bpmRange[0]))
-  const newKey = preset.keys[Math.floor(Math.random() * preset.keys.length)]
-  const replacedStems = (mashup.source_tracks ?? []).map((track, i) => ({
+  const newBpm = Math.round((preset.bpmRange[0] + preset.bpmRange[1]) / 2)
+  const newKey = preset.keys[0]
+  const replacedStems = (mashup.source_tracks ?? []).map((track, index) => ({
     original: track.title,
-    replacement: `${preset.instruments[i % preset.instruments.length]} — ${targetGenre} style`,
-    reason: `Replaced with ${targetGenre}-appropriate ${preset.instruments[i % preset.instruments.length]}`,
+    replacement: `${preset.instruments[index % preset.instruments.length]} in ${targetGenre} style`,
+    reason: `Uses the rhythmic and tonal vocabulary expected in ${targetGenre}.`,
   }))
 
   return {
@@ -40,48 +63,58 @@ function mockTranslation(mashup: { genre?: string | null; source_tracks?: { titl
     newBpm,
     newKey,
     replacedStems,
-    previewDescription: `Translated from ${mashup.genre ?? "Various"} to ${targetGenre}: adjusted BPM to ${newBpm}, key to ${newKey}, replaced ${replacedStems.length} stems.`,
+    previewDescription: `A ${targetGenre} treatment centered at ${newBpm} BPM in ${newKey}.`,
   }
 }
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { mashupId: string; targetGenre: string }
-  const { mashupId, targetGenre } = body
-
-  if (!mashupId || !targetGenre) {
-    return NextResponse.json({ error: "mashupId and targetGenre required" }, { status: 400 })
+  const parsed = requestSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ error: "mashupId and targetGenre are required." }, { status: 400 })
   }
 
+  const { mashupId, targetGenre } = parsed.data
   const mashup = await getMashupById(mashupId)
   if (!mashup) {
-    return NextResponse.json({ error: "Mashup not found" }, { status: 404 })
+    return NextResponse.json({ error: "Mashup not found." }, { status: 404 })
   }
 
+  let usageEventId: string | null = null
   try {
-    const tracks = mashup.source_tracks?.map((t) => t.title).join(", ") || "no tracks"
-    const userMsg = `Translate this mashup from ${mashup.genre || "Various"} to ${targetGenre}. Current BPM: ${mashup.bpm || "unknown"}. Current tracks: ${tracks}.`
+    const tierCheck = await enforceTierLimit("ai_generations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+    usageEventId = tierCheck.usageEventId
 
-    const ai = await chatJSON<{
-      newBpm: number
-      newKey: string
-      replacedStems: { original: string; replacement: string; reason: string }[]
-      previewDescription: string
-    }>({ system: SYSTEM_PROMPT, user: userMsg })
+    const tracks = mashup.source_tracks?.map((track) => track.title).join(", ") || "none"
+    const ai = await chatJSON({
+      system: SYSTEM_PROMPT,
+      user: `Translate from ${mashup.genre || "Various"} to ${targetGenre}. Current BPM: ${mashup.bpm || "unknown"}. Source tracks: ${tracks}.`,
+      schema: translationSchema,
+      schemaName: "genre_translation",
+      workload: "create",
+    })
 
     if (ai) {
-      const result: TranslationResult = {
-        originalGenre: mashup.genre ?? "Various",
-        targetGenre,
-        newBpm: ai.newBpm,
-        newKey: ai.newKey,
-        replacedStems: ai.replacedStems,
-        previewDescription: ai.previewDescription,
-      }
-      return NextResponse.json({ translation: result })
+      await finalizeUsage(usageEventId, "completed", { operation: "translate_genre" })
+      return NextResponse.json({
+        translation: {
+          originalGenre: mashup.genre ?? "Various",
+          targetGenre,
+          ...ai,
+        } satisfies TranslationResult,
+      })
     }
 
-    return NextResponse.json({ translation: mockTranslation(mashup, targetGenre) })
-  } catch {
-    return NextResponse.json({ translation: mockTranslation(mashup, targetGenre) })
+    if (isDemoMode()) {
+      await finalizeUsage(usageEventId, "completed", { operation: "translate_genre", mode: "demo" })
+      return NextResponse.json({ translation: demoTranslation(mashup, targetGenre), mode: "demo" })
+    }
+
+    await finalizeUsage(usageEventId, "failed", { operation: "translate_genre", reason: "not_configured" })
+    return NextResponse.json({ error: "Genre translation is not configured." }, { status: 503 })
+  } catch (error) {
+    await finalizeUsage(usageEventId, "failed", { operation: "translate_genre" })
+    console.error("[AI Translate] Failed:", error)
+    return NextResponse.json({ error: "Failed to translate genre." }, { status: 502 })
   }
 }

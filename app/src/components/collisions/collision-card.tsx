@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Zap, Clock, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PlatformChallenge } from "@/lib/data/types"
+import { getCurrentTimestamp } from "@/lib/time/clock"
 
 interface CollisionCardProps {
   challenge: PlatformChallenge
@@ -13,7 +14,7 @@ export function CollisionCard({ challenge, className }: CollisionCardProps) {
   const isActive = challenge.status === "active"
   const endsAt = challenge.ends_at ? new Date(challenge.ends_at) : null
   const daysRemaining = endsAt
-    ? Math.max(0, Math.ceil((endsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, Math.ceil((endsAt.getTime() - getCurrentTimestamp()) / (1000 * 60 * 60 * 24)))
     : null
 
   return (

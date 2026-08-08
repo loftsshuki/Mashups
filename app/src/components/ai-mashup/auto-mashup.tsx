@@ -101,8 +101,12 @@ export function AutoMashupGenerator({
       setProgress(100)
       setResult(mashup)
       onComplete?.(mashup)
-    } catch {
-      setError("Failed to generate mashup. Please try again.")
+    } catch (generationError) {
+      setError(
+        generationError instanceof Error
+          ? generationError.message
+          : "Failed to generate mashup. Please try again.",
+      )
     } finally {
       setIsGenerating(false)
     }
@@ -249,7 +253,7 @@ export function AutoMashupGenerator({
               <label className="text-sm font-medium mb-2 block">Transition Style</label>
               <Select
                 value={transitionStyle}
-                onValueChange={(v) => setTransitionStyle(v as any)}
+                onValueChange={(v) => setTransitionStyle(v as typeof transitionStyle)}
               >
                 <SelectTrigger>
                   <SelectValue />

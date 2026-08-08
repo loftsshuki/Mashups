@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useCallback, useEffect, useMemo } from "react"
+import { useRef, useState, useCallback, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import type { TimelineClip } from "./waveform-timeline"
 
@@ -17,7 +17,13 @@ interface TimelineClipEditorProps {
 
 const PIXELS_PER_SECOND = 50
 
-export function TimelineClipEditor({
+export function TimelineClipEditor(props: TimelineClipEditorProps) {
+  const { clip } = props
+  const resetKey = `${clip.id}:${clip.startTime}:${clip.duration}:${clip.offset}`
+  return <TimelineClipEditorStateful key={resetKey} {...props} />
+}
+
+function TimelineClipEditorStateful({
   clip,
   isSelected,
   zoom,
@@ -37,13 +43,6 @@ export function TimelineClipEditor({
   const [visualDuration, setVisualDuration] = useState(clip.duration)
   const [visualOffset, setVisualOffset] = useState(clip.offset)
 
-  // Reset visual state when clip changes
-  useEffect(() => {
-    setVisualStartTime(clip.startTime)
-    setVisualDuration(clip.duration)
-    setVisualOffset(clip.offset)
-  }, [clip.startTime, clip.duration, clip.offset])
-
   // Generate waveform bars
   const waveformBars = useCallback(() => {
     const bars = 80
@@ -55,7 +54,7 @@ export function TimelineClipEditor({
       const noise = Math.sin(i * 2.3) * 0.1
       return Math.max(0.1, Math.min(0.9, envelope * 0.6 + detail + noise))
     })
-  }, [clip.audioUrl])
+  }, [])
 
   const bars = useMemo(() => waveformBars(), [waveformBars])
 

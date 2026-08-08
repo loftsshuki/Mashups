@@ -1,16 +1,13 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState } from "react"
 import { 
   Subtitles, 
   Wand2, 
   RefreshCw, 
-  Check, 
   Copy,
   Download,
-  Languages,
   Hash,
-  Sparkles,
   Type
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -123,7 +120,7 @@ interface AutoCaptionGeneratorProps {
 }
 
 export function AutoCaptionGenerator({
-  audioUrl,
+  audioUrl: _audioUrl,
   lyrics,
   platform = "tiktok",
   onCaptionsGenerated,
@@ -133,38 +130,12 @@ export function AutoCaptionGenerator({
   const [captions, setCaptions] = useState<GeneratedCaption[]>([])
   const [selectedStyle, setSelectedStyle] = useState<CaptionStyle>(CAPTION_STYLES[0])
   const [language, setLanguage] = useState("en")
-  const [includeHashtags, setIncludeHashtags] = useState(true)
+  const [includeHashtags] = useState(true)
   const [includeEmojis, setIncludeEmojis] = useState(true)
   const [wordByWord, setWordByWord] = useState(false)
   const [fontSize, setFontSize] = useState(24)
   const [generatedDescription, setGeneratedDescription] = useState("")
   const [suggestedHashtags, setSuggestedHashtags] = useState<string[]>([])
-
-  // Generate captions from audio/lyrics
-  const generateCaptions = useCallback(async () => {
-    setIsGenerating(true)
-    
-    // Simulate AI transcription
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    
-    // Mock generated captions based on input
-    const mockCaptions: GeneratedCaption[] = lyrics
-      ? generateCaptionsFromLyrics(lyrics)
-      : generateMockCaptions()
-    
-    setCaptions(mockCaptions)
-    
-    // Generate platform-optimized description
-    const description = generatePlatformDescription(platform, mockCaptions)
-    setGeneratedDescription(description)
-    
-    // Generate hashtag suggestions
-    const hashtags = generateHashtagSuggestions(mockCaptions, platform)
-    setSuggestedHashtags(hashtags)
-    
-    onCaptionsGenerated?.(mockCaptions, selectedStyle)
-    setIsGenerating(false)
-  }, [lyrics, platform, selectedStyle, onCaptionsGenerated])
 
   // Parse lyrics into timed captions
   const generateCaptionsFromLyrics = (lyricsText: string): GeneratedCaption[] => {
@@ -255,6 +226,21 @@ export function AutoCaptionGenerator({
     }
     
     return [...baseHashtags, ...contentHashtags, ...platformSpecific[platform]]
+  }
+
+  async function generateCaptions() {
+    setIsGenerating(true)
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    const nextCaptions = lyrics
+      ? generateCaptionsFromLyrics(lyrics)
+      : generateMockCaptions()
+
+    setCaptions(nextCaptions)
+    setGeneratedDescription(generatePlatformDescription(platform, nextCaptions))
+    setSuggestedHashtags(generateHashtagSuggestions(nextCaptions, platform))
+    onCaptionsGenerated?.(nextCaptions, selectedStyle)
+    setIsGenerating(false)
   }
 
   // Export captions in different formats

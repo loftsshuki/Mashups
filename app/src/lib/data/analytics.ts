@@ -1,4 +1,5 @@
 import type { MockMashup } from "@/lib/mock-data"
+import { isDemoMode } from "@/lib/config/runtime"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -89,7 +90,7 @@ export async function getCreatorAnalyticsTimeSeries(
   range: number = 30,
 ): Promise<TimeSeriesPoint[]> {
   if (!isSupabaseConfigured()) {
-    return generateMockTimeSeries(period, range)
+    return isDemoMode() ? generateDemoTimeSeries(period, range) : []
   }
 
   try {
@@ -105,7 +106,7 @@ export async function getCreatorAnalyticsTimeSeries(
       .select("id")
       .eq("creator_id", userId)
 
-    if (!mashups?.length) return generateMockTimeSeries(period, range)
+    if (!mashups?.length) return isDemoMode() ? generateDemoTimeSeries(period, range) : []
 
     const mashupIds = mashups.map((m: { id: string }) => m.id)
 
@@ -116,7 +117,7 @@ export async function getCreatorAnalyticsTimeSeries(
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: true })
 
-    if (error || !events?.length) return generateMockTimeSeries(period, range)
+    if (error || !events?.length) return isDemoMode() ? generateDemoTimeSeries(period, range) : []
 
     // Group by period
     const buckets = new Map<string, TimeSeriesPoint>()
@@ -150,7 +151,7 @@ export async function getCreatorAnalyticsTimeSeries(
 
     return Array.from(buckets.values()).sort((a, b) => a.date.localeCompare(b.date))
   } catch {
-    return generateMockTimeSeries(period, range)
+    return isDemoMode() ? generateDemoTimeSeries(period, range) : []
   }
 }
 
@@ -181,7 +182,7 @@ export async function logAnalyticsEvent(
 }
 
 // Generate synthetic time-series data for mock fallback
-function generateMockTimeSeries(period: "day" | "week" | "month", range: number): TimeSeriesPoint[] {
+function generateDemoTimeSeries(period: "day" | "week" | "month", range: number): TimeSeriesPoint[] {
   const points: TimeSeriesPoint[] = []
   const now = new Date()
 
@@ -193,10 +194,10 @@ function generateMockTimeSeries(period: "day" | "week" | "month", range: number)
     d.setDate(d.getDate() - i * stepDays)
     points.push({
       date: d.toISOString().slice(0, 10),
-      plays: Math.floor(Math.random() * 200) + 50,
-      likes: Math.floor(Math.random() * 40) + 5,
-      shares: Math.floor(Math.random() * 15) + 1,
-      comments: Math.floor(Math.random() * 20) + 2,
+      plays: 70 + ((i * 47) % 180),
+      likes: 8 + ((i * 13) % 36),
+      shares: 2 + ((i * 7) % 14),
+      comments: 3 + ((i * 11) % 18),
     })
   }
 

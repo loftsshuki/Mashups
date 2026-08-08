@@ -1,17 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { GeneratedCaptions, CaptionSegment, mockGeneratedCaptions, exportCaptions, generateKaraokeTiming } from "@/lib/data/auto-caption"
+import { GeneratedCaptions, CaptionSegment, exportCaptions } from "@/lib/data/auto-caption"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Play, Pause, Download, Sparkles, FileText, Subtitles, Music, Mic } from "lucide-react"
+import { Download, Sparkles, FileText, Subtitles, Music, Mic } from "lucide-react"
 
 interface CaptionEditorProps {
   initialCaptions?: GeneratedCaptions
@@ -30,8 +28,7 @@ export function CaptionEditor({
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
   const [exportFormat, setExportFormat] = useState<"srt" | "vtt" | "txt">("srt")
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime] = useState(0)
 
   const handleGenerate = async () => {
     if (!onGenerate) return
@@ -116,7 +113,7 @@ export function CaptionEditor({
             </Button>
           ) : (
             <>
-              <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as any)}>
+              <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as typeof exportFormat)}>
                 <SelectTrigger className="w-24">
                   <SelectValue />
                 </SelectTrigger>

@@ -1,25 +1,20 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useEffect } from "react"
 import {
   Download,
   Share2,
   Scissors,
-  Image,
-  Music,
-  Video,
-  Check,
+  Image as ImageIcon,
   Loader2,
   Smartphone,
   Monitor,
   Square,
   SplitSquareVertical,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { BeforeAfterGenerator } from "@/components/export/before-after-generator"
 
@@ -110,7 +105,7 @@ export interface ExportSettings {
 }
 
 export function PlatformExport({
-  audioUrl,
+  audioUrl: _audioUrl,
   totalDuration,
   coverImage,
   mashupTitle,
@@ -278,7 +273,7 @@ export function PlatformExport({
         {/* Visuals Toggle */}
         <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
           <div className="flex items-center gap-2">
-            <Image className="h-4 w-4 text-muted-foreground" />
+            <ImageIcon aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs">Include Visualizer</span>
           </div>
           <Button

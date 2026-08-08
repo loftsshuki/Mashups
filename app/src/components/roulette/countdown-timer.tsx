@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 interface CountdownTimerProps {

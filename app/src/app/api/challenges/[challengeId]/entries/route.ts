@@ -6,22 +6,20 @@ import {
 } from "@/lib/data/challenge-engine"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
-
-const isSupabaseConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+import { isDemoRequest } from "@/lib/demo/runtime"
+import { isSupabaseConfigured } from "@/lib/config/runtime"
 
 interface EnterBody {
   mashupId?: string
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ challengeId: string }> },
 ) {
   try {
     const { challengeId } = await params
-    const entries = await getChallengeEntriesFromBackend(challengeId)
+    const entries = await getChallengeEntriesFromBackend(challengeId, isDemoRequest(request))
     return NextResponse.json({ entries })
   } catch {
     return NextResponse.json({ error: "Failed to load challenge entries." }, { status: 500 })
@@ -44,7 +42,7 @@ export async function POST(
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
-    const rate = consumeRateLimit({
+    const rate = await consumeRateLimit({
       key: resolveRateLimitKey(request, "challenges.entries", user?.id ?? null),
       limit: 20,
       windowMs: 60_000,
@@ -60,6 +58,7 @@ export async function POST(
       challengeId,
       mashupId: body.mashupId,
       userId: user?.id ?? "mock-user",
+      demo: isDemoRequest(request),
     })
 
     if (!result.ok) {

@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Wand2, Upload, ArrowLeft } from "lucide-react"
+import { Wand2, Upload, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { VocalEffectsPanel } from "@/components/ai-vocal/vocal-effects-panel"
-import { NeonHero, NeonPage } from "@/components/marketing/neon-page"
+import { NeonPage } from "@/components/marketing/neon-page"
 
 export default function ToolsPage() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null)

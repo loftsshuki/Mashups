@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Headphones, BarChart3, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ABPlayer } from "@/components/blind-test/ab-player"
@@ -25,7 +25,7 @@ export default function BlindTestPage() {
   const [userChoice, setUserChoice] = useState<"A" | "B" | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function loadPair() {
+  const loadPair = useCallback(async () => {
     setLoading(true)
     setVoted(false)
     setUserChoice(null)
@@ -39,11 +39,11 @@ export default function BlindTestPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     void loadPair()
-  }, [])
+  }, [loadPair])
 
   async function handleVote(choice: "A" | "B") {
     setUserChoice(choice)

@@ -4,14 +4,17 @@ import posthog from "posthog-js"
 import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react"
 import { useEffect } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
+import { normalizePostHogKey } from "@/lib/analytics/config"
+
+const postHogKey = normalizePostHogKey(process.env.NEXT_PUBLIC_POSTHOG_KEY)
 
 // Initialize PostHog (client-side only)
-if (
-  typeof window !== "undefined" &&
-  process.env.NEXT_PUBLIC_POSTHOG_KEY
-) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+if (typeof window !== "undefined" && postHogKey) {
+  posthog.init(postHogKey, {
+    api_host:
+      process.env.NEXT_PUBLIC_POSTHOG_HOST ??
+      process.env.POSTHOG_HOST ??
+      "https://us.i.posthog.com",
     capture_pageview: false, // We capture manually for SPA navigation
     capture_pageleave: true,
   })
@@ -22,7 +25,7 @@ if (
  * Only active when NEXT_PUBLIC_POSTHOG_KEY is set.
  */
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  if (!postHogKey) {
     return <>{children}</>
   }
 
@@ -58,7 +61,7 @@ export function trackEvent(
   event: string,
   properties?: Record<string, unknown>,
 ) {
-  if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  if (typeof window !== "undefined" && postHogKey) {
     posthog.capture(event, properties)
   }
 }
@@ -70,7 +73,16 @@ export function identifyUser(
   userId: string,
   properties?: Record<string, unknown>,
 ) {
-  if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  if (typeof window !== "undefined" && postHogKey) {
     posthog.identify(userId, properties)
   }
+}
+
+export function captureClientException(
+  error: unknown,
+  context: Record<string, unknown> = {},
+) {
+  if (typeof window === "undefined" || !postHogKey) return
+  const normalized = error instanceof Error ? error : new Error(String(error))
+  posthog.captureException(normalized, context)
 }

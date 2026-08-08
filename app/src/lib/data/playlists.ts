@@ -1,11 +1,18 @@
 import { createClient } from "@/lib/supabase/client"
-import type { Playlist, PlaylistTrack, PlaylistComment } from "./types"
+import type { Mashup, Playlist, PlaylistTrack, PlaylistComment, Profile } from "./types"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const PROFILE_SELECT = "id, username, display_name, avatar_url"
+
+type PlaylistRow = Playlist & { creator?: Profile | null }
+type PlaylistTrackRow = PlaylistTrack & {
+  mashup?: Mashup | null
+  added_by_user?: Profile | null
+}
+type PlaylistCommentRow = PlaylistComment & { user?: Profile | null }
 
 /**
  * Get public playlists, optionally filtered by creator.
@@ -35,7 +42,7 @@ export async function getPlaylists(options?: {
 
     if (error || !data) return []
 
-    return data.map((row: any) => ({
+    return (data as PlaylistRow[]).map((row) => ({
       ...row,
       creator: row.creator ?? undefined,
     }))
@@ -182,7 +189,7 @@ export async function getPlaylistTracks(
 
     if (error || !data) return []
 
-    return data.map((row: any) => ({
+    return (data as PlaylistTrackRow[]).map((row) => ({
       ...row,
       mashup: row.mashup ?? undefined,
       added_by_user: row.added_by_user ?? undefined,
@@ -308,7 +315,7 @@ export async function getPlaylistComments(
 
     if (error || !data) return []
 
-    return data.map((row: any) => ({
+    return (data as PlaylistCommentRow[]).map((row) => ({
       ...row,
       user: row.user ?? undefined,
     }))
@@ -400,7 +407,7 @@ export async function getMyPlaylists(): Promise<Playlist[]> {
 
     if (error || !data) return []
 
-    return data.map((row: any) => ({
+    return (data as PlaylistRow[]).map((row) => ({
       ...row,
       creator: row.creator ?? undefined,
     }))

@@ -1,5 +1,7 @@
 // Voice Chat Integration - WebRTC-based voice communication
 
+import { createBrowserAudioContext } from "@/lib/audio/browser-audio-context"
+
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -38,7 +40,7 @@ let audioContext: AudioContext | null = null
 
 export function initAudioContext(): AudioContext {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    audioContext = createBrowserAudioContext()
   }
   return audioContext
 }

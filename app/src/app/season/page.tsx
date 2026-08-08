@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { getCurrentSeason, getSeasons } from "@/lib/data/seasons"
 import { CollectiveProgress } from "@/components/season/collective-progress"
 import Link from "next/link"
+import { getCurrentTimestamp } from "@/lib/time/clock"
 
 export default async function SeasonPage() {
   const season = await getCurrentSeason()
@@ -21,7 +22,7 @@ export default async function SeasonPage() {
   }
 
   const daysRemaining = season.ends_at
-    ? Math.max(0, Math.ceil((new Date(season.ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, Math.ceil((new Date(season.ends_at).getTime() - getCurrentTimestamp()) / (1000 * 60 * 60 * 24)))
     : null
 
   return (

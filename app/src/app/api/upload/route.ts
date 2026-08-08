@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
+import { isDemoMode } from "@/lib/config/runtime"
 
 export async function POST(request: NextRequest) {
+  let usageEventId: string | null = null
   try {
-    // Check mashup upload limit
-    const tierCheck = await enforceTierLimit("mashups")
-    if (tierCheck instanceof NextResponse) return tierCheck
-
     const formData = await request.formData()
     const file = formData.get("file") as File
 
@@ -50,6 +48,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tierCheck = await enforceTierLimit("mashups")
+    if (tierCheck instanceof NextResponse) return tierCheck
+    usageEventId = tierCheck.usageEventId
+
     // Upload to Vercel Blob
     try {
       const { put } = await import("@vercel/blob")
@@ -62,18 +64,21 @@ export async function POST(request: NextRequest) {
         }
       )
       
+      await finalizeUsage(usageEventId, "completed", { operation: "audio_upload" })
       return NextResponse.json({ url: blob.url })
     } catch (blobError) {
       console.error("[Upload] Vercel Blob failed:", blobError)
-      
-      // Fallback: return a dev placeholder URL
-      const placeholderUrl = `/audio/dev-upload-${Date.now()}.mp3`
-      console.log("[Upload] Returning placeholder:", placeholderUrl)
-      
-      return NextResponse.json({ url: placeholderUrl })
+      if (isDemoMode()) {
+        const placeholderUrl = `/audio/dev-upload-${Date.now()}.mp3`
+        await finalizeUsage(usageEventId, "completed", { operation: "audio_upload", mode: "demo" })
+        return NextResponse.json({ url: placeholderUrl, mode: "demo" })
+      }
+      await finalizeUsage(usageEventId, "failed", { operation: "audio_upload" })
+      return NextResponse.json({ error: "Audio storage is unavailable." }, { status: 503 })
     }
 
   } catch (error) {
+    await finalizeUsage(usageEventId, "failed", { operation: "audio_upload" })
     console.error("[Upload] Error:", error)
     return NextResponse.json(
       { error: "Upload failed", details: error instanceof Error ? error.message : "Unknown error" },

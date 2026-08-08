@@ -1,14 +1,10 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback } from "react"
 import {
   Download,
   Share2,
   Scissors,
-  Image,
-  Music,
-  Video,
-  Check,
   Loader2,
   Smartphone,
   Monitor,
@@ -23,7 +19,6 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -137,9 +132,9 @@ export interface ExportSettings {
 }
 
 export function PlatformExportEnhanced({
-  audioUrl,
+  audioUrl: _audioUrl,
   totalDuration,
-  coverImage,
+  coverImage: _coverImage,
   viralMetrics,
   selectedHookStart,
   onExport,
@@ -151,33 +146,22 @@ export function PlatformExportEnhanced({
   const [startTime, setStartTime] = useState(selectedHookStart ?? 0)
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle")
   const [exportProgress, setExportProgress] = useState(0)
-  const [visualizerStyle, setVisualizerStyle] = useState<ExportSettings["visualizerStyle"]>("waveform")
-  const [includeVisuals, setIncludeVisuals] = useState(true)
+  const [visualizerStyle] = useState<ExportSettings["visualizerStyle"]>("waveform")
+  const [includeVisuals] = useState(true)
   const [autoUpload, setAutoUpload] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [uploadUrl, setUploadUrl] = useState<string>("")
-  const [captions, setCaptions] = useState("")
-  const [hashtags, setHashtags] = useState<string[]>([])
+  const [captions] = useState("")
 
   const platform = PLATFORMS.find((p) => p.id === selectedPlatform)!
 
-  // Update start time when hook is selected
-  useEffect(() => {
-    if (selectedHookStart !== undefined) {
-      setStartTime(selectedHookStart)
-    }
-  }, [selectedHookStart])
-
-  // Generate AI hashtags
-  useEffect(() => {
-    const platformHashtags: Record<Platform, string[]> = {
-      tiktok: ["#viral", "#trending", "#mashup", "#remix", "#audio"],
-      instagram: ["#reels", "#viral", "#mashup", "#music", "#remix"],
-      youtube: ["#shorts", "#viral", "#mashup", "#music", "#remix"],
-      twitter: ["#viral", "#music", "#mashup", "#remix", "#audio"],
-    }
-    setHashtags(platformHashtags[selectedPlatform])
-  }, [selectedPlatform])
+  const platformHashtags: Record<Platform, string[]> = {
+    tiktok: ["#viral", "#trending", "#mashup", "#remix", "#audio"],
+    instagram: ["#reels", "#viral", "#mashup", "#music", "#remix"],
+    youtube: ["#shorts", "#viral", "#mashup", "#music", "#remix"],
+    twitter: ["#viral", "#music", "#mashup", "#remix", "#audio"],
+  }
+  const hashtags = platformHashtags[selectedPlatform]
 
   // Calculate viral score for current selection
   const calculateViralScore = useCallback(() => {

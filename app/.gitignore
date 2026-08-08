@@ -12,6 +12,13 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+
+# local quality reports
+/.lint-*.json
+/.lint-*.log
+/.lint-*.txt
 
 # next.js
 /.next/

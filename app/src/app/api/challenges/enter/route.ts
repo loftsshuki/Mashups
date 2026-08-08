@@ -4,15 +4,13 @@ import { enterChallengeFromBackend } from "@/lib/data/challenge-engine"
 import { writeAuditEvent } from "@/lib/data/audit-log"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
+import { isDemoRequest } from "@/lib/demo/runtime"
+import { isSupabaseConfigured } from "@/lib/config/runtime"
 
 interface EnterChallengeBody {
   challengeId?: string
   mashupId?: string
 }
-
-const isSupabaseConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +26,7 @@ export async function POST(request: Request) {
     if (isSupabaseConfigured() && !user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
-    const rate = consumeRateLimit({
+    const rate = await consumeRateLimit({
       key: resolveRateLimitKey(request, "challenges.enter", user?.id ?? null),
       limit: 15,
       windowMs: 60_000,
@@ -44,6 +42,7 @@ export async function POST(request: Request) {
       challengeId: body.challengeId,
       mashupId: body.mashupId,
       userId: user?.id ?? "mock-user",
+      demo: isDemoRequest(request),
     })
 
     if (!result.ok) {

@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/trending",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/autopilot",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/domination",
+      "schedule": "0 10 * * 1"
     }
   ]
 }

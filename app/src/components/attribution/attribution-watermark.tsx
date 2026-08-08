@@ -6,12 +6,10 @@ import {
   Eye, 
   EyeOff, 
   Shield, 
-  Check, 
   Copy,
   Download,
   Info
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -82,6 +80,18 @@ export function AttributionWatermark({
   const [showPreview, setShowPreview] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  // Generate audio perceptual hash (simplified)
+  const generateAudioHash = useCallback(async (id: string): Promise<string> => {
+    // In production, this would analyze actual audio fingerprints
+    return `audio_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
+  }, [])
+
+  // Generate visual hash for cover art
+  const generateVisualHash = useCallback(async (id: string): Promise<string> => {
+    // In production, this would hash the actual image
+    return `visual_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
+  }, [])
+
   // Generate fingerprint
   const generateFingerprint = useCallback(async () => {
     const newFingerprint: AttributionFingerprint = {
@@ -99,19 +109,7 @@ export function AttributionWatermark({
       }],
     }
     setFingerprint(newFingerprint)
-  }, [mashupId, creatorId, parentTrackIds])
-
-  // Generate audio perceptual hash (simplified)
-  const generateAudioHash = useCallback(async (id: string): Promise<string> => {
-    // In production, this would analyze actual audio fingerprints
-    return `audio_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
-  }, [])
-
-  // Generate visual hash for cover art
-  const generateVisualHash = useCallback(async (id: string): Promise<string> => {
-    // In production, this would hash the actual image
-    return `visual_${btoa(id).slice(0, 16)}_${Date.now().toString(36)}`
-  }, [])
+  }, [creatorId, generateAudioHash, generateVisualHash, mashupId, parentTrackIds])
 
   // Update config and notify parent
   const updateConfig = useCallback((updates: Partial<WatermarkConfig>) => {

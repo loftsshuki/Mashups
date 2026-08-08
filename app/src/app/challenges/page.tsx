@@ -1,261 +1,57 @@
-"use client"
-
+import type { Metadata } from "next"
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
-import { Clock3, Trophy } from "lucide-react"
+import { ArrowUpRight, Clock3, Trophy, Users } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MashupCard } from "@/components/mashup-card"
-import {
-  NeonGrid,
-  NeonHero,
-  NeonPage,
-  NeonSectionHeader,
-} from "@/components/marketing/neon-page"
-import {
-  getChallengeCadenceLabel,
-  getOpenChallengeCount,
-  mockChallenges,
-  type Challenge,
-} from "@/lib/data/challenges"
-import type { MockMashup } from "@/lib/mock-data"
+import { getChallengesFromBackend } from "@/lib/data/challenge-engine"
+import { DEMO_CHALLENGES } from "@/lib/demo/catalog"
+import { isDemoQuery } from "@/lib/demo/runtime"
 
-interface ChallengesResponse {
-  challenges?: Challenge[]
-  openChallengeCount?: number
+export const metadata: Metadata = {
+  title: "Creator Challenges",
+  description: "High-frequency creator briefs with clear rules, rights-aware entries, and meaningful prizes.",
+  alternates: { canonical: "/challenges" },
 }
 
-interface ChallengeEntriesResponse {
-  entries?: MockMashup[]
-}
+type ChallengeView = { id: string; title: string; brief: string; prize: string; sponsor: string; timing: string; entries: number; status: string }
 
-export default function ChallengesPage() {
-  const [challenges, setChallenges] = useState<Challenge[]>(mockChallenges)
-  const [openChallengeCount, setOpenChallengeCount] = useState(getOpenChallengeCount())
-  const [entries, setEntries] = useState<MockMashup[]>([])
-  const [loadingChallenges, setLoadingChallenges] = useState(true)
-  const [loadingEntries, setLoadingEntries] = useState(true)
-  const [joiningChallengeId, setJoiningChallengeId] = useState<string | null>(null)
-  const [joinedChallengeId, setJoinedChallengeId] = useState<string | null>(null)
-  const [joinError, setJoinError] = useState<string | null>(null)
-
-  const active = useMemo(
-    () =>
-      challenges.find((challenge) => challenge.status === "active") ??
-      challenges.find((challenge) => challenge.status === "upcoming") ??
-      null,
-    [challenges],
-  )
-  const activeChallengeId = active?.id ?? null
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadChallenges() {
-      setLoadingChallenges(true)
-      try {
-        const response = await fetch("/api/challenges", { cache: "no-store" })
-        if (!response.ok) return
-
-        const payload = (await response.json()) as ChallengesResponse
-        if (cancelled) return
-
-        if (Array.isArray(payload.challenges) && payload.challenges.length > 0) {
-          setChallenges(payload.challenges)
-        }
-        if (typeof payload.openChallengeCount === "number") {
-          setOpenChallengeCount(payload.openChallengeCount)
-        }
-      } finally {
-        if (!cancelled) setLoadingChallenges(false)
-      }
-    }
-
-    void loadChallenges()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    if (!activeChallengeId) {
-      setEntries([])
-      setLoadingEntries(false)
-      return
-    }
-
-    async function loadEntries() {
-      setLoadingEntries(true)
-      try {
-        const response = await fetch(`/api/challenges/${activeChallengeId}/entries`, {
-          cache: "no-store",
-        })
-        if (!response.ok) return
-        const payload = (await response.json()) as ChallengeEntriesResponse
-        if (!cancelled && Array.isArray(payload.entries)) {
-          setEntries(payload.entries)
-        }
-      } finally {
-        if (!cancelled) setLoadingEntries(false)
-      }
-    }
-
-    void loadEntries()
-    return () => {
-      cancelled = true
-    }
-  }, [activeChallengeId])
-
-  async function joinChallenge(challengeId: string) {
-    setJoiningChallengeId(challengeId)
-    setJoinError(null)
-    try {
-      const response = await fetch("/api/challenges/enter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          challengeId,
-        }),
-      })
-
-      const payload = (await response.json().catch(() => ({}))) as { error?: string }
-      if (!response.ok) {
-        setJoinError(payload.error ?? "Unable to join challenge.")
-        return
-      }
-
-      setJoinedChallengeId(challengeId)
-      setTimeout(
-        () => setJoinedChallengeId((prev) => (prev === challengeId ? null : prev)),
-        2500,
-      )
-
-      if (activeChallengeId === challengeId) {
-        const entriesResponse = await fetch(`/api/challenges/${challengeId}/entries`, {
-          cache: "no-store",
-        })
-        if (entriesResponse.ok) {
-          const entriesPayload = (await entriesResponse.json()) as ChallengeEntriesResponse
-          if (Array.isArray(entriesPayload.entries)) {
-            setEntries(entriesPayload.entries)
-          }
-        }
-      }
-    } finally {
-      setJoiningChallengeId(null)
-    }
-  }
+export default async function ChallengesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams
+  const demo = isDemoQuery(typeof params.demo === "string" ? params.demo : null)
+  const live = demo ? [] : await getChallengesFromBackend()
+  const challenges: ChallengeView[] = demo
+    ? DEMO_CHALLENGES.map((challenge) => ({ ...challenge, timing: challenge.endsIn, status: "active" }))
+    : live.map((challenge) => ({ id: challenge.id, title: challenge.title, brief: challenge.description, prize: challenge.prizeText, sponsor: challenge.sponsor ?? "Community", timing: new Date(challenge.endsAt).toLocaleDateString(), entries: 0, status: challenge.status }))
 
   return (
-    <NeonPage>
-      <NeonHero
-        eyebrow="Challenges"
-        title="High-frequency challenge engine with real prizes."
-        description="Launch recurring creator loops with sponsor cash, brand packages, and rapid themed rounds."
-        aside={
-          <>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Open Challenges
-            </p>
-            <p className="mt-2 text-3xl font-semibold">{openChallengeCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {loadingChallenges
-                ? "Refreshing challenge windows..."
-                : "Rolling cadence across daily, 2x weekly, and weekly formats."}
-            </p>
-          </>
-        }
-      />
+    <div className={demo ? "pt-40" : "pt-28"}>
+      <section className="mx-auto max-w-[1440px] px-4 pb-24 sm:px-6 lg:px-8">
+        <div className="grid gap-8 border-b border-foreground pb-10 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-8"><p className="signal-label">Challenge engine</p><h1 className="display-type mt-6 text-6xl leading-[0.84] sm:text-8xl">A deadline makes<br /><span className="text-primary">the cut sharper.</span></h1></div>
+          <div className="lg:col-span-4"><p className="text-lg leading-relaxed text-muted-foreground">Fast creative briefs, transparent judging, and prizes worth shipping for.</p><Button className="mt-6" asChild><Link href="/campaigns/new">Start an open entry<ArrowUpRight /></Link></Button></div>
+        </div>
 
-      <NeonSectionHeader
-        title="Current and Upcoming"
-        description="Each challenge includes cadence, sponsor visibility, and one-click entry."
-      />
-      <NeonGrid className="md:grid-cols-2">
-        {challenges.map((challenge) => (
-          <div key={challenge.id} className="neon-panel rounded-2xl p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">{challenge.title}</h2>
-              <Badge variant={challenge.status === "active" ? "default" : "secondary"}>
-                {challenge.status}
-              </Badge>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">{challenge.description}</p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock3 className="h-3.5 w-3.5" />
-              <span>Ends {new Date(challenge.endsAt).toLocaleDateString()}</span>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <Badge variant="outline">{getChallengeCadenceLabel(challenge.frequency)}</Badge>
-              <Badge variant="outline">{challenge.rewardType}</Badge>
-              {challenge.sponsor ? (
-                <Badge variant="secondary">Sponsored by {challenge.sponsor}</Badge>
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm font-medium text-foreground">Prize: {challenge.prizeText}</p>
-            {challenge.status === "active" ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button asChild size="sm" className="rounded-full">
-                  <Link href={`/create?challenge=${challenge.id}`}>Submit Entry</Link>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={() => joinChallenge(challenge.id)}
-                  disabled={joiningChallengeId === challenge.id}
-                >
-                  {joiningChallengeId === challenge.id
-                    ? "Joining..."
-                    : joinedChallengeId === challenge.id
-                      ? "Joined"
-                      : "Join Challenge"}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </NeonGrid>
+        {challenges.length ? <div className="grid gap-5 py-8 lg:grid-cols-2">{challenges.map((challenge, index) => <ChallengeCard challenge={challenge} index={index} demo={demo} key={challenge.id} />)}</div> : <div className="grid min-h-[28rem] place-items-center border-b border-foreground text-center"><div className="max-w-lg"><Trophy className="mx-auto size-9 text-primary" /><h2 className="display-type mt-5 text-4xl">No live rounds are open.</h2><p className="mt-4 text-muted-foreground">The challenge calendar is empty until the production backend is connected.</p><Button className="mt-7" asChild><Link href="/challenges?demo=1">Preview challenge mode</Link></Button></div></div>}
 
-      {joinError ? <p className="mt-4 text-sm text-destructive">{joinError}</p> : null}
-
-      {active ? (
-        <section className="mt-10">
-          <NeonSectionHeader
-            title={`Top Entries: ${active.title}`}
-            description="Highest-performing entries in the current challenge window."
-            action={
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Trophy className="h-3.5 w-3.5 text-primary" />
-                Ranked by engagement
-              </span>
-            }
-          />
-          {loadingEntries ? (
-            <p className="text-sm text-muted-foreground">Loading entries...</p>
-          ) : entries.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {entries.map((mashup) => (
-                <MashupCard
-                  key={mashup.id}
-                  id={mashup.id}
-                  title={mashup.title}
-                  coverUrl={mashup.coverUrl}
-                  audioUrl={mashup.audioUrl}
-                  genre={mashup.genre}
-                  duration={mashup.duration}
-                  playCount={mashup.playCount}
-                  creator={mashup.creator}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No entries yet for this challenge.</p>
-          )}
-        </section>
-      ) : null}
-    </NeonPage>
+        <div className="mt-8 grid gap-px border border-foreground bg-foreground sm:grid-cols-3">
+          <Principle number="01" title="Rights at entry" text="Every submission declares its source and intended usage before judging." />
+          <Principle number="02" title="Growth over reach" text="Judging values lift and completion, not existing audience size." />
+          <Principle number="03" title="Fast payout trail" text="Winner operations and sponsor events remain auditable." />
+        </div>
+      </section>
+    </div>
   )
+}
+
+function ChallengeCard({ challenge, index, demo }: { challenge: ChallengeView; index: number; demo: boolean }) {
+  return <article className="relative overflow-hidden border border-foreground bg-card p-5 shadow-[5px_5px_0_var(--foreground)] sm:p-7"><div className="absolute right-0 top-0 bg-foreground px-4 py-2 font-mono text-xs text-background">ROUND {String(index + 1).padStart(2, "0")}</div><div className="flex flex-wrap gap-2"><Badge className="rounded-none">{challenge.status}</Badge>{demo ? <Badge variant="secondary" className="rounded-none">Demo data</Badge> : null}</div><h2 className="display-type mt-8 text-4xl leading-none sm:text-5xl">{challenge.title}</h2><p className="mt-5 max-w-xl leading-relaxed text-muted-foreground">{challenge.brief}</p><div className="mt-7 grid grid-cols-3 gap-px border border-foreground bg-foreground"><MiniStat icon={Trophy} label="Prize" value={challenge.prize} /><MiniStat icon={Clock3} label="Ends" value={challenge.timing} /><MiniStat icon={Users} label="Entries" value={String(challenge.entries)} /></div><div className="mt-6 flex items-center justify-between gap-4"><span className="font-mono text-xs text-muted-foreground">Presented by {challenge.sponsor}</span><Button asChild><Link href={`/campaigns/new?${demo ? "demo=1&" : ""}challenge=${challenge.id}`}>Build entry<ArrowUpRight /></Link></Button></div></article>
+}
+
+function MiniStat({ icon: Icon, label, value }: { icon: typeof Trophy; label: string; value: string }) {
+  return <div className="min-w-0 bg-card p-3"><Icon className="size-4 text-primary" /><span className="mono-label mt-3 block text-muted-foreground">{label}</span><span className="mt-1 block truncate font-semibold">{value}</span></div>
+}
+
+function Principle({ number, title, text }: { number: string; title: string; text: string }) {
+  return <div className="bg-card p-5"><span className="font-mono text-xs text-primary">{number}</span><h3 className="mt-4 text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text}</p></div>
 }

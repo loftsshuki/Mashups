@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useCallback, useEffect } from "react"
+import { useRef, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { useWaveform } from "@/lib/hooks/use-waveform"
 import type { TimelineClip } from "./waveform-timeline"
@@ -19,11 +19,17 @@ interface TimelineClipRealProps {
 
 const PIXELS_PER_SECOND = 50
 
-export function TimelineClipReal({
+export function TimelineClipReal(props: TimelineClipRealProps) {
+  const { clip } = props
+  const resetKey = `${clip.id}:${clip.startTime}:${clip.duration}:${clip.offset}`
+  return <TimelineClipRealStateful key={resetKey} {...props} />
+}
+
+function TimelineClipRealStateful({
   clip,
   isSelected,
   zoom,
-  trackColor,
+  trackColor: _trackColor,
   onSelect,
   onMove,
   onTrimStart,
@@ -46,13 +52,6 @@ export function TimelineClipReal({
     startTime: clip.offset,
     duration: clip.duration,
   })
-
-  // Reset visual state when clip changes
-  useEffect(() => {
-    setVisualStartTime(clip.startTime)
-    setVisualDuration(clip.duration)
-    setVisualOffset(clip.offset)
-  }, [clip.startTime, clip.duration, clip.offset])
 
   // Mouse handlers for dragging
   const handleMouseDown = useCallback(
@@ -190,7 +189,7 @@ export function TimelineClipReal({
                 key={i}
                 className="flex-1 rounded-full bg-current opacity-20 animate-pulse"
                 style={{
-                  height: `${30 + Math.random() * 40}%`,
+                  height: `${30 + ((i * 17) % 40)}%`,
                   color: clip.color,
                 }}
               />

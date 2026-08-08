@@ -11,9 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TierCard } from "@/components/subscriptions/tier-card"
 import {
   mockSubscriptionPlans,
-  getUserSubscriptions,
   subscribeToPlan,
-  type SubscriptionPlan,
 } from "@/lib/data/subscriptions"
 import { TipButton } from "@/components/monetization/tip-button"
 

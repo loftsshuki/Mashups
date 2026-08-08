@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Link2, Users, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import NextImage from "next/image"
+import { Link2, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface Chain {
@@ -93,7 +93,10 @@ export default function ChainsPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
                     {chain.links.slice(0, 4).map((link) => (
-                      <img
+                      <NextImage
+                        unoptimized
+                        width={24}
+                        height={24}
                         key={link.id}
                         src={link.creatorAvatar}
                         alt={link.creatorName}

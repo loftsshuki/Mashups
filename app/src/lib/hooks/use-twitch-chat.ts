@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import type { Client } from "tmi.js"
 
 export type ChatMessage = {
     id: string
@@ -18,7 +19,7 @@ interface UseTwitchChatProps {
 export function useTwitchChat({ channel, onCommand }: UseTwitchChatProps) {
     const [isConnected, setIsConnected] = useState(false)
     const [messages, setMessages] = useState<ChatMessage[]>([])
-    const clientRef = useRef<any>(null) // Using any to avoid complex type issues with tmi.js dynamic import
+    const clientRef = useRef<Client | null>(null)
 
     const connect = useCallback(async () => {
         if (!channel) return
@@ -35,7 +36,6 @@ export function useTwitchChat({ channel, onCommand }: UseTwitchChatProps) {
                 }
             })
 
-            // @ts-ignore
             client.on("message", (target, context, msg, self) => {
                 if (self) return // Ignore messages from the bot itself
 
@@ -56,13 +56,11 @@ export function useTwitchChat({ channel, onCommand }: UseTwitchChatProps) {
                 }
             })
 
-            // @ts-ignore
             client.on("connected", () => {
                 setIsConnected(true)
                 console.log(`Connected to Twitch channel: ${channel}`)
             })
 
-            // @ts-ignore
             client.on("disconnected", () => {
                 setIsConnected(false)
                 console.log("Disconnected from Twitch")

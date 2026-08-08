@@ -1,4 +1,4 @@
-import type { Stem, StemMashupLink, StemUsageLog } from "./types"
+import type { Stem, StemUsageLog } from "./types"
 
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&

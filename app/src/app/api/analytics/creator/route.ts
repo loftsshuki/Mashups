@@ -7,10 +7,8 @@ import {
 import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
 import { mockMashups } from "@/lib/mock-data"
 import { createClient } from "@/lib/supabase/server"
-
-const isSupabaseConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+import { isDemoRequest } from "@/lib/demo/runtime"
+import { isSupabaseConfigured } from "@/lib/config/runtime"
 
 function mergeEventSignals(
   base: CreatorAnalyticsSnapshot,
@@ -35,9 +33,13 @@ function mergeEventSignals(
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (isDemoRequest(request)) {
+    return NextResponse.json({ stats: buildCreatorAnalytics(mockMashups), mode: "demo" })
+  }
+
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ stats: buildCreatorAnalytics(mockMashups) })
+    return NextResponse.json({ error: "Analytics storage is not configured." }, { status: 503 })
   }
 
   try {

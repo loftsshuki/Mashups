@@ -70,15 +70,13 @@ export function StemMixer({ stems, trackName, onStemsChange }: StemMixerProps) {
 
   // Initialize audio elements
   useEffect(() => {
-    stemTracks.forEach((track) => {
-      if (!audioRefs.current[track.type]) {
-        const audio = new Audio(track.url)
-        audioRefs.current[track.type] = audio
+    Object.entries(stems).forEach(([type, url]) => {
+      if (!audioRefs.current[type]) {
+        const audio = new Audio(url)
+        audioRefs.current[type] = audio
         
         audio.addEventListener("loadedmetadata", () => {
-          if (duration === 0) {
-            setDuration(audio.duration)
-          }
+          setDuration((currentDuration) => currentDuration || audio.duration)
         })
 
         audio.addEventListener("timeupdate", () => {
@@ -128,7 +126,7 @@ export function StemMixer({ stems, trackName, onStemsChange }: StemMixerProps) {
     })
 
     onStemsChange?.(stemTracks)
-  }, [stemTracks])
+  }, [onStemsChange, stemTracks])
 
   const handleVolumeChange = (type: keyof SeparatedStems, value: number[]) => {
     setStemTracks((prev) =>
@@ -284,21 +282,21 @@ export function StemMixer({ stems, trackName, onStemsChange }: StemMixerProps) {
                       className={cn(
                         "w-full rounded-sm transition-all",
                         config.color,
-                        Math.random() > 0.5 ? "h-1/4" : "h-2/4"
+                        "h-2/4"
                       )}
                     />
                     <div
                       className={cn(
                         "w-full rounded-sm transition-all",
                         config.color,
-                        Math.random() > 0.3 ? "h-1/3" : "h-1/2"
+                        "h-1/3"
                       )}
                     />
                     <div
                       className={cn(
                         "w-full rounded-sm transition-all",
                         config.color,
-                        Math.random() > 0.7 ? "h-1/4" : "h-3/4"
+                        "h-3/4"
                       )}
                     />
                   </>

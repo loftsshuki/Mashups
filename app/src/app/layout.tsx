@@ -1,82 +1,87 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { Inter, Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AudioProvider } from "@/lib/audio/audio-context";
-import { PostHogProvider, PostHogPageView } from "@/lib/analytics/posthog";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { NowPlayingBar } from "@/components/layout/now-playing-bar";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Suspense } from "react"
+import { Archivo_Black, IBM_Plex_Mono, Space_Grotesk } from "next/font/google"
 
-const inter = Inter({
-  variable: "--font-inter",
+import { ThemeProvider } from "@/components/theme-provider"
+import { Footer } from "@/components/layout/footer"
+import { Header } from "@/components/layout/header"
+import { NowPlayingBar } from "@/components/layout/now-playing-bar"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { PostHogPageView, PostHogProvider } from "@/lib/analytics/posthog"
+import { DemoBanner } from "@/components/demo/demo-banner"
+import { WebVitals } from "@/components/observability/web-vitals"
+import { AudioProvider } from "@/lib/audio/audio-context"
+import "./globals.css"
+
+const display = Archivo_Black({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+})
+
+const sans = Space_Grotesk({
+  variable: "--font-sans-custom",
   subsets: ["latin"],
   display: "swap",
-});
+})
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono-custom",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+})
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.mashups.agency"),
   title: {
-    default: "Mashups — Create, Share, Discover Music Mashups",
+    default: "Mashups | Make The Version You Wish Existed",
     template: "%s | Mashups",
   },
   description:
-    "The community platform for music mashup creators. Upload tracks, mix them together, and share your creations with the world.",
+    "Pick two rights-cleared tracks, hear three real arrangements, and publish a version the next creator can fork.",
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Mashups — Create, Share, Discover Music Mashups",
+    title: "Mashups | Make The Version You Wish Existed",
     description:
-      "The community platform for music mashup creators. Upload tracks, mix them together, and share your creations with the world.",
+      "The rights-cleared social playground for making, sharing, and forking mashups.",
     siteName: "Mashups",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mashups — Create, Share, Discover Music Mashups",
-    description:
-      "The community platform for music mashup creators. Upload tracks, mix them together.",
+    title: "Mashups | Make The Version You Wish Existed",
+    description: "Two tracks in. Three arrangements out. Every source credited.",
   },
-};
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} dark`}
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <PostHogProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem={false}
             disableTransitionOnChange
           >
             <AudioProvider>
               <TooltipProvider delayDuration={200}>
+                <a href="#main-content" className="skip-link">Skip to content</a>
                 <Suspense fallback={null}>
                   <PostHogPageView />
+                  <DemoBanner />
                 </Suspense>
+                <WebVitals />
                 <div className="relative flex min-h-screen flex-col">
                   <Header />
-                  <main className="flex-1">{children}</main>
+                  <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
                   <Footer />
                   <NowPlayingBar />
                 </div>
@@ -86,5 +91,5 @@ export default function RootLayout({
         </PostHogProvider>
       </body>
     </html>
-  );
+  )
 }

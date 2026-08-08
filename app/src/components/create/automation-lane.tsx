@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useCallback, useMemo } from "react"
-import { Plus, Trash2, Type } from "lucide-react"
+import { Trash2, Type } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,7 +42,7 @@ export function AutomationLane({
   const svgRef = useRef<SVGSVGElement>(null)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
+  const [, setDragStart] = useState<{ x: number; y: number } | null>(null)
 
   const width = 800 // Fixed width, scales via viewBox
   const padding = { top: 10, bottom: 10, left: 40, right: 20 }
@@ -61,25 +61,25 @@ export function AutomationLane({
   // Convert time to x position
   const timeToX = useCallback(
     (time: number) => (time / duration) * graphWidth + padding.left,
-    [duration, graphWidth]
+    [duration, graphWidth, padding.left]
   )
 
   // Convert x position to time
   const xToTime = useCallback(
     (x: number) => Math.max(0, Math.min(duration, ((x - padding.left) / graphWidth) * duration)),
-    [duration, graphWidth]
+    [duration, graphWidth, padding.left]
   )
 
   // Convert value to y position (inverted because SVG y=0 is top)
   const valueToY = useCallback(
     (value: number) => graphHeight * (1 - value / 100) + padding.top,
-    [graphHeight]
+    [graphHeight, padding.top]
   )
 
   // Convert y position to value
   const yToValue = useCallback(
     (y: number) => Math.max(0, Math.min(100, (1 - (y - padding.top) / graphHeight) * 100)),
-    [graphHeight]
+    [graphHeight, padding.top]
   )
 
   // Handle SVG click to add node

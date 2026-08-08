@@ -1,0 +1,36 @@
+"use client"
+
+import type { FormEvent } from "react"
+import { useState } from "react"
+import Link from "next/link"
+import { ArrowLeft, Check, Clock3, KeyRound, LockKeyhole, Radio, ShieldCheck, Users } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import type { PreReleaseRoom } from "@/lib/growth-os/types"
+
+export function PreReleaseExchange({ rooms, demo }: { rooms: PreReleaseRoom[]; demo: boolean }) {
+  const [active, setActive] = useState<PreReleaseRoom | null>(rooms[0] ?? null)
+  const [confidence, setConfidence] = useState(72)
+  const [message, setMessage] = useState<string | null>(null)
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!active) return
+    const form = new FormData(event.currentTarget)
+    const response = await fetch(`/api/growth/exchange/feedback${demo ? "?demo=1" : ""}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roomId: active.id, breakoutConfidence: confidence, strongestTimestampSec: Number(form.get("timestamp")), feedback: form.get("feedback"), ndaAccepted: true }) })
+    const result = await response.json() as { error?: string }
+    setMessage(response.ok ? "Your call is sealed until settlement. Reputation is now at stake." : result.error ?? "Feedback could not be sealed.")
+  }
+
+  if (!rooms.length) return <div className="mx-auto grid min-h-[80vh] max-w-3xl place-items-center px-4 pt-28 text-center"><div><LockKeyhole className="mx-auto size-10 text-primary" /><h1 className="display-type mt-7 text-6xl">NO OPEN INVITATION.</h1><p className="mt-5 text-muted-foreground">The exchange is invitation-only. Your next accepted room will appear here.</p><Button className="mt-7" asChild><Link href="/network?demo=1">Inspect the demo exchange</Link></Button></div></div>
+
+  return <div className="exchange-floor min-h-screen bg-foreground pb-28 pt-28 text-background"><section className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8"><Link href="/network?demo=1" className="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-widest text-background/75"><ArrowLeft className="size-4" />Network command</Link><header className="mt-8 grid gap-8 border-y border-background/35 py-10 lg:grid-cols-12 lg:items-end"><div className="lg:col-span-8"><p className="flex items-center gap-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-secondary"><KeyRound className="size-4" />Private pre-release exchange</p><h1 className="display-type mt-6 text-6xl leading-[0.78] sm:text-8xl xl:text-9xl">HEAR IT<br /><span className="text-secondary">BEFORE IT EXISTS.</span></h1></div><div className="lg:col-span-4"><p className="text-lg leading-relaxed text-background/65">No leaks, vanity focus groups, or free consulting. Every first listen is embargoed, structured, and tied to reputation.</p></div></header>
+  <div className="grid border-x border-b border-background/35 xl:grid-cols-[0.65fr_1.35fr]"><aside className="border-b border-background/35 xl:border-b-0 xl:border-r"><p className="p-5 font-mono text-[10px] uppercase tracking-widest text-background/50">Your sealed rooms / {rooms.length}</p>{rooms.map((room, index) => <button key={room.id} onClick={() => { setActive(room); setMessage(null) }} className={`grid w-full grid-cols-[2rem_1fr_auto] items-center gap-3 border-t border-background/35 p-5 text-left ${active?.id === room.id ? "bg-secondary text-secondary-foreground" : "hover:bg-background/5"}`}><span className="font-mono text-xs">0{index + 1}</span><span><strong className="block text-lg">{room.trackTitle}</strong><small className={active?.id === room.id ? "font-mono" : "font-mono text-background/50"}>{room.artistName}</small></span><LockKeyhole className="size-4" /></button>)}</aside>
+  {active ? <div className="p-5 sm:p-8 lg:p-10"><div className="flex flex-wrap items-center gap-3"><Badge variant="secondary" className="rounded-none"><LockKeyhole />Embargo sealed</Badge><span className="font-mono text-xs text-background/50">Releases {formatDate(active.releaseAt)}</span></div><div className="mt-8 grid gap-8 lg:grid-cols-[1fr_0.8fr]"><div><div className="exchange-record grid aspect-square max-w-xl place-items-center rounded-full border border-background/30"><audio controls preload="metadata" aria-label={`Private preview of ${active.trackTitle}`} className="w-[72%]"><source src="/audio/beat2.mp3" type="audio/mpeg" /></audio></div><h2 className="display-type mt-8 text-5xl sm:text-7xl">{active.trackTitle}</h2><p className="mt-2 font-mono text-sm text-background/55">{active.artistName} / room {active.slug}</p><div className="mt-7 flex flex-wrap gap-5 font-mono text-xs text-background/65"><span className="flex items-center gap-2"><Users className="size-4 text-secondary" />{active.seatsFilled}/{active.seats} seats</span><span className="flex items-center gap-2"><Clock3 className="size-4 text-secondary" />Timed first listen</span><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-secondary" />Forensic access log</span></div></div>
+  <form onSubmit={submit} className="border border-background/40 p-5"><p className="font-mono text-[10px] uppercase tracking-widest text-secondary">Seal your A&R call</p><div className="mt-6"><div className="flex items-end justify-between"><Label htmlFor="confidence" className="text-background">Breakout confidence</Label><span className="display-type text-4xl text-secondary">{confidence}%</span></div><input id="confidence" type="range" min="1" max="100" value={confidence} onChange={(event) => setConfidence(Number(event.target.value))} className="mt-3 w-full accent-[var(--secondary)]" /></div><div className="mt-6"><Label htmlFor="timestamp" className="text-background">Strongest timestamp (seconds)</Label><input id="timestamp" name="timestamp" type="number" min="0" max="3600" defaultValue="42" required className="mt-2 h-11 w-full border border-background/45 bg-transparent px-3 font-mono text-background" /></div><div className="mt-6"><Label htmlFor="feedback" className="text-background">What makes the hook reproduce?</Label><Textarea id="feedback" name="feedback" required minLength={10} defaultValue="The tension hold makes the reveal easy to reinterpret across nightlife and fashion creators." className="mt-2 min-h-32 border-background/45 bg-transparent text-background" /></div><label className="mt-5 flex items-start gap-3 text-xs leading-relaxed text-background/65"><input type="checkbox" required defaultChecked className="mt-0.5 size-4 accent-[var(--secondary)]" /><span>I accept the embargo and understand access is logged.</span></label><Button variant="secondary" className="mt-6 w-full" type="submit"><Radio />Stake {confidence} reputation</Button>{message ? <p role="status" className="mt-4 border border-secondary p-3 text-sm text-secondary"><Check className="mr-2 inline size-4" />{message}</p> : null}</form></div></div> : null}</div></section></div>
+}
+
+function formatDate(value: string) { return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric" }).format(new Date(value)) }

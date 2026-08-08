@@ -1,318 +1,182 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import {
-  Search,
-  Menu,
-  Music,
-  User,
+  ArrowUpRight,
+  FlaskConical,
   LogOut,
+  Menu,
+  Search,
   Settings,
-  ChevronDown,
-  Sparkles,
-} from "lucide-react";
+  User,
+} from "lucide-react"
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import { MobileNav } from "@/components/layout/mobile-nav"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { createClient } from "@/lib/supabase/client";
-import { logout } from "@/lib/auth/auth-actions";
-
-const navLinks = [
-  { href: "/explore", label: "Explore" },
-  { href: "/create", label: "Create" },
-  { href: "/studio", label: "Studio" },
-] as const;
-
-const communityLinks = [
-  { href: "/battles", label: "Battles" },
-  { href: "/daily-flip", label: "Daily Flip" },
-  { href: "/challenges", label: "Challenges" },
-  { href: "/scoreboard", label: "Scoreboard" },
-] as const;
-
-const moreLinks = [
-  { href: "/pricing", label: "Pricing" },
-  { href: "/enterprise", label: "Enterprise" },
-] as const;
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetTrigger } from "@/components/ui/sheet"
+import { logout } from "@/lib/auth/auth-actions"
+import { primaryNavigation } from "@/lib/navigation/product-map"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 interface UserProfile {
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
+  username: string
+  display_name: string | null
+  avatar_url: string | null
 }
 
 export function Header() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname()
+  const router = useRouter()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const onScroll = () => setIsScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   useEffect(() => {
-    const supabase = createClient();
+    let active = true
+    const supabase = createClient()
 
-    async function getUser() {
+    async function loadUser() {
       try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
-
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!active) return
         if (authUser) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("username, display_name, avatar_url")
             .eq("id", authUser.id)
-            .single();
-
-          setUser(
-            profile ?? {
-              username: authUser.email?.split("@")[0] ?? "user",
-              display_name: null,
-              avatar_url: null,
-            }
-          );
+            .single()
+          if (!active) return
+          setUser(profile ?? {
+            username: authUser.email?.split("@")[0] ?? "creator",
+            display_name: null,
+            avatar_url: null,
+          })
+        } else {
+          setUser(null)
         }
       } catch {
-        // Supabase not configured — no auth
+        setUser(null)
+      } finally {
+        if (active) setIsLoading(false)
       }
-      setIsLoading(false);
     }
 
-    getUser();
-  }, [pathname]);
+    void loadUser()
+    return () => { active = false }
+  }, [pathname])
 
   const initials =
-    user?.display_name
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() ??
-    user?.username?.slice(0, 2).toUpperCase() ??
-    "U";
+    user?.display_name?.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase() ??
+    user?.username.slice(0, 2).toUpperCase() ??
+    "CR"
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+
+  async function handleLogout() {
+    await logout()
+    setUser(null)
+    router.push("/")
+    router.refresh()
+  }
 
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
-          : "bg-transparent"
+        "fixed inset-x-0 top-0 z-50 border-b border-foreground bg-background/95 transition-shadow",
+        isScrolled && "shadow-[0_4px_0_rgb(19_19_15/0.12)]",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between container-padding">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
-            <Music className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-semibold text-lg tracking-tight">
-            mashups
+      <div className="mx-auto flex h-[68px] max-w-[1440px] items-center container-padding">
+        <Link href="/" className="group mr-6 flex min-h-11 shrink-0 items-center gap-2" aria-label="Mashups home">
+          <span className="grid size-9 place-items-center border border-foreground bg-primary font-mono text-sm font-bold text-primary-foreground transition-transform group-hover:-rotate-6">
+            M/
           </span>
+          <span className="display-type hidden text-[1.05rem] leading-none sm:block">Mashups</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ href, label }) => (
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Primary navigation">
+          {primaryNavigation.map((link) => (
             <Link
-              key={href}
-              href={href}
+              key={link.href}
+              href={link.href}
               className={cn(
-                "relative px-3 py-2 text-sm font-medium transition-colors rounded-lg",
-                isActive(href)
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                "relative px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors",
+                isActive(link.href)
+                  ? "bg-foreground text-background"
+                  : "hover:bg-secondary hover:text-secondary-foreground",
               )}
             >
-              {label}
-              {isActive(href) && (
-                <span className="absolute inset-x-3 -bottom-px h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-              )}
+              {link.label}
             </Link>
           ))}
 
-          {/* Community Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
-                communityLinks.some((l) => isActive(l.href))
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Community
-              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
-              {communityLinks.map(({ href, label }) => (
-                <DropdownMenuItem key={href} asChild>
-                  <Link href={href}>{label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* More Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg",
-                moreLinks.some((l) => isActive(l.href))
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              More
-              <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
-              {moreLinks.map(({ href, label }) => (
-                <DropdownMenuItem key={href} asChild>
-                  <Link href={href}>{label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
-            asChild
-          >
-            <Link href="/search" aria-label="Search">
-              <Search className="h-4 w-4" />
-            </Link>
+        <div className="ml-auto hidden items-center gap-2 md:flex">
+          <Link href="/partner" className="mr-1 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground">
+            For artists
+          </Link>
+          <Button variant="ghost" size="icon" asChild aria-label="Search">
+            <Link href="/search"><Search className="size-4" /></Link>
           </Button>
 
           {isLoading ? (
-            <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            <div className="size-9 animate-pulse border border-foreground/30 bg-muted" />
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full p-0"
-                >
-                  <Avatar className="h-8 w-8">
-                    {user.avatar_url && (
-                      <AvatarImage
-                        src={user.avatar_url}
-                        alt={user.display_name ?? user.username}
-                      />
-                    )}
-                    <AvatarFallback className="text-xs bg-muted">
-                      {initials}
-                    </AvatarFallback>
+                <Button variant="outline" className="h-10 rounded-none p-1 pr-2">
+                  <Avatar className="size-7 rounded-none">
+                    {user.avatar_url ? <AvatarImage src={user.avatar_url} alt="" /> : null}
+                    <AvatarFallback className="rounded-none bg-secondary font-mono text-[10px]">{initials}</AvatarFallback>
                   </Avatar>
+                  <span className="max-w-28 truncate font-mono text-xs">@{user.username}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">
-                    {user.display_name ?? user.username}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    @{user.username}
-                  </p>
-                </div>
+              <DropdownMenuContent align="end" className="w-52 rounded-none border-foreground shadow-[4px_4px_0_var(--foreground)]">
+                <DropdownMenuItem asChild><Link href={`/profile/${user.username}`}><User />Profile</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/dashboard"><FlaskConical />Workspace</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/settings"><Settings />Settings</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={`/profile/${user.username}`}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={async () => {
-                    await logout();
-                    setUser(null);
-                    router.push("/");
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log Out
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleLogout()}><LogOut />Log out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 px-4 text-sm font-medium"
-                asChild
-              >
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button
-                size="sm"
-                className="h-9 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-                asChild
-              >
-                <Link href="/signup">Get Started</Link>
-              </Button>
+              <Button variant="ghost" asChild><Link href="/login">Log in</Link></Button>
+              <Button asChild><Link href="/signup">Start free <ArrowUpRight /></Link></Button>
             </>
           )}
         </div>
 
-        {/* Mobile Menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden h-9 w-9"
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="ml-auto size-11 rounded-none md:hidden" aria-label="Open menu">
+              <Menu className="size-5" />
             </Button>
           </SheetTrigger>
           <MobileNav />
         </Sheet>
       </div>
     </header>
-  );
+  )
 }

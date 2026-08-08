@@ -1,7 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { analyzeWaveform, analyzeWaveformSegment, type WaveformData } from "@/lib/audio/waveform-analyzer"
+import {
+  analyzeWaveform,
+  analyzeWaveformSegment,
+  clearWaveformCache,
+  getWaveformCacheSize,
+  type WaveformData,
+} from "@/lib/audio/waveform-analyzer"
 
 interface UseWaveformOptions {
   barCount?: number
@@ -133,12 +139,10 @@ export function usePreloadWaveforms(
  */
 export function useWaveformCache() {
   const clearCache = useCallback(() => {
-    const { clearWaveformCache } = require("@/lib/audio/waveform-analyzer")
     clearWaveformCache()
   }, [])
 
   const getCacheSize = useCallback(() => {
-    const { getWaveformCacheSize } = require("@/lib/audio/waveform-analyzer")
     return getWaveformCacheSize()
   }, [])
 

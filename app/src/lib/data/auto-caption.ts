@@ -1,5 +1,7 @@
 // Auto-Caption Generator - Lyrics and audio transcription
 
+import { createBrowserAudioContext } from "@/lib/audio/browser-audio-context"
+
 const isSupabaseConfigured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -88,7 +90,7 @@ export async function transcribeAudio(
   await new Promise(resolve => setTimeout(resolve, 2000))
 
   // Mock transcription based on audio duration
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+  const audioContext = createBrowserAudioContext()
   const arrayBuffer = await audioBlob.arrayBuffer()
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0))
   const duration = audioBuffer.duration
@@ -367,8 +369,6 @@ export async function getCaptionsForMashup(
 
     const row = data as Record<string, unknown>
     const segments = Array.isArray(row.segments) ? (row.segments as CaptionSegment[]) : []
-    const wordTimings = row.word_timings as Record<string, unknown>[] | null
-
     return {
       id: row.id as string,
       mashupId: row.mashup_id as string,

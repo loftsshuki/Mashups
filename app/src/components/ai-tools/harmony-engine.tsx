@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mic2, Music, Play, Layers, Download, Wand2 } from "lucide-react"
+import { Mic2, Play, Layers, Download, Wand2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

@@ -63,7 +63,7 @@ export function useRealtimeCollab({
       const presenceState = channel.presenceState()
       const collaborators: Collaborator[] = []
 
-      Object.entries(presenceState).forEach(([key, presences]) => {
+      Object.values(presenceState).forEach((presences) => {
         const presenceArray = presences as Array<{
           userId: string
           displayName: string
@@ -112,7 +112,7 @@ export function useRealtimeCollab({
     })
 
     // Handle broadcast messages (cursor updates, operations)
-    channel.on("broadcast", { event: "cursor_update" }, (event: any) => {
+    channel.on("broadcast", { event: "cursor_update" }, (event: { payload?: unknown }) => {
       const payload = event.payload as { userId?: string; cursor?: CursorPosition } | undefined
       if (payload?.userId === userId) return
 
@@ -134,7 +134,7 @@ export function useRealtimeCollab({
       }))
     })
 
-    channel.on("broadcast", { event: "operation" }, (event: any) => {
+    channel.on("broadcast", { event: "operation" }, (event: { payload?: unknown }) => {
       const payload = event.payload as { userId?: string } & CollabOperation | undefined
       if (payload?.userId !== userId && onOperation) {
         onOperation(payload as CollabOperation)

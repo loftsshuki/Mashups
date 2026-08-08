@@ -85,7 +85,7 @@ export function BlindPlayer({ audioUrl, index, rating, onRate, className }: Blin
         <div className="flex-1 h-10 flex items-center gap-[2px]">
           {Array.from({ length: 50 }, (_, i) => {
             const filled = i / 50 <= progress
-            const barHeight = 20 + Math.sin(i * 0.3 + index * 2) * 60 + Math.random() * 20
+            const barHeight = 20 + Math.sin(i * 0.3 + index * 2) * 60 + ((i * 13 + index * 7) % 20)
             return (
               <div
                 key={i}

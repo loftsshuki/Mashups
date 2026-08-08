@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import { createBrowserAudioContext } from "@/lib/audio/browser-audio-context"
 
 interface SpectralWaveformProps {
   audioBuffer?: AudioBuffer
@@ -47,6 +48,57 @@ function getFireColor(frequency: number, amplitude: number): string {
   }
 }
 
+function renderSpectralPlaceholder(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const gradient = ctx.createLinearGradient(0, 0, width, height)
+  gradient.addColorStop(0, "#1e3a5f")
+  gradient.addColorStop(0.5, "#0d2137")
+  gradient.addColorStop(1, "#1e3a5f")
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, width, height)
+
+  ctx.fillStyle = "rgba(59, 130, 246, 0.3)"
+  for (let index = 0; index < 50; index++) {
+    const x = (index / 50) * width
+    const barHeight = (0.2 + ((index * 23) % 60) / 100) * height
+    ctx.fillRect(x, (height - barHeight) / 2, width / 50 - 2, barHeight)
+  }
+}
+
+function parseFrequency(label: string): number {
+  if (label.endsWith("kHz")) return parseFloat(label) * 1000
+  if (label.endsWith("Hz")) return parseFloat(label)
+  return 0
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  let r: number
+  let g: number
+  let b: number
+
+  if (s === 0) {
+    r = g = b = l
+  } else {
+    const hueToRgb = (p: number, q: number, value: number) => {
+      let t = value
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1 / 6) return p + (q - p) * 6 * t
+      if (t < 1 / 2) return q
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+      return p
+    }
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hueToRgb(p, q, h + 1 / 3)
+    g = hueToRgb(p, q, h)
+    b = hueToRgb(p, q, h - 1 / 3)
+  }
+
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+}
+
 export function SpectralWaveform({
   audioBuffer,
   url,
@@ -77,12 +129,12 @@ export function SpectralWaveform({
         if (!buffer && url) {
           const response = await fetch(url)
           const arrayBuffer = await response.arrayBuffer()
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+          const audioContext = createBrowserAudioContext()
           buffer = await audioContext.decodeAudioData(arrayBuffer)
         }
 
         if (!buffer) {
-          renderPlaceholder(ctx, width, height)
+          renderSpectralPlaceholder(ctx, width, height)
           setIsLoading(false)
           return
         }
@@ -172,65 +224,13 @@ export function SpectralWaveform({
       } catch (err) {
         console.error("Error rendering spectral waveform:", err)
         setError("Failed to analyze audio")
-        renderPlaceholder(ctx, width, height)
+        renderSpectralPlaceholder(ctx, width, height)
         setIsLoading(false)
       }
     }
 
     renderSpectralWaveform()
   }, [audioBuffer, url, width, height, colorScheme, showFrequencyLegend])
-
-  function renderPlaceholder(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const gradient = ctx.createLinearGradient(0, 0, w, h)
-    gradient.addColorStop(0, "#1e3a5f")
-    gradient.addColorStop(0.5, "#0d2137")
-    gradient.addColorStop(1, "#1e3a5f")
-    
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, w, h)
-    
-    ctx.fillStyle = "rgba(59, 130, 246, 0.3)"
-    for (let i = 0; i < 50; i++) {
-      const x = (i / 50) * w
-      const barHeight = Math.random() * h * 0.8
-      ctx.fillRect(x, (h - barHeight) / 2, w / 50 - 2, barHeight)
-    }
-  }
-
-  function parseFrequency(label: string): number {
-    if (label.endsWith("kHz")) {
-      return parseFloat(label) * 1000
-    }
-    if (label.endsWith("Hz")) {
-      return parseFloat(label)
-    }
-    return 0
-  }
-
-  function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-    let r: number, g: number, b: number
-
-    if (s === 0) {
-      r = g = b = l
-    } else {
-      const hue2rgb = (p: number, q: number, t: number) => {
-        if (t < 0) t += 1
-        if (t > 1) t -= 1
-        if (t < 1 / 6) return p + (q - p) * 6 * t
-        if (t < 1 / 2) return q
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-        return p
-      }
-
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      const p = 2 * l - q
-      r = hue2rgb(p, q, h + 1 / 3)
-      g = hue2rgb(p, q, h)
-      b = hue2rgb(p, q, h - 1 / 3)
-    }
-
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
-  }
 
   return (
     <div className={cn("relative", className)}>
@@ -265,7 +265,7 @@ export function SpectralIndicator({ className }: { className?: string }) {
           key={i}
           className="w-1 rounded-full"
           style={{
-            height: `${20 + Math.random() * 80}%`,
+            height: `${20 + ((i * 29) % 80)}%`,
             background: `hsl(${240 - i * 20}, 70%, 50%)`,
           }}
         />

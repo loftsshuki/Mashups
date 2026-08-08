@@ -10,16 +10,18 @@ export default async function MashupPage({
 }) {
   const { id } = await params
 
+  let detail
   try {
-    const detail = await getMashupDetailView(id)
-    return (
-      <MashupDetailClient
-        mashup={detail.mashup}
-        lineage={detail.lineage}
-        forkedMashups={detail.forkedMashups}
-      />
-    )
+    detail = await getMashupDetailView(id)
   } catch {
     notFound()
   }
+
+  return (
+    <MashupDetailClient
+      mashup={detail.mashup}
+      lineage={detail.lineage}
+      forkedMashups={detail.forkedMashups}
+    />
+  )
 }

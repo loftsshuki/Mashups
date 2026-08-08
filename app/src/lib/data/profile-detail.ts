@@ -1,6 +1,7 @@
 import { mapRowToMockMashup } from "@/lib/data/mashup-adapter"
 import { getMockCreator, mockMashups, type MockMashup } from "@/lib/mock-data"
 import { createClient } from "@/lib/supabase/server"
+import { isDemoMode } from "@/lib/config/runtime"
 
 export interface ProfileDetailCreator {
   id: string
@@ -45,7 +46,7 @@ export async function getProfileDetailByUsername(username: string): Promise<{
   mashups: MockMashup[]
 } | null> {
   const fallback = buildFallbackProfile(username)
-  if (!isSupabaseConfigured()) return fallback
+  if (!isSupabaseConfigured()) return isDemoMode() ? fallback : null
 
   try {
     const supabase = await createClient()
@@ -55,10 +56,10 @@ export async function getProfileDetailByUsername(username: string): Promise<{
       .eq("username", username)
       .maybeSingle()
 
-    if (!profile) return fallback
+    if (!profile) return isDemoMode() ? fallback : null
 
     const profileId = typeof profile.id === "string" ? profile.id : ""
-    if (!profileId) return fallback
+    if (!profileId) return isDemoMode() ? fallback : null
 
     const { data: mashupRows, error } = await supabase
       .from("mashups")
@@ -75,7 +76,7 @@ export async function getProfileDetailByUsername(username: string): Promise<{
       .eq("is_published", true)
       .order("created_at", { ascending: false })
 
-    if (error || !mashupRows) return fallback
+    if (error || !mashupRows) return isDemoMode() ? fallback : null
 
     const mashups = (mashupRows as Record<string, unknown>[]).map((row) =>
       mapRowToMockMashup(row),
@@ -111,6 +112,6 @@ export async function getProfileDetailByUsername(username: string): Promise<{
       mashups,
     }
   } catch {
-    return fallback
+    return isDemoMode() ? fallback : null
   }
 }

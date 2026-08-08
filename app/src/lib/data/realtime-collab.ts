@@ -32,7 +32,7 @@ export interface CollabOperation {
   type: "add_track" | "delete_track" | "move_clip" | "trim_clip" | "volume_change" | "effect_add"
   userId: string
   timestamp: string
-  payload: any
+  payload: Record<string, unknown>
   acknowledged: boolean
 }
 

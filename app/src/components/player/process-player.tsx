@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import Link from "next/link"
+import NextImage from "next/image"
 import { Play, Pause, ArrowRight, Music } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -76,7 +77,10 @@ export function ProcessPlayer({
       {/* Track info */}
       <div className="text-center mb-8 space-y-2">
         {creatorAvatar && (
-          <img
+          <NextImage
+            unoptimized
+            width={64}
+            height={64}
             src={creatorAvatar}
             alt={creatorName}
             className="h-16 w-16 rounded-full mx-auto border-2 border-primary/30 object-cover"

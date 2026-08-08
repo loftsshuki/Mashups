@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Lock, Check, Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,8 +27,6 @@ interface BadgeShowcaseProps {
 }
 
 export function BadgeShowcase({ unlockedBadges, className }: BadgeShowcaseProps) {
-  const [selectedBadge, setSelectedBadge] = useState<BadgeType | null>(null)
-  
   const allBadges = Object.values(badges)
   const unlockedIds = new Set(unlockedBadges.map(b => b.id))
   

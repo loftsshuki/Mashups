@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import NextImage from "next/image"
 import { Trophy, Users, Clock, Gift, ArrowLeft, Share2, AlertCircle, CheckCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -153,13 +154,14 @@ const mockEntries: BattleEntry[] = [
 
 export default function BattleDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const battleId = params.id as string
   
   const [battle, setBattle] = useState<Battle | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [userVotesRemaining, setUserVotesRemaining] = useState(3)
   const [hasVoted, setHasVoted] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasSubmitted] = useState(false)
   const [activeTab, setActiveTab] = useState("entries")
   
   useEffect(() => {
@@ -200,7 +202,7 @@ export default function BattleDetailPage() {
   
   const handleSubmitEntry = () => {
     // Navigate to create page with battle context
-    window.location.href = `/create?battle=${battleId}`
+    router.push(`/create?battle=${battleId}`)
   }
   
   if (isLoading) {
@@ -446,7 +448,10 @@ export default function BattleDetailPage() {
                       href={`/mashup/${battle.entries[0].mashupId}`}
                       className="flex items-center gap-3 hover:underline"
                     >
-                      <img 
+                      <NextImage
+                        unoptimized
+                        width={48}
+                        height={48}
                         src={battle.entries[0].mashup.coverUrl} 
                         alt={battle.entries[0].mashup.title}
                         className="w-12 h-12 rounded-lg object-cover"

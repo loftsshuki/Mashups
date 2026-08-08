@@ -160,12 +160,6 @@ export function RemixGraph({ mashupId, className }: RemixGraphProps) {
   useEffect(() => {
     let running = true
 
-    function tick() {
-      if (!running) return
-      simulate()
-      animFrameRef.current = requestAnimationFrame(tick)
-    }
-
     // Run simulation for a bit then slow down
     let ticks = 0
     function tickLimited() {

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+
 import { chatJSON } from "@/lib/ai/chat"
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
+import { isDemoMode } from "@/lib/config/runtime"
 
 interface ExtractedSound {
   id: string
@@ -12,70 +16,96 @@ interface ExtractedSound {
   description: string
 }
 
-const SYSTEM_PROMPT = `You are an audio analysis AI for a music mashup platform. A user describes a sound element they want to extract or recreate. Analyze the description and determine the most likely musical properties. Return valid JSON: { "instrument": string (one of: "drums", "bass", "vocal", "synth", "guitar", "keys", "strings", "texture", "other"), "bpm": number (realistic for the instrument/style, 60-200), "key": string (e.g. "Am", "C", "F#m", "Bb"), "duration": number (seconds, 2-16), "confidence": number (0.60-0.95), "analysis": string (1-2 sentences explaining what you detected and how you'd recreate it) }. Base your analysis on real music production knowledge.`
+const extractionSchema = z.object({
+  instrument: z.enum(["drums", "bass", "vocal", "synth", "guitar", "keys", "strings", "texture", "other"]),
+  bpm: z.number().min(40).max(240),
+  key: z.string().min(1).max(24),
+  duration: z.number().min(2).max(16),
+  confidence: z.number().min(0).max(1),
+  analysis: z.string().min(10).max(320),
+})
 
-function mockExtract(description: string, audioFile: File | null): ExtractedSound {
-  const lowerDesc = description.toLowerCase()
-  let instrument = "other"
-  let bpm = 120
-  let key = "Am"
+const SYSTEM_PROMPT = `You are a music-production analyst. Infer a practical recreation recipe from the user's written sound description. Return conservative confidence when evidence is limited. If a filename is supplied, treat it only as context; never claim to have listened to the audio.`
 
-  if (/snare|drum|kick/.test(lowerDesc)) { instrument = "drums"; bpm = 128 }
-  else if (/bass/.test(lowerDesc)) { instrument = "bass"; bpm = 110; key = "Em" }
-  else if (/vocal|voice/.test(lowerDesc)) { instrument = "vocal"; bpm = 100; key = "Cm" }
-  else if (/synth|pad/.test(lowerDesc)) { instrument = "synth"; bpm = 130; key = "Fm" }
-  else if (/guitar/.test(lowerDesc)) { instrument = "guitar"; bpm = 95; key = "G" }
+function demoExtract(description: string): ExtractedSound {
+  const lower = description.toLowerCase()
+  const instrument = /snare|drum|kick/.test(lower)
+    ? "drums"
+    : /bass|808/.test(lower)
+      ? "bass"
+      : /vocal|voice/.test(lower)
+        ? "vocal"
+        : /synth|pad/.test(lower)
+          ? "synth"
+          : /guitar/.test(lower)
+            ? "guitar"
+            : "other"
 
   return {
     id: `extract-${Date.now()}`,
-    title: `Extracted ${instrument}: ${description.slice(0, 30)}`,
+    title: `${instrument}: ${description.slice(0, 30)}`,
     instrument,
-    bpm,
-    key,
-    duration: 4 + Math.floor(Math.random() * 8),
-    confidence: 0.75 + Math.random() * 0.2,
-    description: `AI analyzed the "${description}" element. ${audioFile ? `Source: ${audioFile.name}` : "No audio provided — generated from description."}`,
+    bpm: 120,
+    key: "Am",
+    duration: 8,
+    confidence: 0.68,
+    description: "Demo analysis generated from the written description only.",
   }
 }
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
-  const description = formData.get("description") as string | null
-  const audioFile = formData.get("audio") as File | null
-
-  if (!description) {
-    return NextResponse.json({ error: "description required" }, { status: 400 })
+  const description = z.string().trim().min(3).max(600).safeParse(formData.get("description"))
+  const audioFile = formData.get("audio")
+  if (!description.success) {
+    return NextResponse.json({ error: "A sound description is required." }, { status: 400 })
+  }
+  if (audioFile instanceof File && audioFile.size > 50 * 1024 * 1024) {
+    return NextResponse.json({ error: "Audio file exceeds 50 MB." }, { status: 400 })
   }
 
+  let usageEventId: string | null = null
   try {
-    let userMsg = `Analyze this sound description: "${description}"`
-    if (audioFile) userMsg += `. An audio file named "${audioFile.name}" (${Math.round(audioFile.size / 1024)}KB) was also uploaded.`
+    const tierCheck = await enforceTierLimit("ai_generations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+    usageEventId = tierCheck.usageEventId
 
-    const ai = await chatJSON<{
-      instrument: string
-      bpm: number
-      key: string
-      duration: number
-      confidence: number
-      analysis: string
-    }>({ system: SYSTEM_PROMPT, user: userMsg })
+    const fileContext = audioFile instanceof File
+      ? ` Context filename: ${audioFile.name}. Do not imply that you heard it.`
+      : ""
+    const ai = await chatJSON({
+      system: SYSTEM_PROMPT,
+      user: `Sound description: ${description.data}.${fileContext}`,
+      schema: extractionSchema,
+      schemaName: "sound_recipe",
+      workload: "classify",
+    })
 
     if (ai) {
       const result: ExtractedSound = {
         id: `extract-${Date.now()}`,
-        title: `Extracted ${ai.instrument}: ${description.slice(0, 30)}`,
+        title: `${ai.instrument}: ${description.data.slice(0, 30)}`,
         instrument: ai.instrument,
         bpm: ai.bpm,
         key: ai.key,
         duration: ai.duration,
         confidence: ai.confidence,
-        description: ai.analysis + (audioFile ? ` Source: ${audioFile.name}` : " No audio provided — generated from description."),
+        description: ai.analysis,
       }
+      await finalizeUsage(usageEventId, "completed", { operation: "sound_recipe" })
       return NextResponse.json({ result })
     }
 
-    return NextResponse.json({ result: mockExtract(description, audioFile) })
-  } catch {
-    return NextResponse.json({ result: mockExtract(description, audioFile) })
+    if (isDemoMode()) {
+      await finalizeUsage(usageEventId, "completed", { operation: "sound_recipe", mode: "demo" })
+      return NextResponse.json({ result: demoExtract(description.data), mode: "demo" })
+    }
+
+    await finalizeUsage(usageEventId, "failed", { operation: "sound_recipe", reason: "not_configured" })
+    return NextResponse.json({ error: "AI sound analysis is not configured." }, { status: 503 })
+  } catch (error) {
+    await finalizeUsage(usageEventId, "failed", { operation: "sound_recipe" })
+    console.error("[AI Extract] Failed:", error)
+    return NextResponse.json({ error: "Failed to analyze sound description." }, { status: 502 })
   }
 }

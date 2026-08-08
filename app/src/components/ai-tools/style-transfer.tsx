@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Palette, Image as ImageIcon, Sparkles, RefreshCcw } from "lucide-react"
+import { Palette, Sparkles, RefreshCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"

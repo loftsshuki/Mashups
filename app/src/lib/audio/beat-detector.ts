@@ -84,13 +84,8 @@ async function detectBPM(audioBuffer: AudioBuffer): Promise<BeatAnalysis> {
   // Parameters
   const bufferSize = 512
   const hopSize = 256
-  const minBPM = 60
-  const maxBPM = 200
-  
   // Calculate onset detection function (spectral flux simplified)
   const onsetValues: number[] = []
-  const prevMagnitudes: number[] = new Array(bufferSize / 2).fill(0)
-  
   for (let i = 0; i < channelData.length - bufferSize; i += hopSize) {
     // Simple energy-based onset detection
     let energy = 0

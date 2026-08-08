@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import NextImage from "next/image"
 import {
   TrendingUp,
   Music2,
@@ -11,15 +12,14 @@ import {
   Hash,
   Play,
   Plus,
-  ExternalLink,
-  Filter
+  ExternalLink
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   TrendingSound,
   MOCK_TRENDING_SOUNDS,
@@ -163,7 +163,10 @@ export function TrendingSidebarEnhanced({
                     {/* Thumbnail */}
                     <div className="relative h-12 w-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
                       {sound.thumbnailUrl ? (
-                        <img
+                        <NextImage
+                          unoptimized
+                          width={48}
+                          height={48}
                           src={sound.thumbnailUrl}
                           alt={sound.title}
                           className="h-full w-full object-cover"
