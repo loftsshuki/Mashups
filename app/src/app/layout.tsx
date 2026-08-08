@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Suspense } from "react"
 import { Archivo_Black, IBM_Plex_Mono, Space_Grotesk } from "next/font/google"
 
@@ -11,6 +11,7 @@ import { PostHogPageView, PostHogProvider } from "@/lib/analytics/posthog"
 import { DemoBanner } from "@/components/demo/demo-banner"
 import { WebVitals } from "@/components/observability/web-vitals"
 import { AudioProvider } from "@/lib/audio/audio-context"
+import { PwaBoot } from "@/components/pwa/pwa-boot"
 import "./globals.css"
 
 const display = Archivo_Black({
@@ -56,6 +57,8 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#ff4f1f" }
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
@@ -83,6 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   <Header />
                   <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
                   <Footer />
+                  <PwaBoot />
                   <NowPlayingBar />
                 </div>
               </TooltipProvider>

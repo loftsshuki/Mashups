@@ -19,7 +19,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
     "@types/tmi.js": "^1.8.6",
-    "@vercel/blob": "^2.2.0",
+    "@vercel/blob": "^2.7.0",
     "@wavesurfer/react": "^1.0.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
