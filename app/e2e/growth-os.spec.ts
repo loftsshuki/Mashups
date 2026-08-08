@@ -33,12 +33,13 @@ test("Growth OS evaluates evidence and exposes all fourteen systems", async ({ p
   await page.screenshot({ path: testInfo.outputPath("growth-os.png"), fullPage: true })
 })
 
-test("rightsholder can seal a campaign-ready track submission", async ({ page }) => {
+test("rightsholder demo explains the private fail-closed intake", async ({ page }) => {
   await page.goto("/supply?demo=1")
   await expect(page.getByRole("heading", { level: 1 })).toContainText("MUSIC IN")
-  await page.getByLabel("Track title").fill("Playwright Pressure")
-  await page.getByRole("button", { name: /Seal rights submission/i }).click()
-  await expect(page.getByRole("status")).toContainText("Launch readiness")
+  await expect(page.getByRole("button", { name: /Preview submission flow/i })).toBeVisible()
+  await expect(page.getByText(/Uploaded directly to a private store/i)).toBeVisible()
+  await expect(page.getByText(/No standalone MP3\/WAV or stem export is granted/i)).toBeVisible()
+  await expect(page.getByLabel(/Public preview URL/i)).toHaveCount(0)
 })
 
 test("invited creator can stake a sealed pre-release call", async ({ page }) => {
