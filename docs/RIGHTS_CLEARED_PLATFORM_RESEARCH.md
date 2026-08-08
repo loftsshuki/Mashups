@@ -15,6 +15,8 @@ The thesis under evaluation:
 
 ---
 
+> **Corrections & companion note (added 2026-08-08, second research round).** An independent fact-check pass (see `docs/RIGHTS_CLEARED_DECISION_REPORT.md`, §5) corrected three details in this report: (1) Dubset's Spotify agreement was first announced **May 2016** (PR Newswire primary), not 2018 — the integration never scaled regardless; (2) Hook's catalog figures need definitions — its current App Store listing claims **~1M in-app songs from ~18K artists**, while the Feb 2026 press "20M+ songs / 1,200+ artists" describes its contractual distributor pipeline and featured artist partners respectively; (3) Hook's own listing confirms genuine two-song mashups ("Blend two tracks into one") with watermarked clip export. The companion decision report also supersedes this document's strategic conclusions where they differ — notably, subsequent consumer-demand evidence (Hook's ~hundred-rating US footprint; MashApp's ~50K-download silence) weighs against the market-validation optimism in §1 and tightens the recommendation from "conditionally feasible" to a gated 90-day experiment.
+
 ## 0. Required disclosures
 
 ### 0.1 Research completion date
