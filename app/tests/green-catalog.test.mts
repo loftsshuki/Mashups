@@ -15,7 +15,9 @@ test("every public prototype source is green, sample-free, and narrowly scoped",
     assert.equal(track.rights.status, "green")
     assert.equal(track.rights.sourceType, "mashups-original")
     assert.equal(track.rights.samples, "none")
-    assert.deepEqual(track.rights.allowed, ["create", "share", "personal-export"])
+    assert.deepEqual(track.rights.allowed, ["create", "share"])
+    assert.equal(track.rights.shortVideoExport, true)
+    assert.equal(track.rights.standaloneAudioExport, false)
     assert.equal(track.rights.paidMedia, false)
     assert.match(track.rights.passportId, /^MASH-GREEN-\d{4}$/)
   }

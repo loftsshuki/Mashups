@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 
 import { greenIntakeSchema } from "@/lib/green-room/schemas"
 import { makeGreenSlug } from "@/lib/green-room/service"
+import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -12,11 +13,14 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Authentication is required." }, { status: 401 })
+  const rate = await consumeRateLimit({ key: resolveRateLimitKey(request, "green.intake", user.id), limit: 4, windowMs: 60_000 })
+  if (!rate.allowed) return NextResponse.json({ error: "Submission limit exceeded." }, { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } })
   const input = parsed.data
   if (!input.masterAssetPathname.startsWith(`green-room/${user.id}/masters/`)) return NextResponse.json({ error: "Master upload ownership is invalid." }, { status: 403 })
   const assetUrl = new URL(input.masterAssetUrl)
   const assetHost = assetUrl.hostname
-  if (!assetHost.endsWith(".blob.vercel-storage.com")) return NextResponse.json({ error: "Master must use private Green Room storage." }, { status: 400 })
+  if (assetUrl.protocol !== "https:" || assetUrl.username || assetUrl.password || assetUrl.port || !assetHost.endsWith(".blob.vercel-storage.com")) return NextResponse.json({ error: "Master must use private Green Room storage." }, { status: 400 })
+  if (input.masterAssetPathname.includes("..") || input.masterAssetPathname.includes("\\")) return NextResponse.json({ error: "Master pathname is invalid." }, { status: 400 })
   if (decodeURIComponent(assetUrl.pathname).replace(/^\//, "") !== input.masterAssetPathname) return NextResponse.json({ error: "Master URL and private pathname do not match." }, { status: 400 })
   const admin = createAdminClient()
   if (!admin) return NextResponse.json({ error: "Green Room storage is unavailable." }, { status: 503 })

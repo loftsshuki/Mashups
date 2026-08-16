@@ -61,6 +61,9 @@ export async function consumeRateLimit(input: {
   limit: number
   windowMs: number
 }): Promise<RateLimitResult> {
+  if (process.env.E2E_TEST_MODE === "1" && process.env.VERCEL !== "1") {
+    return consumeLocalRateLimit(input)
+  }
   const admin = createAdminClient()
   if (!admin) {
     if (!isProduction()) return consumeLocalRateLimit(input)

@@ -10,7 +10,7 @@ export const greenIntakeSchema = z.object({
   isrc: z.string().trim().max(20).optional(),
   masterAssetUrl: z.url(),
   masterAssetPathname: z.string().startsWith("green-room/").max(500),
-  masterAssetContentType: z.string().startsWith("audio/").max(100),
+  masterAssetContentType: z.enum(["audio/mpeg", "audio/wav", "audio/flac", "audio/mp4", "audio/ogg", "audio/x-m4a", "audio/aac"]),
   masterAssetByteSize: z.number().int().positive().max(250 * 1024 * 1024),
   masterController: z.string().trim().min(2).max(160),
   compositionController: z.string().trim().min(2).max(160),

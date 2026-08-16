@@ -2,13 +2,14 @@ import "server-only"
 
 import { createHash, randomUUID } from "node:crypto"
 
-import { GREEN_CATALOG } from "@/lib/catalog/green-catalog"
+import { GREEN_CATALOG, validateGreenCatalogBinding } from "@/lib/catalog/green-catalog"
+import { verifyGreenCatalog } from "@/lib/catalog/signed-catalog"
 import { createAdminClient } from "@/lib/supabase/admin"
-import type { GreenCatalogSummary, GreenPilotMetrics } from "./types"
+import type { GreenCatalogSummary, GreenCatalogVerification, GreenPilotMetrics } from "./types"
 
 type Row = Record<string, unknown>
 
-export async function getPublicGreenCatalog(): Promise<{ mode: "live" | "prototype"; tracks: GreenCatalogSummary[] }> {
+export async function getPublicGreenCatalog(): Promise<{ mode: "live" | "prototype"; tracks: GreenCatalogSummary[]; verification: GreenCatalogVerification | null }> {
   const admin = createAdminClient()
   if (admin) {
     const { data, error } = await admin
@@ -18,12 +19,17 @@ export async function getPublicGreenCatalog(): Promise<{ mode: "live" | "prototy
       .eq("rights_status", "verified")
       .eq("quality_status", "passed")
       .order("published_at", { ascending: false })
-    if (!error && data?.length) return { mode: "live", tracks: data.map(mapCatalogTrack) }
+    if (!error && data?.length) return { mode: "live", tracks: data.map(mapCatalogTrack), verification: null }
   }
 
+  const signature = verifyGreenCatalog()
+  const binding = validateGreenCatalogBinding()
+  const verified = signature.verified && binding.valid
+  const verification = verified ? signature : { ...signature, verified: false, reason: [signature.reason, ...binding.reasons].filter(Boolean).join(" ") }
   return {
     mode: "prototype",
-    tracks: GREEN_CATALOG.map((track) => ({
+    verification,
+    tracks: verified ? GREEN_CATALOG.map((track) => ({
       id: track.id,
       slug: track.id,
       artistName: track.artist,
@@ -36,7 +42,7 @@ export async function getPublicGreenCatalog(): Promise<{ mode: "live" | "prototy
       sourceType: "mashups_original",
       publicPreviewUrl: null,
       rightsPassportId: track.rights.passportId,
-    })),
+    })) : [],
   }
 }
 

@@ -1,0 +1,19 @@
+field,required,example,review_status
+track_title,yes,Midnight Signal,pending
+artist_name,yes,Nia Vale,pending
+isrc,no,USABC2600001,pending
+master_controller,yes,Nia Vale LLC,pending
+composition_controller,yes,Nia Vale Publishing,pending
+master_control_100_percent,yes,true,pending
+composition_control_100_percent,yes,true,pending
+sample_status,yes,sample_free,pending
+featured_performers_disclosed,yes,true,pending
+stem_extraction_allowed,yes,true,pending
+cross_track_derivatives_allowed,yes,true,pending
+in_app_playback_allowed,yes,true,pending
+watermarked_video_15_allowed,yes,true,pending
+watermarked_video_30_allowed,yes,true,pending
+standalone_audio_export_allowed,yes,false,pending
+paid_media_allowed,yes,false,pending
+territories,yes,worldwide,pending
+term_end,no,2026-12-31,pending

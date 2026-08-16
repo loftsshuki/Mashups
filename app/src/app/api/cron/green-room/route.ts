@@ -15,6 +15,9 @@ export async function GET(request: Request) {
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://www.mashups.agency").replace(/\/$/, "")
   const accepted: string[] = []
   for (const job of jobs ?? []) {
+    const claimedAt = new Date().toISOString()
+    const { data: claimed } = await admin.from("green_processing_jobs").update({ status: "running", started_at: claimedAt, attempt_count: job.attempt_count + 1, updated_at: claimedAt }).eq("id", job.id).eq("status", "queued").select("id").maybeSingle()
+    if (!claimed) continue
     const expires = Date.now() + 10 * 60_000
     const sig = signGreenAsset(job.id, expires, processorSecret)
     const assetUrl = `${baseUrl}/api/green/assets/${job.id}?expires=${expires}&sig=${sig}`
@@ -22,9 +25,8 @@ export async function GET(request: Request) {
     const response = await fetch(processorUrl, { method: "POST", headers: { "Authorization": `Bearer ${processorSecret}`, "Content-Type": "application/json" }, body: JSON.stringify({ jobId: job.id, trackId: job.track_id, jobType: job.job_type, assetUrl, callbackUrl }) }).catch(() => null)
     if (response?.ok) {
       accepted.push(job.id)
-      await admin.from("green_processing_jobs").update({ status: "running", started_at: new Date().toISOString(), attempt_count: job.attempt_count + 1, updated_at: new Date().toISOString() }).eq("id", job.id).eq("status", "queued")
     } else {
-      await admin.from("green_processing_jobs").update({ error_code: "HANDOFF_FAILED", error_message: `Processor handoff returned ${response?.status ?? "network failure"}.`, available_at: new Date(Date.now() + 5 * 60_000).toISOString(), updated_at: new Date().toISOString() }).eq("id", job.id)
+      await admin.from("green_processing_jobs").update({ status: "queued", started_at: null, error_code: "HANDOFF_FAILED", error_message: `Processor handoff returned ${response?.status ?? "network failure"}.`, available_at: new Date(Date.now() + 5 * 60_000).toISOString(), updated_at: new Date().toISOString() }).eq("id", job.id).eq("status", "running")
     }
   }
   return NextResponse.json({ ok: true, queued: jobs?.length ?? 0, accepted: accepted.length })

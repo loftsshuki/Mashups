@@ -10,3 +10,14 @@ export function verifyGreenAssetSignature(jobId: string, expires: number, signat
   if (signature.length !== expected.length) return false
   return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
 }
+
+export function signGreenProcessorCallback(timestamp: number, body: string, secret: string) {
+  return createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex")
+}
+
+export function verifyGreenProcessorCallback(timestamp: number, body: string, signature: string, secret: string) {
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 5 * 60_000) return false
+  const expected = signGreenProcessorCallback(timestamp, body, secret)
+  if (signature.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+}

@@ -7,8 +7,13 @@ The endpoint receives expiring asset and callback URLs from Mashups. It never
 stores source audio after the job and never claims to perform rights clearance.
 """
 
+import hashlib
+import hmac
+import json
 import os
+import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import modal
@@ -91,24 +96,58 @@ async def process(request: Request):
 def _download(url: str, destination: Path) -> None:
     import requests
 
+    max_bytes = 250 * 1024 * 1024
     with requests.get(url, stream=True, timeout=(10, 180)) as response:
         response.raise_for_status()
+        content_type = response.headers.get("content-type", "").split(";", 1)[0].lower()
+        if content_type and not (content_type.startswith("audio/") or content_type == "application/octet-stream"):
+            raise ValueError("Private asset did not return an audio content type")
+        content_length = int(response.headers.get("content-length", "0") or 0)
+        if content_length > max_bytes:
+            raise ValueError("Source exceeds the 250 MB pilot limit")
+        downloaded = 0
         with destination.open("wb") as output:
             for chunk in response.iter_content(chunk_size=1024 * 1024):
                 if chunk:
+                    downloaded += len(chunk)
+                    if downloaded > max_bytes:
+                        raise ValueError("Source exceeds the 250 MB pilot limit")
                     output.write(chunk)
+    _probe_audio(destination)
 
 
 def _callback(url: str, secret: str, payload: dict) -> None:
     import requests
 
+    body = json.dumps(payload, separators=(",", ":"))
+    timestamp = str(int(time.time() * 1000))
+    signature = hmac.new(secret.encode(), f"{timestamp}.{body}".encode(), hashlib.sha256).hexdigest()
     response = requests.post(
         url,
-        json=payload,
-        headers={"Authorization": f"Bearer {secret}"},
+        data=body,
+        headers={"Authorization": f"Bearer {secret}", "Content-Type": "application/json", "X-Green-Timestamp": timestamp, "X-Green-Signature": signature},
         timeout=(10, 60),
     )
     response.raise_for_status()
+
+
+def _probe_audio(source_path: Path) -> None:
+    completed = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_type,sample_rate:format=duration", "-of", "json", str(source_path)],
+        capture_output=True,
+        check=True,
+        text=True,
+        timeout=30,
+    )
+    probe = json.loads(completed.stdout)
+    streams = probe.get("streams") or []
+    if not streams or streams[0].get("codec_type") != "audio":
+        raise ValueError("Source does not contain a decodable audio stream")
+    duration = float((probe.get("format") or {}).get("duration") or 0)
+    if duration < 8:
+        raise ValueError("Source must contain at least eight seconds of audio")
+    if duration > 1_200:
+        raise ValueError("Source exceeds the 20 minute pilot duration limit")
 
 
 def _analyze(source_path: Path) -> dict:

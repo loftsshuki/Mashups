@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { assessGreenAudio } from "@/lib/green-room/quality"
+import { verifyGreenProcessorCallback } from "@/lib/green-room/processor-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const schema = z.object({
@@ -15,12 +16,18 @@ const schema = z.object({
 export async function POST(request: Request) {
   const secret = process.env.GREEN_ROOM_PROCESSOR_SECRET
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
-  const parsed = schema.safeParse(await request.json().catch(() => null))
+  const rawBody = await request.text()
+  const timestamp = Number(request.headers.get("x-green-timestamp"))
+  const signature = request.headers.get("x-green-signature") ?? ""
+  if (!verifyGreenProcessorCallback(timestamp, rawBody, signature, secret)) return NextResponse.json({ error: "Invalid or expired processor signature." }, { status: 401 })
+  const parsed = schema.safeParse(safeJson(rawBody))
   if (!parsed.success) return NextResponse.json({ error: "Invalid processor callback." }, { status: 400 })
   const admin = createAdminClient()
   if (!admin) return NextResponse.json({ error: "Storage unavailable." }, { status: 503 })
-  const { data: job } = await admin.from("green_processing_jobs").select("track_id,job_type").eq("id", parsed.data.jobId).maybeSingle()
+  const { data: job } = await admin.from("green_processing_jobs").select("track_id,job_type,status").eq("id", parsed.data.jobId).maybeSingle()
   if (!job) return NextResponse.json({ error: "Job not found." }, { status: 404 })
+  if (["succeeded", "failed"].includes(job.status)) return NextResponse.json({ ok: true, duplicate: true })
+  if (job.status !== "running") return NextResponse.json({ error: "Job is not active." }, { status: 409 })
   const now = new Date().toISOString()
   if (parsed.data.status === "failed") {
     await Promise.all([
@@ -40,4 +47,8 @@ export async function POST(request: Request) {
   }
   await admin.from("green_processing_jobs").update({ status: "succeeded", output: parsed.data.analysis ?? {}, completed_at: now, updated_at: now }).eq("id", parsed.data.jobId)
   return NextResponse.json({ ok: true })
+}
+
+function safeJson(value: string) {
+  try { return JSON.parse(value) as unknown } catch { return null }
 }

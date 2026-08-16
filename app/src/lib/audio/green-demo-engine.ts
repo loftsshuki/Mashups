@@ -1,13 +1,24 @@
-import type { GreenCatalogTrack } from "@/lib/catalog/green-catalog"
+import type { GreenArrangementId } from "@mashups/contracts"
 
-export type GreenMashupStyle = "clean-blend" | "drop-switch" | "back-to-back"
+import { buildGreenArrangementPlans, type GreenArrangementPlan } from "@/lib/audio/green-arrangements"
+import { assessGreenPair, type GreenCatalogTrack } from "@/lib/catalog/green-catalog"
+
+export type GreenMashupStyle = GreenArrangementId
 
 export type GreenMashupRender = {
   style: GreenMashupStyle
   title: string
   description: string
   audioUrl: string
+  audioBlob: Blob
   duration: number
+  qualityScore: number
+  plan: GreenArrangementPlan
+  metrics: {
+    peakDb: number
+    rmsDb: number
+    clippedSamples: number
+  }
 }
 
 type StereoPcm = {
@@ -217,6 +228,33 @@ function addRiser(pcm: StereoPcm, at: number, duration: number, seed: number) {
   }
 }
 
+function addImpact(pcm: StereoPcm, at: number, level: number, seed: number) {
+  addKick(pcm, at, level)
+  const noise = seededNoise(seed)
+  const length = Math.floor(pcm.sampleRate * 0.7)
+  const start = Math.floor(at * pcm.sampleRate)
+  let lowpass = 0
+  for (let index = 0; index < length; index += 1) {
+    lowpass += 0.08 * (noise() - lowpass)
+    const envelope = Math.exp(-(index / pcm.sampleRate) * 5.5)
+    addStereo(pcm, start + index, lowpass * envelope * 0.2 * level)
+  }
+}
+
+function applySidechainDucking(pcm: StereoPcm, bpm: number, duckDb: number) {
+  const beatSamples = (60 / bpm) * pcm.sampleRate
+  const minimumGain = 10 ** (duckDb / 20)
+  const recoverySamples = Math.max(1, Math.floor(pcm.sampleRate * 0.16))
+  for (let sample = 0; sample < pcm.left.length; sample += 1) {
+    const beatPosition = sample % beatSamples
+    if (beatPosition >= recoverySamples) continue
+    const progress = beatPosition / recoverySamples
+    const gain = minimumGain + (1 - minimumGain) * progress ** 0.55
+    pcm.left[sample] *= gain
+    pcm.right[sample] *= gain
+  }
+}
+
 function masterPcm(pcm: StereoPcm, intensity: number) {
   let peak = 0
   for (let index = 0; index < pcm.left.length; index += 1) {
@@ -236,7 +274,7 @@ function writeString(view: DataView, offset: number, value: string) {
   for (let index = 0; index < value.length; index += 1) view.setUint8(offset + index, value.charCodeAt(index))
 }
 
-function pcmToWavUrl(pcm: StereoPcm) {
+function pcmToWavBlob(pcm: StereoPcm) {
   const bytesPerSample = 2
   const channels = 2
   const dataLength = pcm.left.length * channels * bytesPerSample
@@ -262,7 +300,26 @@ function pcmToWavUrl(pcm: StereoPcm) {
     view.setInt16(offset + 2, Math.max(-1, Math.min(1, pcm.right[index])) * 0x7fff, true)
     offset += 4
   }
-  return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }))
+  return new Blob([buffer], { type: "audio/wav" })
+}
+
+function measurePcm(pcm: StereoPcm) {
+  let peak = 0
+  let sumSquares = 0
+  let clippedSamples = 0
+  for (let index = 0; index < pcm.left.length; index += 1) {
+    const left = pcm.left[index]
+    const right = pcm.right[index]
+    peak = Math.max(peak, Math.abs(left), Math.abs(right))
+    sumSquares += left * left + right * right
+    if (Math.abs(left) >= 0.999 || Math.abs(right) >= 0.999) clippedSamples += 1
+  }
+  const rms = Math.sqrt(sumSquares / Math.max(1, pcm.left.length * 2))
+  return {
+    peakDb: Math.round(20 * Math.log10(Math.max(peak, 1e-9)) * 100) / 100,
+    rmsDb: Math.round(20 * Math.log10(Math.max(rms, 1e-9)) * 100) / 100,
+    clippedSamples,
+  }
 }
 
 export async function renderGreenTrackPreview(track: GreenCatalogTrack) {
@@ -270,7 +327,8 @@ export async function renderGreenTrackPreview(track: GreenCatalogTrack) {
   const pcm = createPcm(duration)
   scheduleTrack(pcm, track, 0, duration, { groove: true, chords: true, lead: true, level: 0.92 })
   masterPcm(pcm, track.energy)
-  return { audioUrl: pcmToWavUrl(pcm), duration }
+  const audioBlob = pcmToWavBlob(pcm)
+  return { audioUrl: URL.createObjectURL(audioBlob), audioBlob, duration }
 }
 
 export async function renderGreenMashup(
@@ -278,36 +336,34 @@ export async function renderGreenMashup(
   right: GreenCatalogTrack,
   style: GreenMashupStyle,
   intensity: number,
-  vocalSource: "left" | "right",
 ): Promise<GreenMashupRender> {
-  const targetBpm = right.bpm
+  const assessment = assessGreenPair(left, right)
+  if (!assessment.compatible) throw new Error(assessment.summary)
+  const plan = buildGreenArrangementPlans(left, right, assessment).find((candidate) => candidate.id === style)
+  if (!plan) throw new Error(`Unknown Green Room arrangement: ${style}`)
+  const targetBpm = plan.targetBpm
   const bar = (60 / targetBpm) * 4
-  const duration = bar * 6
+  const duration = bar * plan.totalBars
   const pcm = createPcm(duration)
-  const lead = vocalSource === "left" ? left : right
-  const title = style === "clean-blend" ? "Clean Blend" : style === "drop-switch" ? "Drop Switch" : "Back to Back"
-  const description = style === "clean-blend"
-    ? `${lead.title}'s topline rides ${right.title}'s groove from the first downbeat.`
-    : style === "drop-switch"
-      ? `${left.title} builds for two bars, then ${right.title} takes the room.`
-      : "The sources trade two-bar phrases before they meet in the final section."
 
-  if (style === "clean-blend") {
-    scheduleTrack(pcm, right, 0, duration, { groove: true, chords: true, level: 0.95 }, targetBpm)
-    scheduleTrack(pcm, lead, 0, duration, { lead: true, level: 1.05 }, targetBpm)
-  } else if (style === "drop-switch") {
-    const switchAt = bar * 2
-    scheduleTrack(pcm, left, 0, switchAt, { groove: true, chords: true, lead: true, level: 0.72 }, targetBpm)
-    addRiser(pcm, switchAt - bar, bar, 7_201)
-    scheduleTrack(pcm, right, switchAt, duration - switchAt, { groove: true, chords: true, level: 1.04 }, targetBpm)
-    scheduleTrack(pcm, lead, switchAt, duration - switchAt, { lead: true, level: 1.08 }, targetBpm)
-  } else {
-    scheduleTrack(pcm, left, 0, bar * 2, { groove: true, chords: true, lead: true, level: 0.88 }, targetBpm)
-    scheduleTrack(pcm, right, bar * 2, bar * 2, { groove: true, chords: true, lead: true, level: 0.88 }, targetBpm)
-    scheduleTrack(pcm, right, bar * 4, bar * 2, { groove: true, chords: true, level: 0.92 }, targetBpm)
-    scheduleTrack(pcm, lead, bar * 4, bar * 2, { lead: true, level: 1.12 }, targetBpm)
+  for (const [segmentIndex, segment] of plan.segments.entries()) {
+    const start = segment.startBar * bar
+    const segmentDuration = segment.bars * bar
+    const sectionLevel = segment.name === "drop" ? 1.04 : segment.name === "verse" ? 0.88 : segment.name === "outro" ? 0.66 : 0.76
+    const source = (side: "a" | "b" | null) => side === "a" ? left : side === "b" ? right : null
+    const groove = source(segment.grooveSource)
+    const harmony = source(segment.harmonySource)
+    const topline = source(segment.toplineSource)
+    if (groove) scheduleTrack(pcm, groove, start, segmentDuration, { groove: true, level: sectionLevel }, targetBpm)
+    if (harmony) scheduleTrack(pcm, harmony, start, segmentDuration, { chords: true, level: topline ? sectionLevel * 0.72 : sectionLevel * 0.9 }, targetBpm)
+    if (topline) scheduleTrack(pcm, topline, start, segmentDuration, { lead: true, level: sectionLevel * 1.08 }, targetBpm)
+    if (segment.transition === "riser") addRiser(pcm, start, segmentDuration, 7_201 + segmentIndex * 101)
+    if (segment.transition === "impact") addImpact(pcm, start, 1, 8_413 + segmentIndex * 97)
   }
 
+  applySidechainDucking(pcm, targetBpm, plan.sidechainDuckDb)
   masterPcm(pcm, intensity)
-  return { style, title, description, audioUrl: pcmToWavUrl(pcm), duration }
+  const metrics = measurePcm(pcm)
+  const audioBlob = pcmToWavBlob(pcm)
+  return { style, title: plan.title, description: plan.description, audioUrl: URL.createObjectURL(audioBlob), audioBlob, duration, qualityScore: plan.qualityScore, plan, metrics }
 }

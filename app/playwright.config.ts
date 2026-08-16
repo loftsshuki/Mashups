@@ -8,6 +8,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "line",
   use: {
     baseURL: externalBaseURL ?? `http://127.0.0.1:${port}`,
@@ -29,6 +30,7 @@ export default defineConfig({
       NEXT_PUBLIC_APP_URL: `http://127.0.0.1:${port}`,
       NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder",
+      E2E_TEST_MODE: "1",
     },
   },
 })
