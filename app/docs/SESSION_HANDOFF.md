@@ -4,24 +4,36 @@
 
 - Repo: `C:\Dev\Mashups`
 - App: `C:\Dev\Mashups\app`
-- Branch: `claude/mashups-dev`
+- Branch: run `git branch --show-current`; continue on the active feature branch
 - Production domain: `https://mashups.agency`
 - Baseline commit: run `git log -1 --oneline`
 
 ## Product Direction
 
-Mashups is a consumer creation product first. The active public loop is:
+The September 12, 2026 decision and current build order are in
+[PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md). That plan is authoritative for
+scope and sequencing; release descriptions below record prior implementation.
+
+Mashups serves people who create, listen to, discover, and share mashups. Emerging
+artist discovery is one use case, alongside recreational creation, DJ/creator
+workflows, and new-release or catalog promotion. The shared creation loop is:
 
 `two green tracks -> three arrangements -> keep one -> publish -> fork`
 
 Primary navigation is Create, Discover, Challenges, Remix Trees, and Crates. The
-rights, campaign, attribution, growth, and operator systems remain implemented as
-infrastructure and a later `Mashups for Artists` product. They must not dictate the
-consumer homepage or primary navigation.
+rights, campaign, attribution, growth, and operator systems support the shared
+platform and optional artist/label offers. They must not dictate the consumer
+homepage or primary navigation.
 
-`app/docs/PRODUCT_RESET_GREEN_ROOM.md` is authoritative for public product direction
-and feature sequence. `app/docs/PRODUCT_EXECUTION_PLAN.md` remains authoritative for
-rights, security, campaign, settlement, and partner infrastructure.
+Keep two approved catalog songs as a general creation path; reviewed original
+uploads are an additional option. Artist profiles extend general user profiles.
+Web, iOS, and Android are in the first release programme. Native apps no longer
+wait for a 1,000-user gate; they share the backend and product contracts.
+
+`app/docs/PRODUCT_RESET_GREEN_ROOM.md` records public product principles.
+`app/docs/PRODUCT_EXECUTION_PLAN.md` remains the reference for rights, security,
+campaign, settlement, and partner infrastructure where consistent with the current
+platform plan.
 
 ## Green Room Reset Shipped
 
@@ -171,13 +183,17 @@ The electronic-music entry and label-acquisition package is documented in:
 ## Next Session Prompt
 
 ```md
-Start in C:\Dev\Mashups on branch claude/mashups-dev.
-Read app/docs/SESSION_HANDOFF.md and app/docs/PRODUCT_RESET_GREEN_ROOM.md first.
+Start in C:\Dev\Mashups and inspect git status and the active feature branch.
+Read app/docs/PLATFORM_BUILD_PLAN.md and app/docs/SESSION_HANDOFF.md first.
 Verify migration 019 and production environment variables before changing live billing or AI routes.
-Continue the green creator loop, not broad feature count: two tracks -> three arrangements -> keep -> publish -> fork.
+Start with the platform plan's foundation sprint and complete the shared journey:
+two approved tracks -> three arrangements -> keep -> save -> publish -> listen -> fork.
+Keep general catalog creation and add reviewed originals as another source option.
+Include iOS and Android alongside web as shared API contracts become ready.
 Do not reintroduce arbitrary commercial uploads, Spotify/YouTube audio ingestion, or
 campaign language into the consumer path. Keep the public catalog green-only.
-Implement directly, run npm run check, commit only in-scope files, and push origin/claude/mashups-dev.
+Run npm run check for implementation changes, commit only in-scope files, and
+push the current feature branch.
 ```
 # Pilot Operations Release
 

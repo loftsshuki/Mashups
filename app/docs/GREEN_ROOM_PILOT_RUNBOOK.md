@@ -1,5 +1,9 @@
 # Green Room Pilot Runbook
 
+This is the operating reference for a controlled catalog/artist pilot. Product
+scope and build order follow [PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md).
+This cohort is one test of the broader consumer platform.
+
 ## Infrastructure Gate
 
 - Apply `supabase/migrations/024_green_room_pilot.sql` to a production Supabase project.
@@ -19,9 +23,11 @@
 7. Obtain two independent blind `keep` reviews before publication.
 8. Publish and confirm the track appears in `/api/green/catalog` only after every gate passes.
 
-## Pilot Gates
+## Pilot Measurement Targets
 
-Progress to boutique-label outreach only when:
+The original pilot proposed the following targets. Treat them as hypotheses to
+evaluate with explicit cohort definitions and adequate samples; they do not gate
+native development or exploratory partner conversations:
 
 - Day-30 retention is at least 15%.
 - Render completion is at least 60%.
@@ -30,4 +36,7 @@ Progress to boutique-label outreach only when:
 - Rights claim or social muting rate is below 5% for controlled exports.
 - At least 15 of 100 qualified one-stop artists accept the pilot terms.
 
-Pivot to a B2B artist campaign/remix layer if Day-30 retention is below 10%. Do not pursue major-label advances before the consumer loop and controlled exports are proven.
+Weak retention should trigger diagnosis by audience and acquisition source.
+An artist pilot alone does not determine a pivot of the whole app. Validate
+commercial commitments against actual product performance, catalog permissions,
+and operating costs.
