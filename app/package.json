@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "benchmark:audio": "tsx scripts/generate-audio-benchmark.ts",
+    "benchmark:listening": "tsx scripts/audio-listening-bench.ts",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",

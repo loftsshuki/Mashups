@@ -17,15 +17,19 @@ test.afterEach(async ({ page }) => {
   expect(browserErrors.get(page) ?? []).toEqual([])
 })
 
-test("@smoke quality lab exposes deterministic evidence and safe rejects", async ({ page }) => {
+test("@smoke quality lab identifies metadata checks and links to listening evidence", async ({ page }) => {
   await page.goto("/lab/audio")
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("GOOD IS")
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("CHECK THE")
+  await expect(page.getByText(/do not measure rendered audio quality/)).toBeVisible()
+  await expect(page.getByRole("link", { name: "Open listening bench" })).toHaveAttribute("href", "/reports/listening-bench/index.html")
   await expect(page.getByText("72", { exact: true })).toBeVisible()
   await expect(page.getByText("100%", { exact: true })).toBeVisible()
   await page.getByTestId("lab-filter-rejected").click()
   await page.locator('[data-testid^="lab-case-"]').first().click()
   await expect(page.getByText("Preflight rejected", { exact: true })).toBeVisible()
+  await page.getByRole("link", { name: "Open listening bench" }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Same loop. Different processing.")
 })
 
 test("@smoke signed Green Catalog and install metadata are public", async ({ request }) => {
