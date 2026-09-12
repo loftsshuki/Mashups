@@ -1,6 +1,8 @@
 # Mashups platform build plan
 
-Updated: September 12, 2026. Status: planned work; the milestones below are not shipped.
+Updated: September 12, 2026. Status: foundation fixes implemented on a feature
+branch; the milestones below are not complete. See
+[the foundation sprint](FOUNDATION_SPRINT.md) for verification and recovery steps.
 
 This document is authoritative for product scope and build order. It supersedes
 older instructions that postpone native apps until a user-count threshold or

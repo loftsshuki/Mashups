@@ -1,4 +1,4 @@
-export const GREEN_CONTRACT_VERSION = "2026-08-16" as const
+export const GREEN_CONTRACT_VERSION = "2026-09-12" as const
 
 export const GREEN_ARRANGEMENT_IDS = [
   "vocal-a-over-b",
@@ -28,6 +28,21 @@ export const GREEN_FUNNEL_EVENTS = [
 ] as const
 
 export type GreenFunnelEvent = (typeof GREEN_FUNNEL_EVENTS)[number]
+
+export type GreenEventInput = {
+  eventName: GreenFunnelEvent
+  eventId?: string
+  visitorId?: string
+  sessionId: string
+  projectId?: string | null
+  properties: Record<string, string | number | boolean | null>
+}
+
+export type GreenEventReceipt = {
+  accepted: boolean
+  persisted: boolean
+  reason?: "rate_limited" | "unavailable"
+}
 
 export type GreenRightsInput = {
   masterControlConfirmed: boolean
@@ -115,6 +130,7 @@ export type GreenCatalogVerification = {
 }
 
 export type GreenPilotMetrics = {
+  available: boolean
   sessions: number
   rendersStarted: number
   rendersCompleted: number
@@ -125,7 +141,7 @@ export type GreenPilotMetrics = {
   shareRate: number
   d30Eligible: number
   d30Retained: number
-  d30RetentionRate: number
+  d30RetentionRate: number | null
 }
 
 export type GreenCreateLinkInput = {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { isAdminUser } from "@/lib/auth/admin"
-import { assessGreenAudio, assessGreenRights, canPublishGreenTrack } from "@/lib/green-room/quality"
+import { assessGreenAudio } from "@/lib/green-room/quality"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -29,7 +29,7 @@ export async function GET() {
     ctx.admin.from("green_catalog_tracks").select("id,artist_name,track_title,genre,status,rights_status,quality_status,published_at,created_at").order("created_at", { ascending: false }).limit(100),
     ctx.admin.from("green_processing_jobs").select("id,track_id,job_type,status,provider,attempt_count,error_code,created_at").order("created_at", { ascending: false }).limit(100),
   ])
-  if (tracks.error || jobs.error) return NextResponse.json({ error: "Green Room migration 024 is not available." }, { status: 503 })
+  if (tracks.error || jobs.error) return NextResponse.json({ error: "The catalog database is unavailable." }, { status: 503 })
   return NextResponse.json({ tracks: tracks.data ?? [], jobs: jobs.data ?? [] })
 }
 
@@ -46,43 +46,29 @@ export async function POST(request: Request) {
   }
   if (input.action === "queue_processing") {
     const { error } = await ctx.admin.from("green_processing_jobs").insert([{ track_id: input.trackId, job_type: "fingerprint", provider: "pex" }, { track_id: input.trackId, job_type: "analyze", provider: "modal" }])
-    if (!error) await ctx.admin.from("green_catalog_tracks").update({ status: "processing", updated_at: new Date().toISOString() }).eq("id", input.trackId)
-    return NextResponse.json({ ok: !error }, { status: error ? 500 : 200 })
+    if (error) return NextResponse.json({ error: "Processing could not be queued." }, { status: 500 })
+    const updated = await ctx.admin.from("green_catalog_tracks").update({ status: "processing", updated_at: new Date().toISOString() }).eq("id", input.trackId)
+    return NextResponse.json({ ok: !updated.error }, { status: updated.error ? 500 : 200 })
   }
   if (input.action === "verify_rights") {
-    const { data: grant } = await ctx.admin.from("green_rights_grants").select("*").eq("track_id", input.trackId).maybeSingle()
-    if (!grant) return NextResponse.json({ error: "Rights grant not found." }, { status: 404 })
-    const result = assessGreenRights({ masterControlConfirmed: grant.master_control_confirmed, compositionControlConfirmed: grant.composition_control_confirmed, sampleStatus: grant.sample_status, stemExtractionAllowed: grant.stem_extraction_allowed, crossTrackDerivativesAllowed: grant.cross_track_derivatives_allowed, inAppPlaybackAllowed: grant.in_app_playback_allowed, shortVideoExportAllowed: grant.short_video_export_allowed, standaloneAudioExportAllowed: false, paidMediaAllowed: grant.paid_media_allowed, territories: grant.territories ?? [], endsAt: grant.ends_at })
-    if (!result.passed) return NextResponse.json({ error: result.reasons.join(" ") }, { status: 409 })
-    await Promise.all([
-      ctx.admin.from("green_rights_grants").update({ verified_by: ctx.user.id, verified_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("track_id", input.trackId),
-      ctx.admin.from("green_catalog_tracks").update({ rights_status: "verified", status: "processing", updated_at: new Date().toISOString() }).eq("id", input.trackId),
-    ])
-    return NextResponse.json({ ok: true, rights: result })
+    const { error } = await ctx.admin.rpc("verify_green_track_rights", { p_track_id: input.trackId, p_reviewer_id: ctx.user.id })
+    return approvalResponse(error)
   }
   if (input.action === "record_analysis") {
     const result = assessGreenAudio(input)
     const row = { track_id: input.trackId, bpm: input.bpm, musical_key: input.musicalKey, camelot_key: input.camelotKey, integrated_lufs: input.integratedLufs, true_peak_db: input.truePeakDb, vocal_bleed_db: input.vocalBleedDb, separation_sdr_db: input.separationSdrDb, phrase_confidence: input.phraseConfidence, sample_scan_status: input.sampleScanStatus, quality_reasons: result.reasons, analyzed_at: new Date().toISOString() }
     const { error } = await ctx.admin.from("green_track_analysis").upsert(row)
-    if (!error) await ctx.admin.from("green_catalog_tracks").update({ bpm: input.bpm, musical_key: input.musicalKey, camelot_key: input.camelotKey, quality_status: result.passed ? "passed" : "failed", status: result.passed ? "listening_review" : "quarantined", updated_at: new Date().toISOString() }).eq("id", input.trackId)
-    return NextResponse.json({ ok: !error, quality: result }, { status: error ? 500 : 200 })
+    if (error) return NextResponse.json({ error: "Analysis could not be saved." }, { status: 500 })
+    const updated = await ctx.admin.from("green_catalog_tracks").update({ bpm: input.bpm, musical_key: input.musicalKey, camelot_key: input.camelotKey, quality_status: result.passed ? "passed" : "failed", status: result.passed ? "listening_review" : "quarantined", updated_at: new Date().toISOString() }).eq("id", input.trackId)
+    return NextResponse.json({ ok: !updated.error, quality: result }, { status: updated.error ? 500 : 200 })
   }
 
-  const [{ data: track }, { data: grant }, { data: analysis }, projects] = await Promise.all([
-    ctx.admin.from("green_catalog_tracks").select("rights_status,quality_status").eq("id", input.trackId).maybeSingle(),
-    ctx.admin.from("green_rights_grants").select("*").eq("track_id", input.trackId).maybeSingle(),
-    ctx.admin.from("green_track_analysis").select("*").eq("track_id", input.trackId).maybeSingle(),
-    ctx.admin.from("green_projects").select("id").or(`left_track_id.eq.${input.trackId},right_track_id.eq.${input.trackId}`),
-  ])
-  if (!track || !grant || !analysis) return NextResponse.json({ error: "Rights and analysis must exist before publication." }, { status: 409 })
-  const projectIds = (projects.data ?? []).map((project) => project.id)
-  const { data: candidates } = projectIds.length ? await ctx.admin.from("green_render_candidates").select("id").in("project_id", projectIds) : { data: [] }
-  const candidateIds = (candidates ?? []).map((candidate) => candidate.id)
-  const { count: keeps } = candidateIds.length ? await ctx.admin.from("green_listening_reviews").select("id", { count: "exact", head: true }).in("candidate_id", candidateIds).eq("decision", "keep") : { count: 0 }
-  const rights = assessGreenRights({ masterControlConfirmed: grant.master_control_confirmed, compositionControlConfirmed: grant.composition_control_confirmed, sampleStatus: grant.sample_status, stemExtractionAllowed: grant.stem_extraction_allowed, crossTrackDerivativesAllowed: grant.cross_track_derivatives_allowed, inAppPlaybackAllowed: grant.in_app_playback_allowed, shortVideoExportAllowed: grant.short_video_export_allowed, standaloneAudioExportAllowed: false, paidMediaAllowed: grant.paid_media_allowed, territories: grant.territories ?? [], endsAt: grant.ends_at })
-  const audio = assessGreenAudio({ integratedLufs: Number(analysis.integrated_lufs), truePeakDb: Number(analysis.true_peak_db), vocalBleedDb: analysis.vocal_bleed_db == null ? null : Number(analysis.vocal_bleed_db), separationSdrDb: analysis.separation_sdr_db == null ? null : Number(analysis.separation_sdr_db), phraseConfidence: Number(analysis.phrase_confidence), sampleScanStatus: analysis.sample_scan_status })
-  if (!canPublishGreenTrack(rights, audio, keeps ?? 0)) return NextResponse.json({ error: "Publication gate requires verified rights, passing audio, and two independent keep reviews.", rights, audio, keeps: keeps ?? 0 }, { status: 409 })
-  const now = new Date().toISOString()
-  const { error } = await ctx.admin.from("green_catalog_tracks").update({ status: "green", rights_status: "verified", quality_status: "passed", published_at: now, updated_at: now }).eq("id", input.trackId)
-  return NextResponse.json({ ok: !error }, { status: error ? 500 : 200 })
+  const { error } = await ctx.admin.rpc("publish_green_track", { p_track_id: input.trackId })
+  return approvalResponse(error)
+}
+
+function approvalResponse(error: { code?: string; message: string } | null) {
+  if (!error) return NextResponse.json({ ok: true })
+  if (error.code === "P0001") return NextResponse.json({ error: error.message }, { status: 409 })
+  return NextResponse.json({ error: "Catalog approval is unavailable. Check the database and foundation migration." }, { status: 503 })
 }
