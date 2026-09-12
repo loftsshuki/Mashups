@@ -343,7 +343,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
           <div className="grid gap-3 lg:col-span-5">
             <div className="border border-foreground bg-card p-5"><p className="mono-label text-muted-foreground">Next chain</p><p className="mt-3 text-lg font-semibold">Publish the attributed project after sign-in.</p><p className="mt-2 text-sm text-muted-foreground">The project stores arrangement parameters and source lineage, not a detached downloadable master.</p></div>
             <Button size="lg" variant="outline" asChild className="min-h-12">
-              <Link onClick={() => selectedRender && trackGreenEvent("share_started", { style: selectedRender.style, destination: "publish_signup" })} href={selectedRender ? "/signup?next=/create" : "/discover"}>{selectedRender ? <><GitFork /> Publish after sign-in</> : <><ArrowRight /> Find a pairing</>}</Link>
+              <Link href={selectedRender ? "/signup?next=/create" : "/discover"}>{selectedRender ? <><GitFork /> Publish after sign-in</> : <><ArrowRight /> Find a pairing</>}</Link>
             </Button>
           </div>
         </div>

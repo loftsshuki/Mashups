@@ -29,7 +29,11 @@ export const greenIntakeSchema = z.object({
 
 export const greenEventSchema = z.object({
   eventName: z.enum(GREEN_FUNNEL_EVENTS),
+  eventId: z.uuid().optional(),
+  visitorId: z.string().trim().min(8).max(120).optional(),
   sessionId: z.string().trim().min(8).max(120),
   projectId: z.uuid().nullable().optional(),
-  properties: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+  properties: z.record(z.string().max(64), z.union([z.string().max(1024), z.number(), z.boolean(), z.null()]))
+    .refine((properties) => Object.keys(properties).length <= 32, "Too many event properties.")
+    .default({}),
 })

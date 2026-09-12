@@ -8,5 +8,6 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!isAdminUser({ email: user?.email, id: user?.id })) return NextResponse.json({ error: "Forbidden." }, { status: 403 })
-  return NextResponse.json(await getGreenPilotMetrics())
+  const metrics = await getGreenPilotMetrics()
+  return NextResponse.json(metrics, { status: metrics.available ? 200 : 503 })
 }

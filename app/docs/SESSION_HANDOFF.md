@@ -10,6 +10,12 @@
 
 ## Product Direction
 
+The first foundation implementation is on `codex/foundation-sprint`; see
+[FOUNDATION_SPRINT.md](FOUNDATION_SPRINT.md) for changes, verification, and the
+hosted recovery steps. Migration 025 is tested locally and is not yet applied to
+the hosted database. Production database access and Stripe sandbox configuration
+are the next dependencies.
+
 The September 12, 2026 decision and current build order are in
 [PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md). That plan is authoritative for
 scope and sequencing; release descriptions below record prior implementation.

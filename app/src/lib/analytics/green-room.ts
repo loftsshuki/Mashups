@@ -2,19 +2,27 @@
 
 import { trackProductEvent, type ProductEvent } from "./events"
 import type { GreenFunnelEvent } from "@/lib/green-room/types"
+import { deliverGreenEvent } from "./green-delivery"
+import { createAnalyticsId, createGreenSessionManager } from "./green-session"
 
-const SESSION_KEY = "mashups.green.session.v1"
+let sessionManager: ReturnType<typeof createGreenSessionManager> | undefined
+let reportedFailure = false
 
 export function trackGreenEvent(eventName: GreenFunnelEvent, properties: Record<string, string | number | boolean | null> = {}) {
-  const sessionId = getGreenSessionId()
+  if (typeof window === "undefined") return
+  if (!sessionManager) {
+    let visitorStorage: Storage | undefined
+    let sessionStorage: Storage | undefined
+    try { visitorStorage = window.localStorage } catch { /* Storage can be blocked. */ }
+    try { sessionStorage = window.sessionStorage } catch { /* Storage can be blocked. */ }
+    sessionManager = createGreenSessionManager({ visitorStorage, sessionStorage })
+  }
+  const identity = sessionManager.getIdentity()
   trackProductEvent(eventName as ProductEvent, properties)
-  void fetch("/api/green/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eventName, sessionId, properties }), keepalive: true }).catch(() => undefined)
-}
-
-function getGreenSessionId() {
-  const existing = window.localStorage.getItem(SESSION_KEY)
-  if (existing) return existing
-  const id = globalThis.crypto?.randomUUID?.() ?? `green-${Date.now()}-${Math.random().toString(36).slice(2)}`
-  window.localStorage.setItem(SESSION_KEY, id)
-  return id
+  void deliverGreenEvent({ eventName, eventId: createAnalyticsId(), ...identity, properties }).then((persisted) => {
+    if (!persisted && !reportedFailure) {
+      reportedFailure = true
+      console.warn("[Mashups analytics] Event storage is unavailable; these actions may be missing from reports.")
+    }
+  })
 }
