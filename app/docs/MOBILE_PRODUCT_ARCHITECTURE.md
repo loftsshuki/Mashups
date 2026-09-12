@@ -68,6 +68,12 @@ clients need them. This structure is a plan, not a claim that native code exists
 
 - `GET /api/green/catalog`: public fail-closed catalog response.
 - `POST /api/green/events`: anonymous or authenticated funnel events.
+- `GET /api/green/projects[?id=UUID]`: verified user's private recipes (most recent
+  50 when no ID is supplied).
+- `PUT /api/green/projects`: create/update a private recipe using a stable UUID
+  and the last confirmed revision. Identical retries are idempotent; conflicting
+  edits require a new copy. Cookie and Bearer authentication are accepted. See
+  [the saved-project sprint](SAVED_PROJECTS.md) for verification limits.
 - `POST /api/green/intake`: authenticated rightsholder intake after private upload.
 - `POST /api/green/uploads/path`: authenticated private pathname allocation.
 - `POST /api/green/uploads/token`: scoped private client-upload token.

@@ -8,6 +8,42 @@ export const GREEN_ARRANGEMENT_IDS = [
 
 export type GreenArrangementId = (typeof GREEN_ARRANGEMENT_IDS)[number]
 
+export const GREEN_PROJECT_SCHEMA_VERSION = 1 as const
+export const GREEN_PROTOTYPE_RENDERER_VERSION = "pcm-v1" as const
+
+export type GreenProjectSources = {
+  kind: "prototype"
+  leftId: string
+  rightId: string
+  catalogVersion: string
+} | {
+  kind: "catalog"
+  leftId: string
+  rightId: string
+}
+
+export type GreenProjectInput = {
+  id: string
+  title: string
+  sources: GreenProjectSources
+  intensity: number
+  selectedArrangement: GreenArrangementId | null
+  expectedRevision: number
+}
+
+export type GreenSavedProject = Omit<GreenProjectInput, "expectedRevision"> & {
+  revision: number
+  status: "draft" | "rendering" | "ready" | "published" | "archived"
+  createdAt: string
+  updatedAt: string
+}
+
+export type GreenProjectErrorCode = "unauthenticated" | "unavailable" | "conflict" | "not_found" | "invalid_request" | "source_unavailable"
+
+export function buildGreenProjectPath(id: string) {
+  return `/create?project=${encodeURIComponent(id)}`
+}
+
 export const GREEN_FUNNEL_EVENTS = [
   "create_viewed",
   "source_previewed",

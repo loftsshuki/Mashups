@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   ArrowUpRight,
   FlaskConical,
+  Library,
   LogOut,
   Menu,
   Search,
@@ -154,6 +155,7 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 rounded-none border-foreground shadow-[4px_4px_0_var(--foreground)]">
                 <DropdownMenuItem asChild><Link href={`/profile/${user.username}`}><User />Profile</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/projects"><Library />My saved mashups</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/dashboard"><FlaskConical />Workspace</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/settings"><Settings />Settings</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />

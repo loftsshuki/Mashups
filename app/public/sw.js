@@ -1,6 +1,6 @@
-const CACHE = "mashups-shell-v2"
+const CACHE = "mashups-shell-v3"
 const SHELL = ["/", "/create", "/discover", "/offline", "/manifest.webmanifest"]
-const PRIVATE_PREFIXES = ["/api/", "/auth/", "/admin", "/dashboard", "/operator", "/supply", "/beta", "/licenses"]
+const PRIVATE_PREFIXES = ["/api/", "/auth/", "/admin", "/dashboard", "/operator", "/supply", "/beta", "/licenses", "/projects", "/login", "/signup", "/reset-password", "/update-password"]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL.map((path) => new Request(path, { cache: "reload" })))).then(() => self.skipWaiting()))
@@ -14,6 +14,8 @@ self.addEventListener("fetch", (event) => {
   const request = event.request
   const url = new URL(request.url)
   if (request.method !== "GET" || url.origin !== self.location.origin || PRIVATE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return
+  // Never cache a specific draft/recipe under the generic /create shell.
+  if (url.pathname === "/create" && [...url.searchParams.keys()].some((key) => key !== "source")) return
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok && ["/", "/create", "/discover", "/offline"].includes(url.pathname)) {
