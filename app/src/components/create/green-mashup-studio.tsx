@@ -8,7 +8,7 @@ import {
   BadgeCheck,
   Check,
   CircleStop,
-  GitFork,
+  Copy,
   Loader2,
   LockKeyhole,
   Pause,
@@ -21,6 +21,8 @@ import {
 import { GREEN_ARRANGEMENT_IDS } from "@mashups/contracts"
 
 import { GreenShareExport } from "@/components/create/green-share-export"
+import { useGreenProjectDraft } from "@/components/create/use-green-project-draft"
+import { restoreDraftAudio, type GreenLocalDraft } from "@/lib/green-room/local-draft"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { trackGreenEvent } from "@/lib/analytics/green-room"
@@ -40,12 +42,13 @@ import {
 
 const styles: readonly GreenMashupStyle[] = GREEN_ARRANGEMENT_IDS
 
-export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: string; initialRight: string }) {
-  const [leftId, setLeftId] = useState(initialLeft)
-  const [rightId, setRightId] = useState(initialRight)
-  const [intensity, setIntensity] = useState(82)
+export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraft: GreenLocalDraft; initialNotice: string | null }) {
+  const [leftId, setLeftId] = useState(initialDraft.input.sources.leftId)
+  const [rightId, setRightId] = useState(initialDraft.input.sources.rightId)
+  const [intensity, setIntensity] = useState(initialDraft.input.intensity)
   const [renders, setRenders] = useState<GreenMashupRender[]>([])
-  const [selectedStyle, setSelectedStyle] = useState<GreenMashupStyle | null>(null)
+  const [selectedStyle, setSelectedStyle] = useState<GreenMashupStyle | null>(initialDraft.input.selectedArrangement)
+  const [restored, setRestored] = useState(false)
   const [renderingStyle, setRenderingStyle] = useState<GreenMashupStyle | null>(null)
   const [previewingId, setPreviewingId] = useState<string | null>(null)
   const [interruptedId, setInterruptedId] = useState<string | null>(null)
@@ -54,11 +57,27 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const objectUrlsRef = useRef(new Set<string>())
   const viewedRef = useRef(false)
+  const generationRef = useRef(0)
+  const project = useGreenProjectDraft(initialDraft, { leftId, rightId, intensity, selectedArrangement: selectedStyle }, renders, restored)
 
   const left = getGreenTrack(leftId) ?? GREEN_CATALOG[0]
   const right = getGreenTrack(rightId) ?? GREEN_CATALOG[1]
   const assessment = useMemo(() => assessGreenPair(left, right), [left, right])
   const alternatives = useMemo(() => getGreenPairAlternatives(left, right), [left, right])
+
+  useEffect(() => {
+    let cancelled = false
+    void restoreDraftAudio(initialDraft).then((recovered) => {
+      if (cancelled) { for (const render of recovered) URL.revokeObjectURL(render.audioUrl); return }
+      for (const render of recovered) objectUrlsRef.current.add(render.audioUrl)
+      setRenders(recovered)
+      setRestored(true)
+      if (recovered.length < initialDraft.renders.length) setError("Some cached audio could not be recovered. Generate the versions again from your saved recipe.")
+    }).catch(() => {
+      if (!cancelled) setError("Audio recovery failed. Your stored draft has not been overwritten; reopen it from My saved mashups.")
+    })
+    return () => { cancelled = true }
+  }, [initialDraft])
 
   useEffect(() => {
     if (viewedRef.current) return
@@ -71,6 +90,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
   }, [assessment.compatible, assessment.reasons, left.id, right.id])
 
   useEffect(() => () => {
+    generationRef.current += 1
     audioRef.current?.pause()
     for (const url of objectUrlsRef.current) URL.revokeObjectURL(url)
   }, [])
@@ -145,6 +165,8 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
   }
 
   function resetRenders() {
+    generationRef.current += 1
+    setRenderingStyle(null)
     stopAudio()
     for (const render of renders) {
       URL.revokeObjectURL(render.audioUrl)
@@ -167,8 +189,10 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
   }
 
   async function generateVersions() {
-    if (!assessment.compatible) return
+    if (!assessment.compatible || !restored) return
     resetRenders()
+    const generation = generationRef.current
+    const previouslyKept = selectedStyle
     setError(null)
     trackGreenEvent("render_started", { left_id: left.id, right_id: right.id, compatibility_score: assessment.score })
     const nextRenders: GreenMashupRender[] = []
@@ -176,13 +200,15 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
       for (const style of styles) {
         setRenderingStyle(style)
         const render = await renderGreenMashup(left, right, style, intensity)
+        if (generation !== generationRef.current) { URL.revokeObjectURL(render.audioUrl); return }
         nextRenders.push(render)
         objectUrlsRef.current.add(render.audioUrl)
         setRenders([...nextRenders])
       }
-      setSelectedStyle(nextRenders[0]?.style ?? null)
+      setSelectedStyle(previouslyKept ?? nextRenders[0]?.style ?? null)
       trackGreenEvent("render_completed", { left_id: left.id, right_id: right.id, candidate_count: nextRenders.length })
     } catch {
+      if (generation !== generationRef.current) return
       for (const render of nextRenders) {
         URL.revokeObjectURL(render.audioUrl)
         objectUrlsRef.current.delete(render.audioUrl)
@@ -190,7 +216,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
       setRenders([])
       setError("The local render failed. Close other audio apps and try again.")
     } finally {
-      setRenderingStyle(null)
+      if (generation === generationRef.current) setRenderingStyle(null)
     }
   }
 
@@ -227,6 +253,15 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
       </section>
 
       <section className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 md:py-12 lg:px-8">
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-5 border-b border-foreground pb-6">
+          <div className="w-full max-w-xl">
+            <label htmlFor="project-title" className="mono-label">My mashup name</label>
+            <input id="project-title" maxLength={120} value={project.title} onChange={(event) => project.setTitle(event.target.value)} className="mt-2 min-h-12 w-full border border-foreground bg-card px-3 text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" />
+            <p role="status" data-testid="device-save-status" className="mt-2 text-sm text-muted-foreground">{project.localStatus}</p>
+          </div>
+          <Link href="/projects" className="flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4">My saved mashups <ArrowRight className="size-4" /></Link>
+        </div>
+        {initialNotice ? <p className="mb-5 border-l-4 border-primary pl-4 text-sm">{initialNotice}</p> : null}
         <div className="mb-5 grid grid-cols-3 border border-foreground bg-foreground font-mono text-[9px] font-semibold uppercase tracking-[0.12em] sm:text-[10px]">
           <Step active={renders.length === 0} complete={renders.length > 0} number="01" label="Choose sources" />
           <Step active={renders.length > 0 && !selectedRender} complete={Boolean(selectedRender)} number="02" label="Hear versions" />
@@ -285,7 +320,7 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
         {error ? <div role="alert" className="mt-4 border border-destructive bg-destructive/10 p-4 text-sm font-medium text-destructive">{error}</div> : null}
         {interruptedId ? <div role="status" className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-foreground bg-secondary p-4 text-sm"><span>iOS or Android paused audio while Mashups was in the background.</span><Button size="sm" variant="outline" onClick={() => void resumeInterruptedAudio()}><Play />Resume audio</Button></div> : null}
 
-        <Button size="lg" className="mt-4 min-h-14 w-full text-base" onClick={() => void generateVersions()} disabled={!assessment.compatible || renderingStyle !== null} data-testid="generate-mashups">
+        <Button size="lg" className="mt-4 min-h-14 w-full text-base" onClick={() => void generateVersions()} disabled={!restored || !assessment.compatible || renderingStyle !== null} data-testid="generate-mashups">
           {renderingStyle ? <><Loader2 className="animate-spin" /> Rendering three arrangements...</> : <><Sparkles /> Generate three mashups</>}
         </Button>
       </section>
@@ -341,10 +376,18 @@ export function GreenMashupStudio({ initialLeft, initialRight }: { initialLeft: 
             {selectedRender ? <div className="mt-7"><GreenShareExport render={selectedRender} left={left} right={right} /></div> : <p className="mt-7 border border-foreground bg-card p-4 text-sm">Keep one arrangement to unlock the watermarked video renderer.</p>}
           </div>
           <div className="grid gap-3 lg:col-span-5">
-            <div className="border border-foreground bg-card p-5"><p className="mono-label text-muted-foreground">Next chain</p><p className="mt-3 text-lg font-semibold">Publish the attributed project after sign-in.</p><p className="mt-2 text-sm text-muted-foreground">The project stores arrangement parameters and source lineage, not a detached downloadable master.</p></div>
-            <Button size="lg" variant="outline" asChild className="min-h-12">
-              <Link href={selectedRender ? "/signup?next=/create" : "/discover"}>{selectedRender ? <><GitFork /> Publish after sign-in</> : <><ArrowRight /> Find a pairing</>}</Link>
+            <div className="border border-foreground bg-card p-5">
+              <p className="mono-label text-muted-foreground">Pick this up later</p>
+              <h3 className="mt-3 text-xl font-semibold">Keep your mix together.</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Save the recipe to your account to open it on another device. Preview audio stays in this browser; clearing browser data removes those local copies.</p>
+              <p className="mt-3 text-sm text-muted-foreground">Account saves are private. Public listening links aren’t available yet.</p>
+              <p data-testid="account-save-status" className="mt-4 font-semibold">{project.accountCurrent ? "Account recipe is up to date" : "This recipe has changes on this device"}</p>
+            </div>
+            <Button size="lg" className="min-h-12" disabled={!restored || project.savingAccount || renderingStyle !== null} onClick={() => void project.saveToAccount()} data-testid="save-project">
+              {project.savingAccount ? <><Loader2 className="animate-spin" />Saving recipe…</> : <>Save to account <ArrowRight /></>}
             </Button>
+            <Button size="lg" variant="outline" className="min-h-12" disabled={!restored || project.savingAccount || renderingStyle !== null} onClick={() => void project.saveNewCopy()}><Copy />Save a new copy</Button>
+            {project.accountMessage ? <p role="status" className="border border-foreground bg-card p-4 text-sm">{project.accountMessage}</p> : null}
           </div>
         </div>
 

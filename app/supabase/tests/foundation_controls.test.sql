@@ -21,6 +21,7 @@ alter default privileges in schema public grant all on sequences to anon, authen
 \ir ../migrations/024_green_room_pilot.sql
 insert into public.green_funnel_events(event_name, session_id) values ('create_viewed', 'legacy-visitor');
 \ir ../migrations/025_foundation_controls.sql
+\ir ../migrations/026_saved_projects.sql
 
 begin;
 create function pg_temp.assert_true(p_value boolean, p_label text) returns void language plpgsql as $$
@@ -175,5 +176,6 @@ select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Eligible')::i
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Retained')::int = 1, 'D30 return across sessions counts; day31 does not');
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30RetentionRate')::numeric = 0.333, 'retention denominator includes non-returners');
 \echo Durable events and cohort metrics passed
+\ir saved_projects.test.sql
 rollback;
 \echo All foundation database checks passed

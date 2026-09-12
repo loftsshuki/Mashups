@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 
-import { GreenMashupStudio } from "@/components/create/green-mashup-studio"
+import { notFound } from "next/navigation"
+import { z } from "zod"
+import { GreenStudioWorkspace } from "@/components/create/green-studio-workspace"
 import { getGreenTrack, GREEN_CATALOG } from "@/lib/catalog/green-catalog"
 
 export const metadata: Metadata = {
@@ -19,6 +21,9 @@ export default async function CreatePage({
   const requestedRight = typeof params.right === "string" ? params.right : null
   const initialLeft = getGreenTrack(requestedLeft)?.id ?? GREEN_CATALOG[0].id
   const initialRight = getGreenTrack(requestedRight)?.id ?? GREEN_CATALOG[1].id
+  const projectId = typeof params.project === "string" ? params.project : undefined
+  if (params.project && (!projectId || !z.uuid().safeParse(projectId).success)) notFound()
+  const usePreviousDraft = !requestedLeft && !requestedRight && params.fresh !== "1"
 
-  return <GreenMashupStudio initialLeft={initialLeft} initialRight={initialRight} />
+  return <GreenStudioWorkspace key={projectId ?? `${initialLeft}:${initialRight}:${usePreviousDraft}`} initialLeft={initialLeft} initialRight={initialRight} projectId={projectId} usePreviousDraft={usePreviousDraft} />
 }
