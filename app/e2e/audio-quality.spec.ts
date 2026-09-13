@@ -54,7 +54,7 @@ test("three arrangements render and unlock video-only sharing", async ({ page })
 
   await expect(page.getByText(/Three controlled experiments/i)).toBeVisible()
   await page.getByTestId("generate-mashups").click()
-  await expect(page.getByText(/Quality \d+ \/ 100/)).toHaveCount(3, { timeout: 90_000 })
+  await expect(page.getByText("Synthesized demo / 16-bar phrase map")).toHaveCount(3, { timeout: 90_000 })
   await expect(page.getByRole("button", { name: /Render and share/i })).toBeVisible()
   await expect(page.getByText(/no WAV, MP3, stems/i)).toBeVisible()
   await expect(page.getByRole("link", { name: /Download WAV|Download MP3/i })).toHaveCount(0)

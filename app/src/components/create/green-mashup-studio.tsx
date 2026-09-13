@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -41,6 +42,7 @@ import {
 } from "@/lib/catalog/green-catalog"
 
 const styles: readonly GreenMashupStyle[] = GREEN_ARRANGEMENT_IDS
+const BlendFitWorkbench = dynamic(() => import("./blend-fit-workbench").then((module) => module.BlendFitWorkbench))
 
 export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraft: GreenLocalDraft; initialNotice: string | null }) {
   const [leftId, setLeftId] = useState(initialDraft.input.sources.leftId)
@@ -54,6 +56,7 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
   const [interruptedId, setInterruptedId] = useState<string | null>(null)
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
+  const [showBlendFit, setShowBlendFit] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const objectUrlsRef = useRef(new Set<string>())
   const viewedRef = useRef(false)
@@ -282,24 +285,17 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
           <div className="border-b border-foreground p-5 sm:p-7 lg:border-b-0 lg:border-r">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="mono-label text-muted-foreground">Compatibility scan</p>
+                <p className="mono-label text-muted-foreground">Prototype recipe check</p>
                 <p className="mt-2 text-lg font-semibold">{assessment.summary}</p>
               </div>
-              <div className={cn("grid size-20 place-items-center border border-foreground", assessment.compatible ? "bg-secondary" : "bg-destructive text-white")}>
-                <span className="display-type text-3xl">{assessment.score}</span>
-              </div>
             </div>
-            <div className="mt-5 h-2 border border-foreground bg-muted">
-              <div className="h-full bg-primary transition-[width] duration-500" style={{ width: `${assessment.score}%` }} />
-            </div>
+            <p className="mt-4 text-sm text-muted-foreground">Catalog metadata guides this synthesized recipe. It does not measure how two recordings sound together. Use Blend Fit below to check audio ingredients.</p>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <span>{assessment.tempoDelta} BPM delta</span>
               <span>{assessment.warpPercent}% warp</span>
               <span>{assessment.harmonicFit.replace("-", " ")}</span>
-              <span>{Math.round(assessment.phraseConfidence * 100)}% phrase lock</span>
-              <span>{assessment.vocalCollisionRisk} collision risk</span>
             </div>
-            {!assessment.compatible ? <div className="mt-5 border-t border-foreground pt-4"><p className="font-semibold">Mashups refused this pair.</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{assessment.reasons.map((reason) => <li key={reason}>- {reason}</li>)}</ul>{alternatives.length ? <div className="mt-4 flex flex-wrap gap-2">{alternatives.map(({ track, assessment: alternative }) => <Button key={track.id} type="button" size="sm" variant="outline" onClick={() => chooseTrack("right", track.id)}>{track.title} / {alternative.score}</Button>)}</div> : null}</div> : null}
+            {!assessment.compatible ? <div className="mt-5 border-t border-foreground pt-4"><p className="font-semibold">This prototype recipe is outside its supported settings.</p><ul className="mt-2 space-y-1 text-sm text-muted-foreground">{assessment.reasons.map((reason) => <li key={reason}>- {reason}</li>)}</ul>{alternatives.length ? <div className="mt-4 flex flex-wrap gap-2">{alternatives.map(({ track }) => <Button key={track.id} type="button" size="sm" variant="outline" onClick={() => chooseTrack("right", track.id)}>{track.title}</Button>)}</div> : null}</div> : null}
           </div>
 
           <div className="grid gap-5 p-5 sm:p-7">
@@ -319,6 +315,12 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
 
         {error ? <div role="alert" className="mt-4 border border-destructive bg-destructive/10 p-4 text-sm font-medium text-destructive">{error}</div> : null}
         {interruptedId ? <div role="status" className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-foreground bg-secondary p-4 text-sm"><span>iOS or Android paused audio while Mashups was in the background.</span><Button size="sm" variant="outline" onClick={() => void resumeInterruptedAudio()}><Play />Resume audio</Button></div> : null}
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-y border-foreground/30 py-4">
+          <div><p className="font-semibold">Check your ingredients before creating.</p><p className="mt-1 text-sm text-muted-foreground">Blend Fit measures selected audio and suggests what to listen for.</p></div>
+          <Button variant="outline" aria-expanded={showBlendFit} aria-controls="creation-blend-fit" onClick={() => { stopAudio(); setShowBlendFit(!showBlendFit) }}>{showBlendFit ? "Close Blend Fit" : "Open Blend Fit"}</Button>
+        </div>
+        {showBlendFit ? <div id="creation-blend-fit" className="mt-5"><BlendFitWorkbench key={`${left.id}:${right.id}`} catalog={{ leftId: left.id, rightId: right.id }} /><p className="mt-3 text-sm text-muted-foreground">Blend Fit is optional guidance. The button below generates the selected catalog demo recipe; local files stay in the checker. <Link className="underline underline-offset-4" href="/create/blend-fit">Open the standalone checker</Link></p></div> : null}
 
         <Button size="lg" className="mt-4 min-h-14 w-full text-base" onClick={() => void generateVersions()} disabled={!restored || !assessment.compatible || renderingStyle !== null} data-testid="generate-mashups">
           {renderingStyle ? <><Loader2 className="animate-spin" /> Rendering three arrangements...</> : <><Sparkles /> Generate three mashups</>}
@@ -350,7 +352,7 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
                   <p className={cn("mt-4 min-h-12 text-sm leading-relaxed", isSelected ? "text-primary-foreground/75" : "text-background/60")}>
                     {render?.description ?? descriptionForStyle(style)}
                   </p>
-                  {render ? <p className={cn("mt-4 font-mono text-[10px] font-bold uppercase tracking-wider", isSelected ? "text-primary-foreground" : "text-primary")}>Quality {render.qualityScore} / 100 / 16-bar phrase map</p> : null}
+                  {render ? <p className={cn("mt-4 font-mono text-[10px] font-bold uppercase tracking-wider", isSelected ? "text-primary-foreground" : "text-primary")}>Synthesized demo / 16-bar phrase map</p> : null}
                   <div className="mt-7 flex h-16 items-center gap-1" aria-hidden="true">
                     {waveformFor(index).map((height, barIndex) => <span key={barIndex} className={cn("flex-1 bg-background/65", isSelected && "bg-primary-foreground/70")} style={{ height: `${height}%` }} />)}
                   </div>

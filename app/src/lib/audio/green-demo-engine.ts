@@ -331,6 +331,14 @@ export async function renderGreenTrackPreview(track: GreenCatalogTrack) {
   return { audioUrl: URL.createObjectURL(audioBlob), audioBlob, duration }
 }
 
+/** Separate synthesized parts at source tempo; these are demo ingredients, not recorded vocals. */
+export function renderGreenIngredient(track: GreenCatalogTrack, role: "lead" | "backing") {
+  const duration = Math.min(30, (60 / track.bpm) * 32)
+  const pcm = createPcm(duration)
+  scheduleTrack(pcm, track, 0, duration, role === "lead" ? { lead: true } : { groove: true, chords: true })
+  return pcmToWavBlob(pcm)
+}
+
 export async function renderGreenMashup(
   left: GreenCatalogTrack,
   right: GreenCatalogTrack,
