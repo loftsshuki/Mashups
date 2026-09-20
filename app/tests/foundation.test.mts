@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { checkoutSchema, getCheckoutPriceId } from "../src/lib/billing/checkout-contract.ts"
+import { getRuntimeCapabilities } from "../src/lib/config/runtime.ts"
 import { checkSupabaseHealth } from "../src/lib/config/service-health.ts"
 import { createGreenSessionManager, GREEN_SESSION_IDLE_MS } from "../src/lib/analytics/green-session.ts"
 import { deliverGreenEvent } from "../src/lib/analytics/green-delivery.ts"
@@ -45,6 +46,50 @@ test("health distinguishes missing configuration, rejected credentials and netwo
   assert.deepEqual(await checkSupabaseHealth(env, async () => new Response(null, { status: 401 })), { auth: "unauthorized", database: "unauthorized" })
   assert.deepEqual(await checkSupabaseHealth(env, async () => { throw new TypeError("DNS failure") }), { auth: "unreachable", database: "unreachable" })
   assert.deepEqual(await checkSupabaseHealth(env, async () => new Response("[]")), { auth: "healthy", database: "healthy" })
+})
+
+test("runtime readiness distinguishes general storage from Green Room storage and processing", () => {
+  const keys = [
+    "BLOB_READ_WRITE_TOKEN",
+    "GREEN_ROOM_READ_WRITE_TOKEN",
+    "GREEN_ROOM_BLOB_READ_WRITE_TOKEN",
+    "GREEN_ROOM_PROCESSOR_SECRET",
+    "GREEN_ROOM_MODAL_PROCESSOR_URL",
+    "GREEN_ROOM_PROCESSOR_URL",
+    "GREEN_ROOM_SEPARATION_PROCESSOR_URL",
+    "REPLICATE_API_TOKEN",
+  ] as const
+  const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]))
+  try {
+    for (const key of keys) delete process.env[key]
+    let capabilities = getRuntimeCapabilities()
+    assert.equal(capabilities.storage.configured, false)
+    assert.equal(capabilities.greenStorage.configured, false)
+    assert.equal(capabilities.greenProcessing.configured, false)
+
+    process.env.BLOB_READ_WRITE_TOKEN = "general"
+    capabilities = getRuntimeCapabilities()
+    assert.equal(capabilities.storage.configured, true)
+    assert.equal(capabilities.greenStorage.configured, false)
+
+    process.env.GREEN_ROOM_READ_WRITE_TOKEN = "private"
+    process.env.GREEN_ROOM_PROCESSOR_SECRET = "secret"
+    process.env.GREEN_ROOM_MODAL_PROCESSOR_URL = "https://processor.example/analyze"
+    capabilities = getRuntimeCapabilities()
+    assert.equal(capabilities.greenStorage.configured, true)
+    assert.equal(capabilities.greenProcessing.configured, true)
+    assert.equal(capabilities.separation.configured, false)
+
+    process.env.GREEN_ROOM_SEPARATION_PROCESSOR_URL = "https://processor.example/separate"
+    capabilities = getRuntimeCapabilities()
+    assert.equal(capabilities.separation.configured, true)
+  } finally {
+    for (const key of keys) {
+      const value = previous[key]
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
+  }
 })
 
 function memoryStorage(seed: Record<string, string> = {}) {
