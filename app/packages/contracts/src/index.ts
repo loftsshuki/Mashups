@@ -44,6 +44,33 @@ export function buildGreenProjectPath(id: string) {
   return `/create?project=${encodeURIComponent(id)}`
 }
 
+export type GreenPublicationSource = {
+  id: string
+  slug: string
+  artistName: string
+  trackTitle: string
+}
+
+export type GreenPublication = {
+  id: string
+  title: string
+  parentProjectId: string | null
+  publishedAt: string
+  arrangement: GreenArrangementId
+  durationSeconds: number
+  creator: {
+    username: string
+    displayName: string | null
+    avatarUrl: string | null
+  }
+  leftSource: GreenPublicationSource
+  rightSource: GreenPublicationSource
+}
+
+export function buildGreenPublicationPath(id: string) {
+  return `/listen/${encodeURIComponent(id)}`
+}
+
 export const GREEN_FUNNEL_EVENTS = [
   "create_viewed",
   "source_previewed",
