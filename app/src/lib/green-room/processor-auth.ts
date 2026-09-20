@@ -1,12 +1,26 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-export function signGreenAsset(jobId: string, expires: number, secret: string) {
-  return createHmac("sha256", secret).update(`${jobId}:${expires}`).digest("hex")
+export function signGreenAsset(
+  jobId: string,
+  expires: number,
+  secret: string,
+  assetId?: string | null,
+) {
+  const assetBinding = assetId ?? "default"
+  return createHmac("sha256", secret)
+    .update(`${jobId}:${assetBinding}:${expires}`)
+    .digest("hex")
 }
 
-export function verifyGreenAssetSignature(jobId: string, expires: number, signature: string, secret: string) {
+export function verifyGreenAssetSignature(
+  jobId: string,
+  expires: number,
+  signature: string,
+  secret: string,
+  assetId?: string | null,
+) {
   if (!Number.isFinite(expires) || expires < Date.now() || expires > Date.now() + 15 * 60_000) return false
-  const expected = signGreenAsset(jobId, expires, secret)
+  const expected = signGreenAsset(jobId, expires, secret, assetId)
   if (signature.length !== expected.length) return false
   return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
 }
