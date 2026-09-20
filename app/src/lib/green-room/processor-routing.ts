@@ -43,6 +43,7 @@ export function buildInitialGreenProcessingPlan(
   const requested: GreenProcessorJob[] = [
     { jobType: "fingerprint", provider: "pex" },
     { jobType: "analyze", provider: "modal" },
+    { jobType: "separate", provider: "separation" },
   ]
 
   const jobs = requested.filter((job) => resolveGreenProcessorRoute(job, env))
