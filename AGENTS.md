@@ -21,3 +21,7 @@ Useful commands:
 - `cd app && npm run test:e2e`
 
 For long or interruptible work, maintain a tiny `.codex/TASK_STATE.md` with only Done / Current / Next / Blocked. Do not create it for one-shot tasks.
+
+## Context router
+
+Before broad repository exploration, read `.codex/ROUTER.md` and open only the referenced files needed for the task. If RTK is already installed, follow `.codex/RTK.md` for terminal-heavy work.
