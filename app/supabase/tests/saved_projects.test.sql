@@ -30,7 +30,7 @@ set local role service_role;
 update public.green_projects set status = 'published' where id = '40000000-0000-4000-8000-000000000001';
 select pg_temp.expect_error($s$select pg_temp.save_recipe('00000000-0000-4000-8000-000000000003', 2)$s$, '40001', 'published projects require a new copy');
 update public.green_projects set status = 'draft' where id = '40000000-0000-4000-8000-000000000001';
-insert into public.green_render_candidates(project_id, arrangement, duration_seconds, quality_score, quality_status) values ('40000000-0000-4000-8000-000000000001', 'drop_swap', 20, 95, 'passed');
+insert into public.green_render_candidates(project_id, arrangement, duration_seconds, quality_score, quality_status) values ('40000000-0000-4000-8000-000000000001', 'drop-swap', 20, 95, 'passed');
 select pg_temp.expect_error($s$select pg_temp.save_recipe('00000000-0000-4000-8000-000000000003', 2)$s$, '40001', 'rendered source lineage cannot be relabeled through recipe edits');
 
 select pg_temp.expect_error($s$select public.save_green_project('40000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000003', 'Unknown revision', '{"kind":"prototype","leftId":"a","rightId":"b","catalogVersion":"v1"}', 82::smallint, null, 1)$s$, '40001', 'missing revision does not create a fresh row');
