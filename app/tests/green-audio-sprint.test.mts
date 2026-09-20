@@ -10,6 +10,7 @@ import { selectGreenVideoMimeType } from "../src/lib/audio/green-video-export.ts
 import { assessGreenPair, getGreenTrack, validateGreenCatalogBinding } from "../src/lib/catalog/green-catalog.ts"
 import { GREEN_CATALOG_MANIFEST, validateGreenCatalogManifest } from "../src/lib/catalog/catalog-manifest.ts"
 import { signGreenProcessorCallback, verifyGreenProcessorCallback } from "../src/lib/green-room/processor-auth.ts"
+import { buildInitialGreenProcessingPlan, resolveGreenProcessorRoute } from "../src/lib/green-room/processor-routing.ts"
 
 test("portable contracts build canonical web and native creation links", () => {
   assert.equal(GREEN_ARRANGEMENT_IDS.length, 3)
@@ -82,4 +83,58 @@ test("processor callbacks require a fresh body-bound signature", () => {
   assert.equal(verifyGreenProcessorCallback(timestamp, body, signature, secret), true)
   assert.equal(verifyGreenProcessorCallback(timestamp, `${body} `, signature, secret), false)
   assert.equal(verifyGreenProcessorCallback(timestamp - 6 * 60_000, body, signature, secret), false)
+})
+
+test("processor routing requires explicit routes and preserves the legacy analysis fallback", () => {
+  const base = { GREEN_ROOM_PROCESSOR_SECRET: "secret" }
+  assert.deepEqual(
+    resolveGreenProcessorRoute(
+      { jobType: "analyze", provider: "modal" },
+      { ...base, GREEN_ROOM_PROCESSOR_URL: "https://legacy.example/analyze" },
+    ),
+    { url: "https://legacy.example/analyze", secret: "secret" },
+  )
+  assert.deepEqual(
+    resolveGreenProcessorRoute(
+      { jobType: "fingerprint", provider: "pex" },
+      {
+        ...base,
+        GREEN_ROOM_FINGERPRINT_PROCESSOR_URL: "https://job.example/fingerprint",
+        GREEN_ROOM_PEX_PROCESSOR_URL: "https://provider.example/pex",
+      },
+    ),
+    { url: "https://provider.example/pex", secret: "secret" },
+  )
+  assert.equal(
+    resolveGreenProcessorRoute(
+      { jobType: "separate", provider: "modal-demucs" },
+      base,
+    ),
+    null,
+  )
+})
+
+test("initial processing never queues a dead fingerprint job and requires analysis", () => {
+  const analysisOnly = buildInitialGreenProcessingPlan({
+    GREEN_ROOM_PROCESSOR_SECRET: "secret",
+    GREEN_ROOM_MODAL_PROCESSOR_URL: "https://modal.example/analyze",
+  })
+  assert.equal(analysisOnly.ready, true)
+  assert.deepEqual(analysisOnly.jobs, [{ jobType: "analyze", provider: "modal" }])
+  assert.deepEqual(analysisOnly.missing, [{ jobType: "fingerprint", provider: "pex" }])
+
+  const fullyConfigured = buildInitialGreenProcessingPlan({
+    GREEN_ROOM_PROCESSOR_SECRET: "secret",
+    GREEN_ROOM_MODAL_PROCESSOR_URL: "https://modal.example/analyze",
+    GREEN_ROOM_PEX_PROCESSOR_URL: "https://pex.example/fingerprint",
+  })
+  assert.equal(fullyConfigured.ready, true)
+  assert.equal(fullyConfigured.jobs.length, 2)
+
+  const noAnalysis = buildInitialGreenProcessingPlan({
+    GREEN_ROOM_PROCESSOR_SECRET: "secret",
+    GREEN_ROOM_PEX_PROCESSOR_URL: "https://pex.example/fingerprint",
+  })
+  assert.equal(noAnalysis.ready, false)
+  assert.deepEqual(noAnalysis.jobs, [{ jobType: "fingerprint", provider: "pex" }])
 })
