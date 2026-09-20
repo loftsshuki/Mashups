@@ -22,6 +22,7 @@ alter default privileges in schema public grant all on sequences to anon, authen
 insert into public.green_funnel_events(event_name, session_id) values ('create_viewed', 'legacy-visitor');
 \ir ../migrations/025_foundation_controls.sql
 \ir ../migrations/026_saved_projects.sql
+\ir ../migrations/027_green_publication.sql
 
 begin;
 create function pg_temp.assert_true(p_value boolean, p_label text) returns void language plpgsql as $$
@@ -114,8 +115,8 @@ insert into public.green_track_analysis(track_id, bpm, musical_key, camelot_key,
 select pg_temp.expect_error($s$select public.publish_green_track('10000000-0000-4000-8000-000000000001')$s$, 'P0001', 'failing audio prevents publication');
 update public.green_track_analysis set phrase_confidence = 0.95;
 insert into public.green_render_candidates(id, project_id, arrangement, duration_seconds, quality_score, quality_status) values
-  ('30000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'vocal_a_beat_b', 20, 95, 'passed'),
-  ('30000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000001', 'vocal_b_beat_a', 20, 95, 'passed');
+  ('30000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'vocal-a-over-b', 20, 95, 'passed'),
+  ('30000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000001', 'vocal-b-over-a', 20, 95, 'passed');
 insert into public.green_listening_reviews(candidate_id, reviewer_id, decision, musicality, artifact_score, share_confidence) values
   ('30000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000003', 'keep', 5, 5, 5),
   ('30000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000003', 'keep', 5, 5, 5);
@@ -176,6 +177,85 @@ select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Eligible')::i
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Retained')::int = 1, 'D30 return across sessions counts; day31 does not');
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30RetentionRate')::numeric = 0.333, 'retention denominator includes non-returners');
 \echo Durable events and cohort metrics passed
+\echo Green project publication checks starting
+insert into public.green_track_assets(
+  id, owner_id, asset_kind, blob_url, blob_pathname, content_type, byte_size, access_level
+) values (
+  '50000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002',
+  'preview',
+  'https://blob.example/publication-preview.wav',
+  'green-room/test/publication-preview.wav',
+  'audio/wav',
+  2048,
+  'private'
+);
+update public.green_render_candidates
+set asset_id = '50000000-0000-4000-8000-000000000001'
+where id = '30000000-0000-4000-8000-000000000001';
+update public.green_projects
+set status = 'ready',
+    selected_candidate_id = '30000000-0000-4000-8000-000000000001',
+    selected_arrangement = 'vocal-a-over-b'
+where id = '20000000-0000-4000-8000-000000000001';
+
+select pg_temp.expect_error(
+  $s$select public.publish_green_project(
+    '20000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000003'
+  )$s$,
+  '42501',
+  'only the project creator can publish'
+);
+
+update public.green_rights_grants
+set revoked_at = now()
+where track_id = '10000000-0000-4000-8000-000000000002';
+select pg_temp.expect_error(
+  $s$select public.publish_green_project(
+    '20000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000002'
+  )$s$,
+  'P0001',
+  'project publication rechecks source grants'
+);
+update public.green_rights_grants
+set revoked_at = null
+where track_id = '10000000-0000-4000-8000-000000000002';
+
+select public.publish_green_project(
+  '20000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002'
+);
+select pg_temp.assert_true(
+  (select status = 'published' and published_at is not null
+   from public.green_projects
+   where id = '20000000-0000-4000-8000-000000000001'),
+  'project publication freezes the canonical project identity'
+);
+select pg_temp.assert_true(
+  (public.get_green_publication('20000000-0000-4000-8000-000000000001')->>'id')
+    = '20000000-0000-4000-8000-000000000001',
+  'service read returns the published project'
+);
+select pg_temp.assert_true(
+  (public.get_green_publication('20000000-0000-4000-8000-000000000001')->>'audioAssetId')
+    = '50000000-0000-4000-8000-000000000001',
+  'publication resolves only the selected preview asset'
+);
+
+update public.green_rights_grants
+set revoked_at = now()
+where track_id = '10000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true(
+  public.get_green_publication('20000000-0000-4000-8000-000000000001') is null,
+  'revoked source removes public playback without deleting publication history'
+);
+update public.green_rights_grants
+set revoked_at = null
+where track_id = '10000000-0000-4000-8000-000000000002';
+\echo Green project publication checks passed
+
 \ir saved_projects.test.sql
 rollback;
 \echo All foundation database checks passed
