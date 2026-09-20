@@ -21,12 +21,28 @@ export type RuntimeCapability = {
 }
 
 export function getRuntimeCapabilities(): Record<string, RuntimeCapability> {
+  const greenStorageConfigured = Boolean(
+    process.env.GREEN_ROOM_READ_WRITE_TOKEN ??
+      process.env.GREEN_ROOM_BLOB_READ_WRITE_TOKEN,
+  )
+  const greenProcessingConfigured = Boolean(
+    process.env.GREEN_ROOM_PROCESSOR_SECRET &&
+      (process.env.GREEN_ROOM_MODAL_PROCESSOR_URL ||
+        process.env.GREEN_ROOM_PROCESSOR_URL),
+  )
+
   return {
     database: { label: "Supabase", configured: isSupabaseConfigured(), required: true },
     ai: { label: "OpenAI", configured: Boolean(process.env.OPENAI_API_KEY), required: true },
     storage: { label: "Vercel Blob", configured: Boolean(process.env.BLOB_READ_WRITE_TOKEN), required: true },
+    greenStorage: { label: "Green Room private storage", configured: greenStorageConfigured, required: true },
+    greenProcessing: { label: "Green Room analysis processor", configured: greenProcessingConfigured, required: true },
     billing: { label: "Stripe", configured: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET), required: false },
-    separation: { label: "Replicate", configured: Boolean(process.env.REPLICATE_API_TOKEN), required: false },
+    separation: {
+      label: "Stem separation",
+      configured: Boolean(process.env.GREEN_ROOM_SEPARATION_PROCESSOR_URL || process.env.REPLICATE_API_TOKEN),
+      required: false,
+    },
     analytics: { label: "PostHog", configured: Boolean(normalizePostHogKey(process.env.NEXT_PUBLIC_POSTHOG_KEY)), required: false },
     cron: { label: "Cron signing", configured: Boolean(process.env.CRON_SECRET), required: true },
   }
