@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { isAdminUser } from "@/lib/auth/admin"
+import { buildInitialGreenProcessingPlan } from "@/lib/green-room/processor-routing"
 import { assessGreenAudio } from "@/lib/green-room/quality"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -45,10 +46,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: !error }, { status: error ? 500 : 200 })
   }
   if (input.action === "queue_processing") {
-    const { error } = await ctx.admin.from("green_processing_jobs").insert([{ track_id: input.trackId, job_type: "fingerprint", provider: "pex" }, { track_id: input.trackId, job_type: "analyze", provider: "modal" }])
+    const plan = buildInitialGreenProcessingPlan()
+    if (!plan.ready) {
+      return NextResponse.json({
+        error: "Audio analysis processor is not configured; no jobs were queued.",
+        missing: plan.missing.map((job) => `${job.jobType}:${job.provider}`),
+      }, { status: 503 })
+    }
+
+    const { error } = await ctx.admin.from("green_processing_jobs").insert(
+      plan.jobs.map((job) => ({
+        track_id: input.trackId,
+        job_type: job.jobType,
+        provider: job.provider,
+      })),
+    )
     if (error) return NextResponse.json({ error: "Processing could not be queued." }, { status: 500 })
+
     const updated = await ctx.admin.from("green_catalog_tracks").update({ status: "processing", updated_at: new Date().toISOString() }).eq("id", input.trackId)
-    return NextResponse.json({ ok: !updated.error }, { status: updated.error ? 500 : 200 })
+    return NextResponse.json({
+      ok: !updated.error,
+      queued: plan.jobs.map((job) => `${job.jobType}:${job.provider}`),
+      skipped: plan.missing.map((job) => `${job.jobType}:${job.provider}`),
+    }, { status: updated.error ? 500 : 200 })
   }
   if (input.action === "verify_rights") {
     const { error } = await ctx.admin.rpc("verify_green_track_rights", { p_track_id: input.trackId, p_reviewer_id: ctx.user.id })
