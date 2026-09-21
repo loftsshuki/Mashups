@@ -1,5 +1,7 @@
 # Mashups Session Handoff
 
+> **Current authority, September 21, 2026:** read [PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md), [RELEASE_READINESS.md](RELEASE_READINESS.md), and [RC_EXECUTION_2026-09-21.md](RC_EXECUTION_2026-09-21.md) before using the historical material below. The active integration branch is `codex/release-candidate-1`; migrations now extend through 031. The older “shipped” sections are historical implementation records, not current release evidence.
+
 ## Current Baseline
 
 - Repo: `C:\Dev\Mashups`
