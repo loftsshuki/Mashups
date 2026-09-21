@@ -1,0 +1,34 @@
+name: Audio and release-contract regressions
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app/modal/**'
+      - 'app/scripts/release-preflight.mjs'
+      - 'app/scripts/fingerprint-evidence.mjs'
+      - 'app/src/lib/green-room/studio-contract.ts'
+      - 'app/tests/studio-contract.test.mts'
+      - 'app/tests/release-preflight.test.mts'
+      - 'app/tests/fingerprint-evidence.test.mts'
+      - '.github/workflows/audio-regressions.yml'
+permissions:
+  contents: read
+jobs:
+  offline-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Pure contract tests (no credentials or provider calls)
+        working-directory: app
+        run: node --experimental-strip-types --test tests/studio-contract.test.mts tests/release-preflight.test.mts tests/fingerprint-evidence.test.mts
+      - name: Actual FFmpeg synthetic-signal regressions
+        working-directory: app/modal
+        run: python -m unittest -v test_green_render.py

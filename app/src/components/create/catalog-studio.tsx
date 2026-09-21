@@ -25,7 +25,7 @@ export function CatalogStudio({projectId:initialId,parentId,fresh=false}:{projec
  }
  useEffect(()=>{
   const controller=new AbortController();let cancelled=false
-  try{if(fresh)sessionStorage.removeItem(DRAFT_KEY);const saved=fresh?null:JSON.parse(sessionStorage.getItem(DRAFT_KEY)??"null");if(saved && typeof saved.title==="string" && typeof saved.left==="string" && typeof saved.right==="string"){setTitle(saved.title.slice(0,120));setLeft(saved.left);setRight(saved.right);draftId.current=typeof saved.id==="string"?saved.id:null}}catch{/* Device recovery is optional; no cloud save is claimed. */}
+  try{if(fresh)sessionStorage.removeItem(DRAFT_KEY);const saved=fresh?null:JSON.parse(sessionStorage.getItem(DRAFT_KEY)??"null");if(saved && (saved.parentId??null)===(parentId??null) && typeof saved.title==="string" && typeof saved.left==="string" && typeof saved.right==="string"){setTitle(saved.title.slice(0,120));setLeft(saved.left);setRight(saved.right);draftId.current=typeof saved.id==="string"?saved.id:null}}catch{/* Device recovery is optional; no cloud save is claimed. */}
   if(initialId){void readProject(initialId,controller.signal).then(value=>{if(!cancelled){setProject(value);setMessage("")}}).catch(error=>{if(!cancelled)setMessage(error.message)})}
   void fetch("/api/green/catalog",{cache:"no-store",signal:controller.signal}).then(response=>{if(!response.ok)throw new Error("Catalog could not be loaded.");return response.json()}).then(data=>{
    if(cancelled)return
@@ -46,7 +46,7 @@ export function CatalogStudio({projectId:initialId,parentId,fresh=false}:{projec
  async function act(action:string,extra:Record<string,unknown>={}) {
   if(busy)return;setBusy(true);setLogin(false);setMessage("")
   const id=project?.id??draftId.current??crypto.randomUUID();draftId.current=id
-  try{sessionStorage.setItem(DRAFT_KEY,JSON.stringify({id,title,left,right}))}catch{/* A failed browser save is not an account save. */}
+  try{sessionStorage.setItem(DRAFT_KEY,JSON.stringify({id,title,left,right,parentId:parentId??null}))}catch{/* A failed browser save is not an account save. */}
   try {
    const response=await fetch("/api/green/studio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,projectId:id,expectedRevision:project?.revision,...extra}),signal:AbortSignal.timeout(15000)})
    const data=await response.json()
@@ -68,7 +68,7 @@ export function CatalogStudio({projectId:initialId,parentId,fresh=false}:{projec
   <p className="mono-label text-primary">Catalog studio / Real audio</p><h1 className="display-type mt-4 text-5xl sm:text-7xl">{project?.title??"Make your cut."}</h1>
   <div className="mt-5 flex flex-wrap gap-5 text-sm"><Link href="/create?fresh=1" className="underline">Open synthesized demo</Link><Link href="/projects" className="underline">My saved mashups</Link><a href="/create?mode=catalog&fresh=1" className="underline">New catalog project</a></div>
   {message && <p role="status" className="my-6 border border-foreground bg-secondary p-4">{message}</p>}
-  {login && <Link className={button} href={buildAuthPath("login",`${studioPath(initialId)}${parentId?`&fork=${encodeURIComponent(parentId)}`:""}`)}>Sign in and return</Link>}
+  {login && <Link className={button} href={buildAuthPath("login",`${studioPath(project?.id??initialId)}${parentId?`&fork=${encodeURIComponent(parentId)}`:""}`)}>Sign in and return</Link>}
   {!project && <section className="mt-8 grid gap-5 border border-foreground bg-card p-6">
    <label>Mashup name<input className="mt-2 block min-h-12 w-full border bg-background p-3" value={title} maxLength={120} onChange={event=>setTitle(event.target.value)}/></label>
    {!parentId && <div className="grid gap-5 sm:grid-cols-2">{(["left","right"] as const).map(side=><label key={side}>{side==="left"?"Source A":"Source B"}<select className="mt-2 block min-h-12 w-full border bg-background p-3" value={side==="left"?left:right} onChange={event=>side==="left"?setLeft(event.target.value):setRight(event.target.value)}>{tracks.map(track=><option key={track.id} value={track.id}>{track.trackTitle} / {track.artistName}</option>)}</select></label>)}</div>}
