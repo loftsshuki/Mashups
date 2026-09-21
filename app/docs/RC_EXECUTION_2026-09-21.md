@@ -1,56 +1,103 @@
 # RC execution record: September 21, 2026
 
-Branch: `codex/release-candidate-1`; draft PR #11. Do not merge or promote this record into a launch claim. The platform plan still governs scope; this record updates the implementation/evidence matrix in RELEASE_READINESS.md.
+Branch: `codex/release-candidate-1`; draft PR #11. This is an implementation and evidence record, not a launch declaration.
 
-## Twelve workstreams
+## Pre-Supabase implementation state
 
-| # | Workstream | Repository work in this session | Evidence still needed |
-|---|---|---|---|
-| 1 | Real catalog studio | Catalog-only create flow, server render requests, persisted status polling, private candidate playback, errors and reload | Hosted authorized catalog and complete browser run |
-| 2 | Keep a candidate | Owner/revision-checked selection RPC and action, identical retry support, selected identity persisted | Apply migration 029 and run real PostgreSQL regressions |
-| 3 | Publish/share | Guarded publish action, old publish URL uses same action, studio share link, no-store public metadata, byte-range audio | Hosted rights/review/storage tests and physical phone seeking |
-| 4 | Fork lineage | Public Make your version link, clean child recipe, parent identity, idempotent child create | Hosted fork after actual published audio |
-| 5 | Separation | Deployable Modal GPU Demucs bridge with private output upload | Image build, credentials, provider terms review, real authorized job |
-| 6 | Renderer | Eight input stems, independent tempo/pitch handling, three WAV arrangements, measured levels, signed callback path | Deployment, musical timing/phrase quality, real-song latency/cost |
-| 7 | Fingerprinting | Provenance-bound adapter-side evidence validator and regression test; no invented provider result | Select/configure actual licensed provider, integrate hash-bound evidence into durable callback transaction |
-| 8 | Supabase | Read-only schema/Auth preflight and isolated migration test runner through 029 | Connect correct project, inspect backups/history, recover approved staging, apply full prerequisite chain, real login/OAuth |
-| 9 | Stripe sandbox | Read-only test-key/price verifier with fail-closed live-key and live-price tests | Sandbox keys/prices, signed webhook, completed checkout, entitlements, cancellation/replay |
-| 10 | Two-device acceptance | Opt-in hosted Playwright scenarios for real render/save/reload/keep, anonymous listen/range request, fork | Run scenarios against staging, then physical iPhone/Android; no positive reviews are manufactured |
-| 11 | Audio evaluation | Authorized real-audio panel protocol, provenance checklist, existing blind bench integration instructions | Actual recordings, independent listener reviews and measured failures |
-| 12 | Native | Expo SDK 56 starter sharing contracts and APIs, secure sign-in, saved projects, playback, Keep/Publish/share/fork | Dependency install/lockfile, full typecheck, EAS/signing, TestFlight/Android builds, hardware and store compliance |
+The repository now contains the complete planned pre-hosted spine:
 
-## Verification actually performed
+1. Real catalog studio with durable create/render/status/play/select/publish/fork flows.
+2. Revision-checked candidate selection and two-independent-review publication gates.
+3. Canonical publication identity, private preview proxy, range-aware playback, credits and lineage.
+4. Forks that preserve parent lineage without inheriting selected audio or reviews.
+5. Deployable Demucs separation bridge and private stem upload path.
+6. FFmpeg/Rubber Band three-arrangement renderer with conservative tempo-warp refusal, measured LUFS/peak, input hashes and renderer provenance.
+7. Source-hash-bound fingerprint callback contract. A provider is intentionally not invented.
+8. Read-only Supabase preflight plus migrations through 031 and isolated SQL regression runners.
+9. Read-only Stripe sandbox preflight. No live-mode operation.
+10. Opt-in hosted Playwright acceptance for real render/reload/keep, anonymous playback/range/fork, and fail-closed boundaries.
+11. Real-audio listening-panel protocol and deterministic synthetic renderer regression.
+12. Expo beta source sharing the web contracts plus sign-in, projects, rendering, playback, Keep/Publish/share/fork, report/block, and a reversible deletion-request workflow.
 
-- Eight focused Node tests passed: four studio/range/permission-state tests, three preflight safety tests and one fingerprint-evidence test. No credentials or provider requests were used.
-- Three Python tests passed, including actual FFmpeg/Rubber Band processing of eight synthesized source stems into three distinct WAV previews. Output duration, finite measurements and peak bounds were checked. Tests do not represent licensed-song quality or human approval.
-- Eighteen TS/TSX/MTS files in the partial patch workspace passed TypeScript transpiler syntax diagnostics. This is NOT a full project typecheck, dependency install, lint or build.
-- Python source compilation and JSON parsing passed for the new source/configuration files.
-- Vercel reported the first studio batch (`bf29bcf`) READY. Check the latest PR head deployment separately; Ready does not execute SQL migrations or prove hosted audio.
-- No full repository checkout/dependency environment was available in this container. PostgreSQL and hosted Playwright suites were authored but NOT RUN. No native build or human/physical-device test ran.
+## Reliability hardening added before hosted integration
 
-## Commands
+Migration 030 adds:
+
+- processor dispatch tokens and time-bounded leases
+- bounded attempts with exponential handoff retry
+- stale-worker lease recovery
+- immutable master/source SHA-256 bindings
+- provenance-bound stem/render manifests
+- one serialized processing-evidence row per track/source version
+- atomic analysis/fingerprint/separation evidence merge
+- stale callback rejection after a job is re-leased
+- a service-only private catalog-audition path for bootstrapping the first approved catalog without bypassing rights or listening-review rules
+- a fake-hosted SQL journey covering source evidence -> private audition -> catalog -> render -> keep -> reviews -> publish -> anonymous read -> fork -> rights revocation
+
+Migration 031 adds private service-mediated content reports, creator blocks, and reversible account-deletion requests. It does not automatically delete an auth user or claim store-complete deletion handling.
+
+## Verification obtained so far
+
+- Previous focused Node contract tests passed.
+- Previous FFmpeg renderer regression passed on synthetic stems.
+- Vercel preview builds were Ready through the processing/renderer hardening commits.
+- A later source-generation batch introduced literal source escapes in `studio-contract.ts`, `studio-service.ts`, and `verify-rc.mjs`; this was identified from the Vercel build cliff and corrected. The post-fix deployment must be checked before calling the web branch build-clean.
+- GitHub Actions still fails before executing job steps because of the existing account-level execution problem. The workflow now points its database job at the complete RC database suite rather than the old foundation-only suite.
+
+Not yet proven:
+
+- migrations 030/031 executing successfully in PostgreSQL
+- the fake-hosted SQL journey
+- hosted Supabase auth/storage/RPC behavior
+- a deployed Modal separation/render callback chain
+- real fingerprint-provider evidence
+- Stripe checkout/webhook/cancellation
+- authorized commercial/artist audio quality
+- human listening-panel results
+- Expo dependency install/typecheck/EAS builds
+- physical iOS/Android behavior
+
+The current runtime has FFmpeg/Rubber Band but no PostgreSQL client/server and no outbound GitHub DNS, so it cannot independently run the SQL suite or clone a clean checkout. Do not silently convert authored tests into claimed test results.
+
+## Verification commands
 
 From `app/`:
 
 ```sh
-node --experimental-strip-types --test tests/studio-contract.test.mts tests/release-preflight.test.mts tests/fingerprint-evidence.test.mts
-node scripts/release-preflight.mjs
-node scripts/test-studio-db.mjs
-npx playwright test --config=acceptance/playwright.config.ts
+npm run verify:rc
 ```
 
-The preflight is read-only and never claims release approval. Missing configuration reports unverified. The database runner requires an isolated loopback PostgreSQL cluster via FOUNDATION_PG_PORT and FOUNDATION_PG_USER, creates its own unique database, and drops only that test database. It does not exercise the entire historical hosted Supabase chain.
+With an isolated PostgreSQL cluster configured:
 
-Hosted acceptance requires `MASHUPS_ACCEPTANCE_WRITE_OK=staging-only`, an explicit non-production HTTPS `MASHUPS_STAGING_ORIGIN`, an owned creator token, two approved source IDs and, for anonymous playback/fork, a publication already reviewed by real independent listeners. Credentials and reports/traces must stay private. The test is outside the normal e2e directory and does not silently write against production. It leaves its test projects for operator inspection/cleanup.
+```sh
+RC_REQUIRE_DB=1 FOUNDATION_PG_PORT=<isolated-port> FOUNDATION_PG_USER=<isolated-user> npm run verify:rc
+```
 
-## Remaining engineering risks before launch
+The database stage runs foundation controls, studio actions, the fake-hosted journey, and native safety regressions against a uniquely named disposable database.
 
-Do not mistake contract coverage for production reliability. Inherited processing still needs atomic analysis/fingerprint/separation result merging, immutable source-version bindings, bounded dispatch retries, expired-job lease recovery, and robust hosted idempotency tests. The first approved real catalog also needs an operator-controlled audition/bootstrap path; source approval must not depend on bypassing its own review gates. The new renderer provides manual start/pitch controls, not automatic musical alignment.
+Renderer-only verification:
 
-Native store release additionally needs OAuth/recovery, purchase restoration/entitlements, account deletion, reporting/blocking, privacy disclosures and device interruption testing. No placeholder universal-link association files or fake store credentials were added.
+```sh
+cd modal
+python -m unittest -v test_green_render.py
+```
 
-## Operator dependencies
+Hosted acceptance remains explicit and staging-only:
 
-The correct Supabase connection, Stripe sandbox configuration, worker deployment credentials, reviewed source permissions/audio, independent listeners, physical devices and Apple/Google signing remain external gates. A Supabase connection was offered in the conversation. No unrelated project, live Stripe mode, public source upload or paid GPU deployment was used.
+```sh
+MASHUPS_ACCEPTANCE_WRITE_OK=staging-only MASHUPS_STAGING_ORIGIN=https://<approved-staging-host> npx playwright test --config=acceptance/playwright.config.ts
+```
 
-Current decision: NO-GO for public production. Continue controlled implementation and staging validation. Retain #4–#9 until #11 is validated and safely promoted.
+## Remaining gates before production
+
+These are now primarily evidence/deployment gates rather than missing application architecture:
+
+- run migrations 025-031 in an isolated/local PostgreSQL suite, then inspect and apply to the correct staging Supabase project
+- prove hosted auth, private Blob, processor callbacks, lease recovery, publication and revocation
+- configure a real fingerprint provider or keep sample evidence in manual review
+- prove Stripe sandbox lifecycle
+- run authorized real-audio and independent listening review
+- install/build/sign the native app and complete physical-device/store-policy testing
+- repair GitHub Actions account execution and obtain green CI
+
+Current decision: **NO-GO for public production.** Keep PR #11 draft. Retain #4-#9 until #11 has green integration evidence and is deliberately promoted.
