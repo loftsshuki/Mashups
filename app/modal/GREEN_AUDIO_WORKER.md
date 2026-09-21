@@ -1,31 +1,77 @@
 # Deployable Green Room audio bridge
 
-Implementation status: the local FFmpeg renderer passes three focused Python tests, including real PCM processing into three different previews. The Modal image, GPU separation, private Blob upload and hosted callbacks have not been executed in this session.
+The repository contains a deployable Demucs separation bridge and a CPU FFmpeg/Rubber Band renderer. Deployment remains opt-in and can incur provider charges.
 
-## Configuration and deployment
+## Durable job contract
 
-From `app/`, use an authenticated Modal account and the official Modal CLI. Create the `mashups-green-audio` secret in Modal with:
+Migrations through 030 must be applied before enabling these workers.
 
-- `GREEN_ROOM_PROCESSOR_SECRET`: the shared server-side HMAC secret used by this Mashups staging environment.
-- `GREEN_ROOM_READ_WRITE_TOKEN`: token for the dedicated PRIVATE Green Room Blob store.
-- `GREEN_ROOM_APP_ORIGIN`: the exact HTTPS origin of that staging app, without paths. Do not disable preview protection; configure an approved worker-reachable staging host instead.
+Each dispatch now includes:
 
-Run `modal deploy modal/green_audio_worker.py` only after reviewing the account's compute limits. This creates an L4 separation function and a CPU render function; it can incur provider charges. No deployment or paid processing was performed here.
+- `jobId`
+- unique `dispatchToken`
+- a bounded database lease
+- source asset/hash provenance for track jobs
+- signed per-asset URLs plus frozen stem/source hashes for project render jobs
+- an HMAC-signed callback URL
 
-Set BOTH `GREEN_ROOM_SEPARATION_PROCESSOR_URL` and `GREEN_ROOM_RENDER_CANDIDATES_PROCESSOR_URL` in the matching Vercel environment to the returned bridge endpoint. Keep the existing analysis endpoint separate. All server secrets stay outside Git and the browser/native bundle. Apply and verify migrations 025 through 029 in staging before enabling studio writes.
+Callbacks must return the active dispatch token. If a worker outlives its lease and the job is reissued, the stale worker is rejected.
 
-The bridge returns 202 and spawns work. It accepts only separation/render jobs, checks signed source URL origins, forbids redirects, bounds downloads, writes outputs into private Blob, and signs callbacks. It never receives general database access. Preserve the shared secret until in-flight work is finished; rotation requires coordinating Vercel and Modal.
+Handoff failures are bounded by `max_attempts`. Expired leases are requeued or failed explicitly. Analysis, fingerprint and separation evidence is merged transactionally for one exact source version rather than racing through independent table updates.
 
-## Actual audio behavior
+## Configuration
 
-Separation uses pinned Demucs/htdemucs dependencies, returning four private stem assets. No reference-ground-truth SDR or bleed measurement is fabricated. Rendering uses supplied source BPM, manually selected starts, target tempo and bounded optional pitch shifts; FFmpeg Rubber Band separates tempo change from pitch change. It produces A-vocal/B-backing, B-vocal/A-backing, and a two-section drop swap. This is a bounded preview engine, not automatic beat-grid/chord/phrase alignment. The swap point is half the selected duration, not claimed to be a verified downbeat.
+Modal secret `mashups-green-audio`:
 
-Rendered previews are measured for integrated loudness and oversampled peak via FFmpeg loudnorm, hashed, and tagged with renderer provenance. Passing technical measurements leave `qualityStatus: manual_review` and musical quality `not_evaluated`. Human keep reviews are still required. The zero composite score is not a quality probability.
+- `GREEN_ROOM_PROCESSOR_SECRET`
+- `GREEN_ROOM_READ_WRITE_TOKEN`
+- `GREEN_ROOM_APP_ORIGIN`
 
-Run local regression from `app/modal`: `python -m unittest -v test_green_render.py`. FFmpeg/ffprobe with Rubber Band must already be installed. These fixtures contain newly synthesized tones, not third-party recordings.
+Deploy only after reviewing compute limits:
+
+```sh
+modal deploy modal/green_audio_worker.py
+```
+
+Set the returned bridge URL in the matching staging environment for:
+
+- `GREEN_ROOM_SEPARATION_PROCESSOR_URL`
+- `GREEN_ROOM_RENDER_CANDIDATES_PROCESSOR_URL`
+
+Keep the analysis worker separate. A fingerprint provider remains a separate adapter and must return evidence bound to the exact source SHA.
+
+## Audio behavior
+
+Separation uses pinned Demucs/htdemucs dependencies and returns vocal, drums, bass and other stems to private Blob storage.
+
+Renderer v2:
+
+- requires eight canonical stems
+- refuses tempo ratios outside 0.84-1.19
+- permits only bounded +/-3 semitone pitch changes from the API contract
+- reports nearest-beat offset for manual excerpt starts but does not claim automatic downbeat/phrase detection
+- uses short fades around the drop-swap boundary
+- measures integrated loudness and peak
+- stores input hashes, tempo ratios, start-alignment data, pitch settings and renderer version in candidate metrics
+- never labels an output musically approved automatically
+
+Passing technical measurements remain `manual_review`. Two genuine independent Keep reviews are required before publication.
+
+## Local renderer regression
+
+```sh
+cd app/modal
+python -m unittest -v test_green_render.py
+```
+
+FFmpeg/ffprobe with Rubber Band must be installed. Fixtures are synthesized and are not evidence of quality on authorized songs.
 
 ## Remaining operational gates
 
-Build the Modal image; verify private Blob permissions; exercise retries and callback receipts in hosted staging; add atomic result merging, bounded job leases and stale-worker recovery; bind stems/scan evidence to immutable source versions; review component/model licensing for commercial deployment; measure real-song separation/render latency, quality and cost. A fingerprint provider remains separate and unconfigured. Do not interpret an analysis result as clearance.
-
-References: https://modal.com/docs/reference/modal.Image ; https://modal.com/docs/guide/webhooks ; https://github.com/facebookresearch/demucs ; https://ffmpeg.org/ffmpeg-filters.html .
+- execute migrations 030/031 in PostgreSQL before hosted enablement
+- build the Modal image and verify private Blob permissions
+- exercise callback retries, lease expiry and stale-callback rejection in staging
+- review Demucs/model/component licensing for the intended commercial use
+- measure real-song latency, cost, artifacts and musical timing
+- configure a real fingerprint provider if automated sample evidence is required
+- rotate processor secrets only with an explicit in-flight-job strategy
