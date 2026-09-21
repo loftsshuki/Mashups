@@ -34,9 +34,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Verify catalog permissions and analytics in PostgreSQL
+      - name: Verify foundation, studio, fake-hosted journey, and safety in PostgreSQL
         working-directory: app
-        run: npm run test:foundation:db
+        run: npm run test:studio:db
         env:
           FOUNDATION_PG_PORT: 5432
           FOUNDATION_PG_USER: postgres
