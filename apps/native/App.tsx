@@ -20,6 +20,8 @@ export default function App(){
  const [project,setProject]=useState<StudioSnapshot|null>(null),[left,setLeft]=useState(''),[right,setRight]=useState('')
  const [listenId,setListenId]=useState<string|null>(null),[listenTitle,setListenTitle]=useState('')
  const [target,setTarget]=useState('128')
+ const [reportDetails,setReportDetails]=useState(''),[deletionConfirm,setDeletionConfirm]=useState('')
+ const [safety,setSafety]=useState<{deletion:{status:string}|null;blockedCreatorCount:number}>({deletion:null,blockedCreatorCount:0})
  async function api(path:string,body?:unknown){
   if(!/^https:\/\//.test(base))throw new Error('Set the HTTPS staging API URL.')
   const current=(await supabase?.auth.getSession())?.data.session
@@ -29,6 +31,8 @@ export default function App(){
  async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setMessage('');try{await work()}catch(error){setMessage(error instanceof Error?error.message:'Request could not be confirmed.')}finally{setBusy(false)}}
  async function loadProject(id:string){const data=await api(`/api/green/studio?projectId=${encodeURIComponent(id)}`);if(data.project?.id!==id)throw new Error('Unexpected project receipt.');setProject(data.project)}
  async function refresh(){const data=await api('/api/green/projects');setProjects(data.projects??[])}
+ async function refreshSafety(){const data=await api('/api/green/safety');setSafety({deletion:data.deletion??null,blockedCreatorCount:Number(data.blockedCreatorCount??0)})}
+ async function safetyAction(action:string,extra:Record<string,unknown>={}){await api('/api/green/safety',{action,...extra});await refreshSafety()}
  useEffect(()=>{
   if(!supabase)return
   void supabase.auth.getSession().then(({data})=>setSession(data.session)).catch(()=>setMessage('Stored sign-in could not be restored.'))
@@ -37,7 +41,7 @@ export default function App(){
   void setAudioModeAsync({playsInSilentMode:true,interruptionMode:'doNotMix'}).catch(()=>setMessage('Audio session could not be configured.'))
   return()=>{data.subscription.unsubscribe();active.remove();supabase.auth.stopAutoRefresh()}
  },[player])
- useEffect(()=>{if(session)void refresh().catch(error=>setMessage(error.message));else{setProjects([]);setProject(null);player.pause()}},[session?.user.id])
+ useEffect(()=>{if(session){void Promise.all([refresh(),refreshSafety()]).catch(error=>setMessage(error.message))}else{setProjects([]);setProject(null);setSafety({deletion:null,blockedCreatorCount:0});player.pause()}},[session?.user.id])
  useEffect(()=>{
   let cancelled=false
   void api('/api/green/catalog').then(data=>{if(!cancelled)setTracks(data.mode==='live'?data.tracks:[])}).catch(error=>{if(!cancelled)setMessage(error.message)})
@@ -54,9 +58,10 @@ export default function App(){
  return <ScrollView contentContainerStyle={{padding:24,paddingTop:64,paddingBottom:64,gap:18}} keyboardShouldPersistTaps="handled">
   <Text style={{fontSize:36,fontWeight:'800'}}>Mashups Beta</Text><Text>Shared catalog. Three arrangements. One kept cut.</Text>
   {!!message&&<Text accessibilityRole="alert">{message}</Text>}
-  {listenId&&!!listenTitle&&<View style={{gap:12}}><Text style={{fontSize:24}}>{listenTitle}</Text><Button title="Play publication" onPress={()=>void run(()=>play(`/api/green/publications/${listenId}/audio`,false))}/><Button title="Make my version" disabled={!session||busy} onPress={()=>void run(async()=>{const data=await api('/api/green/studio',{action:'fork',parentId:listenId,projectId:randomUUID()});setProject(data.project);await refresh()})}/></View>}
+  {listenId&&!!listenTitle&&<View style={{gap:12}}><Text style={{fontSize:24}}>{listenTitle}</Text><Button title="Play publication" onPress={()=>void run(()=>play(`/api/green/publications/${listenId}/audio`,false))}/><Button title="Make my version" disabled={!session||busy} onPress={()=>void run(async()=>{const data=await api('/api/green/studio',{action:'fork',parentId:listenId,projectId:randomUUID()});setProject(data.project);await refresh()})}/>{session&&<><TextInput accessibilityLabel="Report details" placeholder="Optional report details" value={reportDetails} maxLength={2000} onChangeText={setReportDetails} style={{borderWidth:1,padding:14}}/><Button title="Report publication" disabled={busy} onPress={()=>void run(async()=>{await safetyAction('report',{publicationId:listenId,category:'other',details:reportDetails});setReportDetails('');setMessage('Report received for review.')})}/><Button title="Block this creator" disabled={busy} onPress={()=>void run(async()=>{await safetyAction('block',{publicationId:listenId});setMessage('Creator blocked for this account.')})}/></>}</View>}
   {!session?<View style={{gap:12}}><TextInput accessibilityLabel="Email" placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} style={{borderWidth:1,padding:14}}/><TextInput accessibilityLabel="Password" placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} style={{borderWidth:1,padding:14}}/><Button title="Sign in" disabled={busy} onPress={()=>void run(async()=>{const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw new Error(error.message);setPassword('')})}/></View>:<>
    <Button title="Sign out" onPress={()=>void run(async()=>{player.pause();const {error}=await supabase.auth.signOut();if(error)throw error})}/>
+   <View style={{gap:10,borderWidth:1,padding:14}}><Text style={{fontSize:20,fontWeight:'700'}}>Account & safety</Text><Text>{safety.blockedCreatorCount} blocked creator{safety.blockedCreatorCount===1?'':'s'} · deletion request {safety.deletion?.status??'none'}</Text><TextInput accessibilityLabel="Deletion confirmation" placeholder="Type DELETE MY ACCOUNT" autoCapitalize="characters" value={deletionConfirm} onChangeText={setDeletionConfirm} style={{borderWidth:1,padding:14}}/><Button title="Request account deletion" disabled={busy||deletionConfirm!=='DELETE MY ACCOUNT'} onPress={()=>void run(async()=>{await safetyAction('request_deletion',{confirmation:'DELETE MY ACCOUNT'});setDeletionConfirm('');setMessage('Deletion request recorded. No immediate deletion was performed.')})}/>{safety.deletion?.status==='requested'&&<Button title="Cancel deletion request" disabled={busy} onPress={()=>void run(async()=>{await safetyAction('cancel_deletion');setMessage('Deletion request cancelled.')})}/>}<Button title="Terms" onPress={()=>void Linking.openURL(base+'/legal/terms')}/><Button title="Copyright policy" onPress={()=>void Linking.openURL(base+'/legal/copyright')}/></View>
    <Text style={{fontSize:24,fontWeight:'700'}}>Saved projects</Text>{projects.map(p=><Button key={p.id} title={p.title} onPress={()=>void run(async()=>{if(p.sources.kind!=='catalog')throw new Error('Open this synthesized device recipe on the web.');await loadProject(p.id)})}/>)}
    <Button title="New catalog project" onPress={()=>{player.pause();setProject(null)}}/>
    {!project?<><Text>Select two approved tracks.</Text>{tracks.map(track=><View key={track.id} style={{gap:6,paddingVertical:8}}><Text>{track.trackTitle} / {track.artistName}</Text><Button title={left===track.id?'Selected A':'Use as A'} onPress={()=>setLeft(track.id)}/><Button title={right===track.id?'Selected B':'Use as B'} onPress={()=>setRight(track.id)}/></View>)}<Button title="Create saved project" disabled={busy||!left||!right||left===right} onPress={()=>void run(()=>action('create',{title:'Mobile mashup',leftId:left,rightId:right}))}/></>:<>
