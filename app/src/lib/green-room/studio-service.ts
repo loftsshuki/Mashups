@@ -35,6 +35,6 @@ export async function studioSnapshot(admin: Admin, creatorId: string, id: string
       id:jobs.data.id,status:jobs.data.status,errorCode:jobs.data.error_code,errorMessage:jobs.data.error_message,
       attemptCount:Number(jobs.data.attempt_count??0),maxAttempts:Number(jobs.data.max_attempts??0),leaseExpiresAt:jobs.data.lease_expires_at,
     }:null,
-    publicationPath:p.status==="published" ? \`/listen/\${encodeURIComponent(id)}\`:null,
+    publicationPath:p.status==="published" ? `/listen/${encodeURIComponent(id)}`:null,
   }
 }
