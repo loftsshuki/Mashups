@@ -32,14 +32,14 @@ export type StudioSnapshot = {
   publicationPath: string | null
 }
 export function studioPath(id?: string) {
-  return \`/create?mode=catalog\${id ? \`&project=\${encodeURIComponent(id)}\` : ""}\`
+  return `/create?mode=catalog${id ? `&project=${encodeURIComponent(id)}` : ""}`
 }
 export function candidateAudioPath(projectId: string, candidateId: string) {
-  return \`/api/green/studio/audio?\${new URLSearchParams({ projectId, candidateId })}\`
+  return `/api/green/studio/audio?${new URLSearchParams({ projectId, candidateId })}`
 }
 export function parseByteRange(value: string | null, size: number): { start: number; end: number } | null {
   if (!value || !Number.isSafeInteger(size) || size < 1) return null
-  const match = /^bytes=(\\d*)-(\\d*)$/.exec(value)
+  const match = /^bytes=(\d*)-(\d*)$/.exec(value)
   if (!match || (!match[1] && !match[2])) return null
   let start: number, end: number
   if (!match[1]) {
