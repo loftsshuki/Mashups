@@ -1,15 +1,45 @@
 /** Shared, dependency-free client contract. SQL remains authoritative. */
-export type StudioCandidate = { id: string; arrangement: string; durationSeconds: number; qualityStatus: string; keepReviews: number; audioPath: string }
-export type StudioSnapshot = { id: string; title: string; revision: number; status: string; selectedCandidateId: string | null; parentProjectId: string | null; candidates: StudioCandidate[]; job: { id: string; status: string; errorCode: string | null } | null; publicationPath: string | null }
+export type StudioCandidate = {
+  id: string
+  arrangement: string
+  durationSeconds: number
+  qualityStatus: string
+  keepReviews: number
+  audioPath: string
+  integratedLufs?: number | null
+  truePeakDb?: number | null
+  technicalPass?: boolean | null
+  renderer?: string | null
+}
+export type StudioJob = {
+  id: string
+  status: string
+  errorCode: string | null
+  errorMessage?: string | null
+  attemptCount?: number
+  maxAttempts?: number
+  leaseExpiresAt?: string | null
+}
+export type StudioSnapshot = {
+  id: string
+  title: string
+  revision: number
+  status: string
+  selectedCandidateId: string | null
+  parentProjectId: string | null
+  candidates: StudioCandidate[]
+  job: StudioJob | null
+  publicationPath: string | null
+}
 export function studioPath(id?: string) {
-  return `/create?mode=catalog${id ? `&project=${encodeURIComponent(id)}` : ""}`
+  return \`/create?mode=catalog\${id ? \`&project=\${encodeURIComponent(id)}\` : ""}\`
 }
 export function candidateAudioPath(projectId: string, candidateId: string) {
-  return `/api/green/studio/audio?${new URLSearchParams({ projectId, candidateId })}`
+  return \`/api/green/studio/audio?\${new URLSearchParams({ projectId, candidateId })}\`
 }
 export function parseByteRange(value: string | null, size: number): { start: number; end: number } | null {
   if (!value || !Number.isSafeInteger(size) || size < 1) return null
-  const match = /^bytes=(\d*)-(\d*)$/.exec(value)
+  const match = /^bytes=(\\d*)-(\\d*)$/.exec(value)
   if (!match || (!match[1] && !match[2])) return null
   let start: number, end: number
   if (!match[1]) {
