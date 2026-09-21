@@ -8,13 +8,14 @@ import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PRODUCT_EVENTS, trackProductEvent } from "@/lib/analytics/events"
 import { startCheckout } from "@/lib/data/billing"
+import type { SubscriptionPlanId } from "@/lib/billing/checkout-contract"
 
-type PricingTier = { id: string; name: string; price: string; cadence: string; blurb: string; features: readonly string[]; cta: string; featured: boolean }
+type PricingTier = { id: "free" | SubscriptionPlanId; name: string; price: string; cadence: string; blurb: string; features: readonly string[]; cta: string; featured: boolean }
 
 const tiers: readonly PricingTier[] = [
   { id: "free", name: "Free", price: "$0", cadence: "forever", blurb: "Prove the workflow before you scale it.", features: ["3 campaign drafts each month", "Public profile and discovery", "Draft rights declarations"], cta: "Start free", featured: false },
-  { id: "Pro Creator", name: "Pro Creator", price: "$12", cadence: "per month", blurb: "For creators shipping a campaign every week.", features: ["Unlimited hook candidates", "Signed campaign attribution", "Weekly performance brief", "Creator-safe export presets"], cta: "Choose Creator", featured: true },
-  { id: "Pro Studio", name: "Pro Studio", price: "$29", cadence: "per month", blurb: "For editors, managers, and creator teams.", features: ["Everything in Pro Creator", "Team campaign workspace", "Rights and dispute operations", "Priority collaboration rooms"], cta: "Choose Studio", featured: false },
+  { id: "pro_creator", name: "Pro Creator", price: "$12", cadence: "per month", blurb: "For creators shipping a campaign every week.", features: ["Unlimited hook candidates", "Signed campaign attribution", "Weekly performance brief", "Creator-safe export presets"], cta: "Choose Creator", featured: true },
+  { id: "pro_studio", name: "Pro Studio", price: "$29", cadence: "per month", blurb: "For editors, managers, and creator teams.", features: ["Everything in Pro Creator", "Team campaign workspace", "Rights and dispute operations", "Priority collaboration rooms"], cta: "Choose Studio", featured: false },
 ]
 
 export default function PricingPage() {
@@ -24,14 +25,14 @@ export default function PricingPage() {
 
   useEffect(() => trackProductEvent(PRODUCT_EVENTS.pricingViewed), [])
 
-  async function handleCheckout(plan: string) {
+  async function handleCheckout(plan: PricingTier["id"]) {
     if (plan === "free") { router.push("/signup"); return }
     setError(null)
     setPendingPlan(plan)
     try {
       const result = await startCheckout("subscription", plan)
       if (result.checkoutUrl) router.push(result.checkoutUrl)
-      else setError("Billing is not connected yet. Your campaign drafts remain available on Free.")
+      else setError(result.error ?? "Checkout is unavailable. Please try again later.")
     } finally { setPendingPlan(null) }
   }
 

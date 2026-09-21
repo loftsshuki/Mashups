@@ -2,16 +2,22 @@
 
 ## Decision
 
-Build the current Green Room sprint mobile-first in the existing Next.js product. Do not wait for a “finished desktop,” and do not maintain three UI codebases before the core loop is proven.
+Updated September 12, 2026: build the existing Next.js web product and one
+React Native/Expo client serving both iOS and Android. All three are in the first
+release programme. Start native implementation alongside the web loop as the
+shared API contracts become ready. See [PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md).
 
-The installable web app is the first iPhone and Android beta surface. A native Expo app starts only after the product demonstrates repeat use and identifies device capabilities the web cannot deliver reliably.
+The mobile web app provides immediately playable shared links. Native betas add
+device integration and use the same catalog, projects, permissions, and accounts.
 
 ## Why
 
 - Rights, catalog, projects, render jobs, attribution, analytics, and beta access are product contracts. They must be shared by every client.
 - Web, iOS, and Android audio engines have different runtime constraints. Pretending the current WebAudio implementation is reusable native UI would create false velocity.
-- A responsive PWA reaches invitees immediately, avoids app-review delay, and gives one funnel dataset.
-- Native code is justified by measured needs: reliable background rendering, low-latency audio, share-sheet integration, push notifications, offline drafts, or web audio failures.
+- Responsive web links reach invitees immediately and work without installation.
+- Native clients provide playback/audio-session recovery, native sharing, upload
+  and render-job status, and notifications. Long-running music rendering remains
+  on the shared backend.
 
 ## Current Client Boundary
 
@@ -31,40 +37,43 @@ The web client may never:
 - Export artist-direct standalone MP3, WAV, or stems.
 - Cache private audio or authenticated API responses in the service worker.
 
-## Native Trigger
+## Native Start And Release Checks
 
-Start `apps/mobile` with Expo Router when all of these are true:
+Start `apps/native` with Expo Router once the shared authentication and catalog,
+project, render-job, and publication interfaces are defined. User-count and
+retention thresholds are measures for later product decisions, not prerequisites
+for this implementation.
 
-1. At least 1,000 qualified beta users have entered the creation funnel.
-2. Day-30 retained creator rate is at least 15%.
-3. At least 20% of activated sessions start a compliant share.
-4. At least 60% of started render sessions complete.
-5. Rights-related muting or claims remain below 5% for controlled video exports.
-6. User evidence identifies at least two native-only advantages worth the maintenance cost.
-
-Kill or reposition the consumer loop if Day-30 retention is below 10% after a representative artist-direct beta.
+Before wider release, verify the core journey, rights enforcement, billing,
+privacy/moderation flows, HTTPS deep-link fallback, and playback recovery on real
+iOS and Android devices. Evaluate repeat use across general listener/creator
+cohorts as well as optional artist campaigns.
 
 ## Native Repository Shape
 
-When the trigger is met:
+Use repository-root paths without relocating the existing web application:
 
 ```text
-apps/
-  web/                 Next.js product
-  mobile/              Expo Router iOS + Android
-packages/
-  green-domain/        Zod schemas, types, quality and compatibility rules
-  api-client/          Typed HTTP client and auth/session adapters
-  analytics-contract/  Event names and property schemas
-  brand-tokens/        Color, spacing, type scale, icon assets
+app/                         existing Next.js product
+  packages/contracts/        existing portable product contracts
+apps/native/                 planned Expo Router iOS + Android client
 ```
 
 Do not share React DOM components with React Native. Share pure TypeScript contracts, state machines, test fixtures, and generated API clients.
+
+Add workspace configuration and extract additional packages only where both
+clients need them. This structure is a plan, not a claim that native code exists.
 
 ## API Contract
 
 - `GET /api/green/catalog`: public fail-closed catalog response.
 - `POST /api/green/events`: anonymous or authenticated funnel events.
+- `GET /api/green/projects[?id=UUID]`: verified user's private recipes (most recent
+  50 when no ID is supplied).
+- `PUT /api/green/projects`: create/update a private recipe using a stable UUID
+  and the last confirmed revision. Identical retries are idempotent; conflicting
+  edits require a new copy. Cookie and Bearer authentication are accepted. See
+  [the saved-project sprint](SAVED_PROJECTS.md) for verification limits.
 - `POST /api/green/intake`: authenticated rightsholder intake after private upload.
 - `POST /api/green/uploads/path`: authenticated private pathname allocation.
 - `POST /api/green/uploads/token`: scoped private client-upload token.
@@ -76,9 +85,12 @@ Version these routes before a native public release. The native app must tolerat
 
 ## Release Sequence
 
-1. Mobile web closed beta on iPhone and Android.
-2. Instrument browser, operating system, render latency, audio failures, keeps, and shares.
-3. Run artist-direct pilot and evaluate progression gates.
-4. Scaffold Expo Router and extract pure packages only after the gate passes.
-5. Ship TestFlight and Google Play internal tracks against the same staging API.
-6. Compare native and PWA cohorts before moving acquisition to app stores.
+1. Repair the foundation and define shared contracts against staging.
+2. Complete the web create/save/publish/listen journey and scaffold the native
+   client alongside it as the interfaces stabilize.
+3. Implement native discovery, playback, profiles, creation, saved projects, and
+   sharing; reuse the backend for real-audio processing.
+4. Ship TestFlight and Google Play internal-test builds against that staging API.
+5. Run general listener/creator cohorts and an optional artist-discovery pilot.
+6. Complete app-store requirements and device checks before wider release; measure
+   repeat use and acquisition by platform and use case.

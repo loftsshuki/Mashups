@@ -142,6 +142,10 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  audio {
+    max-width: 100%;
+  }
+
   ::selection {
     color: #13130f;
     background: #d7ff3f;

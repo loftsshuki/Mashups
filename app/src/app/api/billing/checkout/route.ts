@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
-import { z } from "zod"
 
+import { checkoutSchema } from "@/lib/billing/checkout-contract"
 import {
   createStripeCheckoutSession,
   isStripeConfigured,
@@ -12,19 +12,6 @@ import { writeAuditEvent } from "@/lib/data/audit-log"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
-
-const checkoutSchema = z.discriminatedUnion("sessionType", [
-  z.object({
-    sessionType: z.literal("subscription"),
-    targetId: z.enum(["pro_creator", "pro_studio"]),
-    referralCode: z.string().trim().min(3).max(64).optional(),
-  }),
-  z.object({
-    sessionType: z.literal("license"),
-    targetId: z.enum(["organic_shorts", "paid_ads_shorts"]),
-    referralCode: z.string().trim().min(3).max(64).optional(),
-  }),
-])
 
 export async function POST(request: Request) {
   const parsed = checkoutSchema.safeParse(await request.json().catch(() => null))

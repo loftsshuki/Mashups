@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#ece8de">
+  <link rel="icon" href="data:,">
+  <title>Collision — A visual mashup concept</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="masthead"><span class="wordmark">M<span>/</span> MASHUPS</span><span class="edition">SOUND IN MOTION <span class="edition-number">/ 001</span></span><span class="concept-label">Concept demo</span></header>
+  <main>
+    <section class="intro">
+      <h1>TWO TRACKS.<br>ONE WORLD.</h1>
+      <div class="intro-copy"><p>A beat becomes a sculpture.<br>A voice moves through it.</p><span>Play it. Pull it apart. Bring it back together.</span></div>
+    </section>
+    <section class="experience" aria-label="Interactive audiovisual mashup">
+      <div class="stage" id="stage">
+        <div class="stage-top"><span id="edition">ORIGINAL CONCEPT LOOP</span><div class="view-switch" role="group" aria-label="Visual treatment"><button type="button" data-view="motion" aria-pressed="true">Reactive 3D</button><button type="button" data-view="still" aria-pressed="false">Still artwork</button></div></div>
+        <span class="stage-type" aria-hidden="true">COLLISION</span>
+        <div class="ground-shadow" aria-hidden="true"></div>
+        <canvas id="world" role="img" aria-label="A charcoal rhythm sculpture and an orange lead ribbon. Each responds to its own audio ingredient."></canvas>
+        <div class="fallback-art" id="fallback" hidden aria-hidden="true"><span></span><span></span></div>
+        <button id="stage-play" class="stage-play" type="button" aria-label="Play concept"><span class="play-symbol" aria-hidden="true"></span><span>PRESS PLAY</span></button>
+        <div class="stage-bottom"><div><span class="live-dot" aria-hidden="true"></span><span id="visual-state">Ready when you are</span></div><span id="tempo-label">120 BPM / 30 SEC</span></div>
+      </div>
+      <div class="transport">
+        <button id="play" class="transport-play" type="button" aria-label="Play concept"><span id="play-icon" aria-hidden="true">▶</span><span id="play-label">Play</span></button>
+        <div class="timeline"><label class="sr-only" for="position">Position in the mix</label><input type="range" id="position" min="0" max="30" step="0.05" value="0"><div class="time-labels"><output id="elapsed">0:00</output><span id="duration">0:30</span></div></div>
+        <button id="restart" class="restart" type="button" aria-label="Restart concept">↺<span>Replay</span></button>
+      </div>
+      <div class="ingredients" role="group" aria-label="Choose what you hear">
+        <button type="button" class="ingredient" data-mix="backing" aria-pressed="false"><span class="source-id"><span class="source-dot backing-dot"></span>01 / THE BACKING</span><strong id="backing-name">Midnight rhythm</strong><span class="source-action">Hear the foundation <span aria-hidden="true">↗</span></span></button>
+        <button type="button" class="ingredient" data-mix="lead" aria-pressed="false"><span class="source-id"><span class="source-dot lead-dot"></span>02 / THE LEAD</span><strong id="lead-name">Copper melody</strong><span class="source-action">Follow the orange ribbon <span aria-hidden="true">↗</span></span></button>
+        <button type="button" class="ingredient together" data-mix="both" aria-pressed="true"><span class="source-id">03 / THE COLLISION</span><strong>Both together</strong><span class="source-action">Hear the mashup <span aria-hidden="true">↗</span></span></button>
+      </div>
+      <p id="status" role="status" aria-live="polite">Tap Play to hear the mix. Nothing plays automatically.</p>
+    </section>
+    <footer class="notes"><p><strong>Same music. Two ways to see it.</strong> Switch to Still artwork while it plays and decide whether motion adds something.</p><p id="credit">An original synthesized sketch for this visual experiment. The movement follows each ingredient; it is not a musical compatibility score.</p></footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
