@@ -145,6 +145,7 @@ async def process(request: Request):
         raise HTTPException(status_code=400, detail="Invalid job envelope")
     try:
         uuid.UUID(payload["jobId"])
+        uuid.UUID(payload["dispatchToken"])
         checked_url(payload["callbackUrl"], "/api/green/processing/callback")
     except (KeyError, ValueError, TypeError):
         raise HTTPException(status_code=400, detail="Invalid job envelope")
