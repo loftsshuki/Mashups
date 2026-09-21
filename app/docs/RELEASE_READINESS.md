@@ -1,134 +1,96 @@
 # Mashups Release Readiness
 
-Updated: September 20, 2026.
+Updated: September 21, 2026.
 
-This is the operational release checklist for the current Mashups product. It is subordinate only to [PLATFORM_BUILD_PLAN.md](./PLATFORM_BUILD_PLAN.md), which defines product scope and milestone order. Older launch and backend plans are historical unless explicitly referenced here.
+This checklist is subordinate only to [PLATFORM_BUILD_PLAN.md](./PLATFORM_BUILD_PLAN.md). Older launch documents are historical unless referenced here.
 
 ## Release candidate
 
-Integration branch: `codex/release-candidate-1`
+Branch: `codex/release-candidate-1`  
+Draft PR: #11
 
-The branch starts from the tip of PR #9 and therefore contains the stacked work from PRs #4 through #9:
+The RC consolidates PRs #4-#9 and adds the durable real-audio, publication, native, reliability and acceptance work described in [RC_EXECUTION_2026-09-21.md](./RC_EXECUTION_2026-09-21.md).
 
-- foundation controls and billing/event contract fixes
-- saved projects and authentication handoff
-- audio-engine review
-- FFmpeg listening bench
-- local Blend Fit analysis
-- Collision audiovisual concept
-
-Do not promote this branch to `main` until the hosted evidence below exists.
+Do not merge to `main` merely because Vercel builds.
 
 ## First milestone
 
-A defensible release candidate must complete this journey:
+A defensible milestone completes this journey with real approved audio:
 
-1. Select two approved real tracks.
-2. Start real processing with durable job state.
-3. Produce three playable arrangements.
-4. Keep one arrangement.
-5. Sign in without losing the project.
-6. Reopen the project after refresh/sign-out.
-7. Publish a permission-checked playable result.
-8. Open the HTTPS share on a second phone without an account.
-9. Play the result and inspect creator/source credits and lineage.
-10. Start a permitted fork/new creation from that result.
-
-Synthetic demos are useful regression fixtures but do not satisfy this milestone.
+1. two approved sources
+2. immutable source hashes and durable analysis/fingerprint/separation evidence
+3. eight private provenance-bound stems
+4. three durable candidate renders
+5. Keep one candidate
+6. sign in/save/reload without losing the project
+7. two independent reviews
+8. permission-checked publication
+9. anonymous second-device playback with credits
+10. permitted fork with lineage
+11. source-rights revocation removes public playback
 
 ## Evidence matrix
 
-| Area | Current evidence | Release gate |
+| Area | Repository state | Evidence still required |
 | --- | --- | --- |
-| Vercel build | Preview deployments for PRs #4-#9 reached Ready | Release-candidate preview and production build succeed |
-| GitHub CI | Workflow exists; recent runs did not execute successfully because of the GitHub account/billing restriction | `foundation-database` and `quality` jobs complete successfully on the release-candidate head |
-| Database controls | Migrations 024-026 pass isolated PostgreSQL regressions locally | Correct hosted Supabase project recovered/replaced; migration history inspected; required migrations applied in staging |
-| Authentication | Browser behavior and HTTP boundaries are covered locally | Password, email confirmation and Google login verified against hosted staging |
-| Saved projects | IndexedDB recovery, revision conflicts and database rules are covered locally | Two real accounts on two devices can save, reload and conflict safely |
-| Billing | Checkout/webhook implementation and contracts exist | Stripe test prices configured; checkout, signed webhook, entitlement update and cancellation verified |
-| Catalog rights | Rights/publication rules exist and are regression-tested | At least two authorized pilot tracks complete hosted intake/review |
-| Audio analysis | Modal analysis worker exists | Hosted analyzer processes an authorized master through the durable job queue |
-| Fingerprinting/sample scan | Job type exists | A configured provider/bridge returns evidence required by the publication policy, or publication policy is explicitly revised |
-| Stem separation | Legacy/direct Replicate and Modal/Demucs clients exist | One separation path is selected, versioned, connected to durable Green Room jobs and benchmarked |
-| Candidate rendering | Prototype browser synthesis exists | Real stems create three durable candidate assets with measured output |
-| Listening quality | FFmpeg blind A/B bench works | Authorized real-song panel results recorded with difficult/rejected examples included |
-| Publication/share | Older mashup pages and new saved-project contracts both exist | One durable publication identity connects project, selected candidate, credits, rights and public HTTPS playback |
-| Native | Shared contracts and Expo architecture are documented | TestFlight + Android internal builds complete the same staging journey after shared APIs stabilize |
-| Collision visual | Concept preview validated in Chromium/mobile viewport | Not a release blocker; physical-device performance is required before making it a default surface |
+| CI | Workflow now runs the complete RC DB suite plus lint/typecheck/tests/build/browser checks | GitHub account execution restored and all jobs green |
+| Database | Migrations 024-031; fake-hosted and safety SQL regressions authored | Execute in isolated PostgreSQL, then staging Supabase |
+| Processor reliability | Dispatch leases/tokens, max attempts, stale recovery, atomic evidence merge | Hosted concurrency/retry/lease-loss tests |
+| Provenance | Master SHA at intake; source/stem/render hash bindings | Real hosted upload + provider callback proof |
+| Catalog bootstrap | Private operator audition path preserves rights/review gates | Execute with two authorized sources and real reviewers |
+| Separation | Demucs/Modal bridge source implemented | Build/deploy image, verify credentials/licensing/cost/latency |
+| Rendering | FFmpeg/Rubber Band v2; conservative warp refusal; LUFS/peak/provenance | Hosted callback chain + authorized-song listening quality |
+| Fingerprinting | Source-hash-bound evidence contract integrated | Select/configure real provider or remain manual review |
+| Studio | Real catalog project/render/status/candidate/select flow | Hosted account/device run |
+| Publication | Canonical project identity; rights recheck; private audio proxy; range support | Anonymous second-phone playback and seeking |
+| Forks | Clean child project with parent lineage | Hosted publication-to-fork proof |
+| Billing | Existing checkout/webhook implementation + read-only sandbox preflight | Real sandbox checkout, webhook replay, entitlements, cancel |
+| Safety | Report/block/deletion-request API; web/native controls | Hosted moderation ops and deletion-completion policy |
+| Native | Expo beta source for shared product loop | Install/typecheck/EAS/signing/TestFlight/Android/device tests |
+| Audio evaluation | Blind bench + real-audio review protocol | Authorized recordings and genuine independent ratings |
 
-## Processing routing contract
+## Processing contract
 
-Green Room jobs are now routed only to explicitly configured processor bridges.
+Every durable processor attempt receives a unique `dispatchToken` and lease. A callback must present the active token. If a lease expires, the job can be requeued with a new token and the old worker can no longer commit.
 
-All bridges use the same authenticated envelope and callback contract:
+Track jobs bind to:
 
-- Bearer authentication with `GREEN_ROOM_PROCESSOR_SECRET`
-- signed expiring master-asset URL
-- `jobId`, `trackId`, `jobType`, `provider`, `assetUrl`, and `callbackUrl`
-- HMAC-signed callback to Mashups
+- `source_asset_id`
+- `source_sha256`
+- one serialized processing-evidence record for that exact source version
 
-Route precedence is:
+Render jobs freeze the eight stem asset IDs plus stem/source hashes. Render output requires SHA-256 digests before it can become a durable candidate.
 
-1. provider-specific URL, for example `GREEN_ROOM_PEX_PROCESSOR_URL`
-2. job-specific URL, for example `GREEN_ROOM_SEPARATION_PROCESSOR_URL`
-3. legacy `GREEN_ROOM_PROCESSOR_URL` for analysis only
+A technically valid render remains `manual_review` until independent people approve it. Technical measurements are not a musical-quality probability.
 
-The admin queue requires a configured analyzer. Optional jobs such as fingerprinting are skipped when their route is absent. The cron dispatcher marks an already-queued unsupported job as `PROCESSOR_NOT_CONFIGURED` instead of sending it to the wrong worker.
+## Pre-Supabase verification order
 
-## Next implementation order
+1. Run `RC_REQUIRE_DB=1 npm run verify:rc` with isolated PostgreSQL.
+2. Fix any migration/SQL/TypeScript/browser failures locally.
+3. Restore GitHub Actions execution and obtain green CI.
+4. Inspect the actual Supabase project and migration history before applying anything.
+5. Apply only the missing migrations in order to staging.
+6. Configure private Blob and processor endpoints/secrets.
+7. Bootstrap two authorized tracks through private audition/review.
+8. Run the staged two-device acceptance flow.
+9. Configure and test Stripe sandbox.
+10. Run real-audio listening and native physical-device acceptance.
 
-### P0: restore trustworthy integration
+## Operator inputs
 
-- Resolve the GitHub Actions account/billing restriction and rerun CI.
-- Recover or replace the Mashups Supabase project.
-- Inspect migration state before applying 025 and 026.
-- Configure staging Auth redirect allowlists.
-- Configure Green Room private Blob storage.
-- Deploy/configure the analysis processor and prove one hosted analysis job.
-- Configure Stripe sandbox prices and webhook.
+Still external:
 
-### P1: real audio spine
+- correct Supabase project and database history
+- Stripe sandbox credentials/prices/webhook
+- Vercel/Modal private environment configuration
+- actual fingerprint service credentials if automated scanning is desired
+- authorized audio
+- independent reviewers
+- Apple/Google signing and physical devices
+- GitHub account/Actions execution repair
 
-- Select one durable separation provider path.
-- Connect `separate` to the Green Room job queue.
-- Store stem assets as private `green_track_assets`.
-- Define/render `render_candidates` for the three canonical arrangements.
-- Persist candidate assets, duration, measured quality and processing metadata.
-- Run authorized real-audio comparisons through the listening bench.
-- Keep provider/model/version/settings in operator-visible provenance.
+## Go / no-go
 
-### P2: publish and second-phone playback
+A public production **go** requires successful CI plus the hosted real-audio journey across two devices with durable storage, active rights, private source handling, reviewed publication, anonymous playback, fork lineage, and revocation behavior.
 
-- Define one publication identity rather than maintaining parallel old/new identities.
-- Re-check grants at publication time.
-- Bind the selected candidate asset to the publication.
-- Serve public playback without exposing private masters/stems.
-- Show source artists, creator credits and remix lineage.
-- Add anonymous second-phone Playwright coverage where feasible and retain physical-device acceptance.
-
-### P3: native beta
-
-- Scaffold the Expo client from the shared contracts package.
-- Implement auth, project loading, playback, creation, render status and native sharing.
-- Produce TestFlight and Android internal-test builds.
-- Verify audio-session recovery, universal-link fallback and account deletion/reporting requirements.
-
-## Inputs that require account/operator access
-
-The following cannot be proven by repository changes alone:
-
-- GitHub billing/account state
-- the correct Supabase project or approval to replace it
-- Stripe sandbox keys, prices and webhook registration
-- Vercel environment-variable configuration
-- deployed processor endpoints/secrets
-- authorized real audio or stems for pilot evaluation
-- Apple Developer and Google Play signing/configuration
-
-Missing operator inputs should block only the dependent gate. Continue implementing and testing independent work.
-
-## Go / no-go rule
-
-A Vercel `Ready` badge alone is not a go decision.
-
-The first milestone is a **go** only after the hosted two-track journey completes across two devices with durable storage, real audio, permission checks, public playback, and successful CI. Anything less remains a preview or pilot build.
+Until then the RC is a controlled staging build.
