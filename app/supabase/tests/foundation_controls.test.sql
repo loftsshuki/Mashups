@@ -23,6 +23,7 @@ insert into public.green_funnel_events(event_name, session_id) values ('create_v
 \ir ../migrations/025_foundation_controls.sql
 \ir ../migrations/026_saved_projects.sql
 \ir ../migrations/027_green_publication.sql
+\ir ../migrations/028_project_render_jobs.sql
 
 begin;
 create function pg_temp.assert_true(p_value boolean, p_label text) returns void language plpgsql as $$
@@ -177,6 +178,131 @@ select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Eligible')::i
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30Retained')::int = 1, 'D30 return across sessions counts; day31 does not');
 select pg_temp.assert_true((public.get_green_pilot_metrics()->>'d30RetentionRate')::numeric = 0.333, 'retention denominator includes non-returners');
 \echo Durable events and cohort metrics passed
+\echo Durable project render checks starting
+insert into public.green_track_assets(
+  id, track_id, owner_id, asset_kind, blob_url, blob_pathname, content_type, byte_size, access_level
+) values
+  ('51000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','stem_vocal','https://blob.example/t1-vocal.wav','green-room/test/t1-vocal.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','stem_drums','https://blob.example/t1-drums.wav','green-room/test/t1-drums.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','stem_bass','https://blob.example/t1-bass.wav','green-room/test/t1-bass.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','stem_other','https://blob.example/t1-other.wav','green-room/test/t1-other.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000005','10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','stem_vocal','https://blob.example/t2-vocal.wav','green-room/test/t2-vocal.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000006','10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','stem_drums','https://blob.example/t2-drums.wav','green-room/test/t2-drums.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','stem_bass','https://blob.example/t2-bass.wav','green-room/test/t2-bass.wav','audio/wav',1000,'private'),
+  ('51000000-0000-4000-8000-000000000008','10000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000002','stem_other','https://blob.example/t2-other.wav','green-room/test/t2-other.wav','audio/wav',1000,'private');
+
+insert into public.green_projects(
+  id, creator_id, title, source_mode, left_track_id, right_track_id, intensity, selected_arrangement, status
+) values (
+  '20000000-0000-4000-8000-000000000002',
+  '00000000-0000-4000-8000-000000000002',
+  'Durable Render Test',
+  'catalog',
+  '10000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000002',
+  82,
+  null,
+  'draft'
+);
+
+select public.queue_green_project_render(
+  '20000000-0000-4000-8000-000000000002',
+  '00000000-0000-4000-8000-000000000002',
+  'renderer'
+);
+select pg_temp.assert_true(
+  (select status = 'rendering' from public.green_projects
+   where id = '20000000-0000-4000-8000-000000000002'),
+  'render queue advances the project to rendering'
+);
+select pg_temp.assert_true(
+  (select jsonb_array_length(input->'assets') = 8
+   from public.green_processing_jobs
+   where project_id = '20000000-0000-4000-8000-000000000002'
+     and job_type = 'render_candidates'
+   order by created_at desc limit 1),
+  'render job freezes exactly eight stem inputs'
+);
+
+update public.green_processing_jobs
+set status = 'running', started_at = now(), attempt_count = 1
+where project_id = '20000000-0000-4000-8000-000000000002'
+  and job_type = 'render_candidates';
+
+select public.complete_green_project_render(
+  (select id from public.green_processing_jobs
+   where project_id = '20000000-0000-4000-8000-000000000002'
+     and job_type = 'render_candidates'
+   order by created_at desc limit 1),
+  jsonb_build_array(
+    jsonb_build_object(
+      'arrangement','vocal-a-over-b',
+      'asset',jsonb_build_object(
+        'blobUrl','https://blob.example/render-a.wav',
+        'blobPathname','green-room/test/render-a.wav',
+        'contentType','audio/wav',
+        'byteSize',2000,
+        'sha256',repeat('a',64)
+      ),
+      'durationSeconds',20,
+      'qualityScore',95,
+      'qualityStatus','passed',
+      'metrics',jsonb_build_object('fixture',true)
+    ),
+    jsonb_build_object(
+      'arrangement','vocal-b-over-a',
+      'asset',jsonb_build_object(
+        'blobUrl','https://blob.example/render-b.wav',
+        'blobPathname','green-room/test/render-b.wav',
+        'contentType','audio/wav',
+        'byteSize',2000,
+        'sha256',repeat('b',64)
+      ),
+      'durationSeconds',20,
+      'qualityScore',94,
+      'qualityStatus','passed',
+      'metrics',jsonb_build_object('fixture',true)
+    ),
+    jsonb_build_object(
+      'arrangement','drop-swap',
+      'asset',jsonb_build_object(
+        'blobUrl','https://blob.example/render-c.wav',
+        'blobPathname','green-room/test/render-c.wav',
+        'contentType','audio/wav',
+        'byteSize',2000,
+        'sha256',repeat('c',64)
+      ),
+      'durationSeconds',20,
+      'qualityScore',93,
+      'qualityStatus','passed',
+      'metrics',jsonb_build_object('fixture',true)
+    )
+  )
+);
+select pg_temp.assert_true(
+  (select status = 'ready' from public.green_projects
+   where id = '20000000-0000-4000-8000-000000000002'),
+  'three durable candidates advance the project to ready'
+);
+select pg_temp.assert_true(
+  (select count(*) = 3 from public.green_render_candidates
+   where project_id = '20000000-0000-4000-8000-000000000002'),
+  'render completion stores exactly three canonical candidates'
+);
+select pg_temp.assert_true(
+  (select count(*) = 3 from public.green_track_assets
+   where track_id is null
+     and owner_id = '00000000-0000-4000-8000-000000000002'
+     and asset_kind = 'preview'
+     and blob_url in (
+       'https://blob.example/render-a.wav',
+       'https://blob.example/render-b.wav',
+       'https://blob.example/render-c.wav'
+     )),
+  'render completion stores private preview assets'
+);
+\echo Durable project render checks passed
+
 \echo Green project publication checks starting
 insert into public.green_track_assets(
   id, owner_id, asset_kind, blob_url, blob_pathname, content_type, byte_size, access_level
