@@ -85,7 +85,7 @@ def work(payload: dict, separate: bool) -> None:
     import sys
     sys.path.insert(0, "/opt/worker")
     from green_render import render_candidates, probe, ROLES
-    job_id = payload["jobId"]
+    job_id = payload["jobId"]\n    dispatch_token = payload["dispatchToken"]
     try:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -99,7 +99,7 @@ def work(payload: dict, separate: bool) -> None:
                     raise RuntimeError("Demucs separation failed")
                 folder = root / "stems" / "htdemucs" / "source"
                 assets = [{"kind": kind, **upload(folder / f"{file}.wav", job_id, kind)} for kind, file in [("stem_vocal", "vocals"), ("stem_drums", "drums"), ("stem_bass", "bass"), ("stem_other", "other")]]
-                result_payload = {"jobId": job_id, "status": "succeeded", "separation": {"assets": assets, "separationSdrDb": None, "vocalBleedDb": None}}
+                result_payload = {"jobId": job_id, "dispatchToken": dispatch_token, "status": "succeeded", "separation": {"assets": assets, "separationSdrDb": None, "vocalBleedDb": None}}
             else:
                 entries = payload.get("inputAssets", [])
                 if len(entries) != 8 or {entry.get("role") for entry in entries} != set(ROLES):
@@ -114,10 +114,10 @@ def work(payload: dict, separate: bool) -> None:
                 for row in rendered:
                     path = Path(row.pop("path"))
                     candidates.append({**row, "asset": upload(path, job_id, row["arrangement"])})
-                result_payload = {"jobId": job_id, "status": "succeeded", "candidates": candidates}
+                result_payload = {"jobId": job_id, "dispatchToken": dispatch_token, "status": "succeeded", "candidates": candidates}
     except Exception:
         # Detailed provider exceptions can contain URLs. Keep callbacks non-sensitive.
-        result_payload = {"jobId": job_id, "status": "failed", "errorCode": "AUDIO_WORKER_FAILED", "errorMessage": "Worker could not finish; inspect private worker logs and input/configuration checks."}
+        result_payload = {"jobId": job_id, "dispatchToken": dispatch_token, "status": "failed", "errorCode": "AUDIO_WORKER_FAILED", "errorMessage": "Worker could not finish; inspect private worker logs and input/configuration checks."}
     callback(payload["callbackUrl"], result_payload)
 
 
