@@ -14,8 +14,8 @@ else if(requireDb){console.error("RC database verification required but FOUNDATI
 else console.warn("RC database verification skipped because isolated PostgreSQL is not configured.")
 
 for(const [label,[command,...args]] of steps){
- console.log(\`\\n=== RC verify: \${label} ===\`)
+ console.log("\n=== RC verify: "+label+" ===")
  const result=spawnSync(command,args,{stdio:"inherit",shell:process.platform==="win32",env:process.env})
- if(result.status!==0){console.error(\`RC verification failed at \${label}.\`);process.exit(result.status??1)}
+ if(result.status!==0){console.error("RC verification failed at "+label+".");process.exit(result.status??1)}
 }
-console.log("\\nRC repository verification completed. Hosted services, real audio, payments, and physical-device evidence are separate gates.")
+console.log("\nRC repository verification completed. Hosted services, real audio, payments, and physical-device evidence are separate gates.")
