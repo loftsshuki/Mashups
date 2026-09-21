@@ -18,7 +18,9 @@
     "test:foundation:db": "node scripts/test-foundation-db.mjs",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test --grep @smoke --project=chromium --workers=2",
-    "test:e2e:full": "playwright test --workers=2"
+    "test:e2e:full": "playwright test --workers=2",
+    "test:studio:db": "node scripts/test-studio-db.mjs",
+    "verify:rc": "node scripts/verify-rc.mjs"
   },
   "dependencies": {
     "@mashups/contracts": "file:packages/contracts",
