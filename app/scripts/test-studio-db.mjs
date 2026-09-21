@@ -11,4 +11,5 @@ try{
  run(database,['-f',fileURLToPath(new URL('../supabase/tests/foundation_controls.test.sql',import.meta.url))])
  run(database,['-f',fileURLToPath(new URL('../supabase/tests/studio_actions.test.sql',import.meta.url))])
  run(database,['-f',fileURLToPath(new URL('../supabase/tests/fake_hosted_journey.test.sql',import.meta.url))])
+ run(database,['-f',fileURLToPath(new URL('../supabase/tests/native_safety.test.sql',import.meta.url))])
 }finally{run('postgres',['-c',`DROP DATABASE ${database} WITH (FORCE)`])}
