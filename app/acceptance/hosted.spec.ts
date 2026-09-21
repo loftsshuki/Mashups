@@ -63,10 +63,10 @@ test('public boundaries fail closed without credentials or a valid publication',
  test.skip(!base,'Requires an explicit staging origin for public boundary checks.')
  await assertStaging()
  const missing='00000000-0000-4000-8000-000000000000'
- const publication=await request.get(\`\${base}/api/green/publications/\${missing}\`)
+ const publication=await request.get(`${base}/api/green/publications/${missing}`)
  expect(publication.status()).toBe(404)
- const audio=await request.get(\`\${base}/api/green/publications/\${missing}/audio\`,{headers:{Range:'bytes=0-1,5-6'}})
+ const audio=await request.get(`${base}/api/green/publications/${missing}/audio`,{headers:{Range:'bytes=0-1,5-6'}})
  expect([400,404,416]).toContain(audio.status())
- const studio=await request.get(\`\${base}/api/green/studio?projectId=\${missing}\`)
+ const studio=await request.get(`${base}/api/green/studio?projectId=${missing}`)
  expect(studio.status()).toBe(401)
 })
