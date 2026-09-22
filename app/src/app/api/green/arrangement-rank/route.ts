@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { buildGreenArrangementPlans } from "@/lib/audio/green-arrangements";
+import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier";
 import {
   assessGreenPair,
   getGreenTrack,
@@ -14,6 +15,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  let usageEventId: string | null = null;
   const parsed = requestSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid Green Room pair." }, { status: 400 });
@@ -32,6 +34,10 @@ export async function POST(request: NextRequest) {
       reasons: assessment.reasons,
     }, { status: 409 });
   }
+
+  const tierCheck = await enforceTierLimit("ai_generations");
+  if (tierCheck instanceof NextResponse) return tierCheck;
+  usageEventId = tierCheck.usageEventId;
 
   const plans = buildGreenArrangementPlans(left, right, assessment);
   const ranked = await rankArrangements(plans, {
@@ -60,6 +66,11 @@ export async function POST(request: NextRequest) {
       vocalCollisionRisk: assessment.vocalCollisionRisk,
       reasons: assessment.reasons,
     },
+  });
+
+  await finalizeUsage(usageEventId, "completed", {
+    operation: "green_arrangement_rank",
+    jev: ranked.some((plan) => Boolean(plan.jev)),
   });
 
   return NextResponse.json({
