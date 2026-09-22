@@ -4,6 +4,7 @@ import { z } from "zod"
 import { chatJSON } from "@/lib/ai/chat"
 import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
 import { isDemoMode } from "@/lib/config/runtime"
+import { rankSuggestions } from "@/lib/jev/creative-ranker"
 
 interface Suggestion {
   id: string
@@ -92,8 +93,9 @@ export async function POST(request: NextRequest) {
         ...s,
         id: `sug-${Date.now()}-${i}`,
       }))
+      const rankedSuggestions = await rankSuggestions(suggestions, state)
       await finalizeUsage(usageEventId, "completed", { operation: "suggest" })
-      return NextResponse.json({ suggestions })
+      return NextResponse.json({ suggestions: rankedSuggestions })
     }
 
     if (isDemoMode()) {
