@@ -199,8 +199,34 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
     setError(null)
     trackGreenEvent("render_started", { left_id: left.id, right_id: right.id, compatibility_score: assessment.score })
     const nextRenders: GreenMashupRender[] = []
+    let renderOrder: readonly GreenMashupStyle[] = styles
+    let rankedByJev = false
     try {
-      for (const style of styles) {
+      try {
+        const response = await fetch("/api/green/arrangement-rank", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ leftId: left.id, rightId: right.id }),
+        })
+        if (response.ok) {
+          const data = await response.json() as { orderedStyles?: unknown }
+          if (Array.isArray(data.orderedStyles)) {
+            const ordered = data.orderedStyles.filter(
+              (style): style is GreenMashupStyle =>
+                typeof style === "string" &&
+                styles.includes(style as GreenMashupStyle),
+            )
+            if (ordered.length === styles.length && new Set(ordered).size === styles.length) {
+              renderOrder = ordered
+              rankedByJev = true
+            }
+          }
+        }
+      } catch {
+        // Ranking is advisory; deterministic arrangement order remains the fallback.
+      }
+
+      for (const style of renderOrder) {
         setRenderingStyle(style)
         const render = await renderGreenMashup(left, right, style, intensity)
         if (generation !== generationRef.current) { URL.revokeObjectURL(render.audioUrl); return }
@@ -209,7 +235,12 @@ export function GreenMashupStudio({ initialDraft, initialNotice }: { initialDraf
         setRenders([...nextRenders])
       }
       setSelectedStyle(previouslyKept ?? nextRenders[0]?.style ?? null)
-      trackGreenEvent("render_completed", { left_id: left.id, right_id: right.id, candidate_count: nextRenders.length })
+      trackGreenEvent("render_completed", {
+        left_id: left.id,
+        right_id: right.id,
+        candidate_count: nextRenders.length,
+        ranked_by_jev: rankedByJev,
+      })
     } catch {
       if (generation !== generationRef.current) return
       for (const render of nextRenders) {
