@@ -4,6 +4,7 @@ import { z } from "zod"
 import { chatJSON } from "@/lib/ai/chat"
 import { enforceTierLimit, finalizeUsage } from "@/lib/billing/enforce-tier"
 import { isDemoMode } from "@/lib/config/runtime"
+import { prioritizeProductionSuggestions } from "@/lib/ai/jev-ranking"
 
 interface Suggestion {
   id: string
@@ -13,7 +14,7 @@ interface Suggestion {
   confidence: number
 }
 
-const SYSTEM_PROMPT = `You are a music production AI assistant for a mashup creation platform. Given the current state of a mashup project, generate exactly 3 creative suggestions to improve it. Each suggestion should be one of three types: "structural" (arrangement changes), "stem" (add/replace audio elements), or "effect" (mixing/processing). Return valid JSON with this schema: { "suggestions": [{ "type": "structural"|"stem"|"effect", "title": string (max 6 words), "description": string (1-2 sentences, actionable advice referencing specific bars, frequencies, or techniques), "confidence": number (0.60-0.95) }] }. Vary the types across the 3 suggestions. Be specific and musically knowledgeable.`
+const SYSTEM_PROMPT = `You are a music production AI assistant for a mashup creation platform. Given the current state of a mashup project, generate exactly 6 distinct creative suggestions to improve it. These are candidates for a later classifier, so maximize useful diversity instead of producing cosmetic rewrites. Each suggestion should be one of three types: "structural" (arrangement changes), "stem" (add/replace audio elements), or "effect" (mixing/processing). Return valid JSON with this schema: { "suggestions": [{ "type": "structural"|"stem"|"effect", "title": string (max 6 words), "description": string (1-2 sentences, actionable advice referencing specific bars, frequencies, or techniques), "confidence": number (0.60-0.95) }] }. Vary the types across the candidate set. Be specific and musically knowledgeable. Do not make claims about audio you have not heard beyond the supplied project state.`
 
 const requestSchema = z.object({
   mashupState: z.object({
@@ -30,7 +31,7 @@ const suggestionSchema = z.object({
     title: z.string().min(2).max(48),
     description: z.string().min(10).max(280),
     confidence: z.number().min(0).max(1),
-  })).length(3),
+  })).length(6),
 })
 
 const mockSuggestions: Suggestion[] = [
@@ -88,12 +89,23 @@ export async function POST(request: NextRequest) {
     })
 
     if (ai?.suggestions) {
-      const suggestions: Suggestion[] = ai.suggestions.map((s, i) => ({
-        ...s,
+      const prioritized = await prioritizeProductionSuggestions(
+        ai.suggestions,
+        state,
+        { returnedCount: 3 },
+      )
+      const suggestions: Suggestion[] = prioritized.suggestions.map((suggestion, i) => ({
+        ...suggestion,
         id: `sug-${Date.now()}-${i}`,
       }))
-      await finalizeUsage(usageEventId, "completed", { operation: "suggest" })
-      return NextResponse.json({ suggestions })
+      await finalizeUsage(usageEventId, "completed", {
+        operation: "suggest",
+        generated_candidates: ai.suggestions.length,
+        returned_suggestions: suggestions.length,
+        jev_mode: prioritized.summary.mode,
+        jev_cost_usd: prioritized.summary.totalCostUsd,
+      })
+      return NextResponse.json({ suggestions, jev: prioritized.summary })
     }
 
     if (isDemoMode()) {
