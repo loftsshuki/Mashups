@@ -1,0 +1,41 @@
+schemaVersion: 1
+project:
+  id: mashups
+  name: Mashups
+  repo: loftsshuki/Mashups
+  description: Rights-cleared social mashup creation, campaigns and remix lineage.
+goals:
+  - Enable rights-cleared mashup creation and measurable creator campaigns.
+northStarMetrics:
+  - Not declared by this provisional context manifest; verify the current owner-approved metric contract.
+autonomyLevel: 0
+metadata:
+  provisional: true
+  contextOnly: true
+  contractOwnerVerified: false
+context:
+  owns:
+    - Audio mashup creation, arrangements and remix/fork product logic
+    - Music permissions, creator attribution and rights lineage
+    - Mashups-specific campaigns, settlement and pilot operations
+  doesNotOwn:
+    - Portfolio context and source ingestion
+    - Reviewed cross-repository knowledge
+    - SCS creator production runtime
+    - Generic portfolio evaluation or decision framework
+  relations:
+    - {projectId: hoss, role: portfolio-context-and-decisions}
+    - {projectId: brain, role: reviewed-knowledge}
+    - {projectId: kompound, role: shared-growth-attribution}
+    - {projectId: synthetic-creator-studio, role: optional-creative-production}
+  importantPaths:
+    - AGENTS.md
+    - app/README.md
+    - app/docs/PRODUCT_RESET_GREEN_ROOM.md
+    - app/docs/PRODUCT_EXECUTION_PLAN.md
+    - app/src
+  constraints:
+    - Keep rights and source credit attached to every remix and export.
+    - Distinguish device-local demo behavior from hosted persistence and deployment.
+    - Inspect open foundation and release-candidate PRs before duplicating product work.
+  knowledgeConcepts: []
