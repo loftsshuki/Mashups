@@ -15,6 +15,17 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
+        // Require an authenticated user before minting a Blob upload token —
+        // otherwise anyone can fill the paid Blob store / use it as a public file host.
+        const { createClient } = await import("@/lib/supabase/server")
+        const supabase = await createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) {
+          throw new Error("Authentication required")
+        }
+
         // Validate the upload pathname
         if (!pathname.startsWith("audio/")) {
           throw new Error("Invalid upload path")

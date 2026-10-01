@@ -65,12 +65,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: blob.url })
     } catch (blobError) {
       console.error("[Upload] Vercel Blob failed:", blobError)
-      
-      // Fallback: return a dev placeholder URL
-      const placeholderUrl = `/audio/dev-upload-${Date.now()}.mp3`
-      console.log("[Upload] Returning placeholder:", placeholderUrl)
-      
-      return NextResponse.json({ url: placeholderUrl })
+
+      // Never return a fake placeholder URL — a caller would store audio that 404s forever.
+      return NextResponse.json(
+        { error: "Storage unavailable. Please try again." },
+        { status: 502 },
+      )
     }
 
   } catch (error) {

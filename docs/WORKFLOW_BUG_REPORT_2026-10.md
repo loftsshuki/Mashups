@@ -2,6 +2,10 @@
 
 **Date:** 2026-10-01 · **Scope:** the primary create→publish→share→fork user workflow, traced end-to-end for failure cases, bad inputs, and missing data. Every item below was verified by reading the current source this session; each cites `file:line`, the impact, and the smallest practical fix. Security/cost/RLS issues are covered separately in `docs/CODEBASE_REVIEW_2026-08.md` and only cross-referenced where they sit directly on this path.
 
+> **Status (fixed 2026-10-01):** All 7 confirmed bugs below are now fixed, plus several contained security/cost issues from `docs/CODEBASE_REVIEW_2026-08.md`. Build passes. See the "Resolution" note under each item and the commit on `claude/mashups-rights-cleared-research-qytetc`.
+>
+> **Also fixed from the codebase review:** anonymous access to paid compute now blocked (`enforce-tier.ts` fails closed; the three open AI routes now gated); blob upload-token endpoint now requires auth; Stripe webhook now writes via the service-role client so paying users actually upgrade; the unauthenticated rights-claim PATCH is now auth + owner/admin gated; the attribution signer requires auth, drops its hardcoded secret fallback, and uses constant-time comparison; detection-evasion suggestions replaced with clearance guidance. A reviewable RLS-hardening migration (`019_fix_permissive_rls.sql`) is added but intentionally **not applied** (it needs the affected writes moved server-side first — see its header).
+>
 > **Workflow traced:** land → `AuthGuard` → `/create` (upload tracks → client-side blob upload → optional stem separation → Step 2 mixer loads `StemEngine` → Step 3 `PublishForm`) → `handlePublish` (export WAV → upload → `createMashup`) → redirect to `/mashup/[id]` → fork/remix back into `/create`.
 
 ## Priority summary

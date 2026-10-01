@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { chatJSON } from "@/lib/ai/chat"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 interface Suggestion {
   id: string
@@ -37,6 +38,10 @@ const mockSuggestions: Suggestion[] = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Require auth + enforce usage limits before any paid LLM call.
+    const tierCheck = await enforceTierLimit("ai_generations")
+    if (tierCheck instanceof NextResponse) return tierCheck
+
     const body = (await request.json()) as {
       mashupState?: {
         stems?: { instrument?: string; title?: string }[]

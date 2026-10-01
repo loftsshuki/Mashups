@@ -7,6 +7,7 @@ import {
   computeReferralRevenueShareCents,
 } from "@/lib/growth/referral-accounting"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 type WebhookObject = Record<string, unknown>
@@ -38,7 +39,8 @@ async function recordReferralRevenueEvent(input: {
   providerEventType: string
   metadata: Record<string, unknown>
 }) {
-  const supabase = await createClient()
+  // Webhooks have no user session — use the service-role client so writes pass RLS.
+  const supabase = createAdminClient() ?? (await createClient())
   const { data: inviteData } = await supabase
     .from("referral_invites")
     .select("code,rev_share_bps")
@@ -114,7 +116,9 @@ export async function POST(request: Request) {
   const event = (JSON.parse(payload || "{}") as StripeWebhookEvent)
   const eventType = event.type ?? "unknown"
   const object = event.data?.object ?? {}
-  const supabase = await createClient()
+  // Webhooks have no user session — use the service-role client so subscription/checkout
+  // writes actually pass RLS (the anon client silently failed to upgrade paying users).
+  const supabase = createAdminClient() ?? (await createClient())
 
   let referralResult:
     | { revenueShareCents: number; revShareBps: number; referralCode: string }

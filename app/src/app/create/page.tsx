@@ -75,6 +75,7 @@ interface TrackWithStems extends UploadedTrack {
   stems?: SeparatedStems
   isProcessingStems?: boolean
   stemError?: string
+  uploadError?: string // set when the cloud upload failed (local playback still works)
   localBlobUrl?: string // browser blob URL for local playback
 }
 
@@ -98,6 +99,7 @@ function CreatePageContent() {
   const [activeExportTab, setActiveExportTab] = useState<"attribution" | "captions" | "thumbnail">("attribution")
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [ghostOpen, setGhostOpen] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   // Audio engine for real-time multi-track playback
   const stemEngine = useStemEngine()
@@ -307,13 +309,15 @@ function CreatePageContent() {
             duration,
           }
         } else {
-          // Both uploads failed — still keep the track with localBlobUrl for local playback
+          // Cloud upload failed — keep localBlobUrl for local playback, but flag the failure
+          // so the UI doesn't present a broken track as fully uploaded.
           updated[idx] = {
             ...updated[idx],
             uploadProgress: 100,
             uploadedUrl: "",
             localBlobUrl,
             duration,
+            uploadError: "Cloud upload failed — this track plays locally but needs a retry before it's saved.",
           }
         }
         return updated
@@ -463,23 +467,38 @@ function CreatePageContent() {
 
   const handlePublish = useCallback(
     (formData: FormData) => {
+      setPublishError(null)
       startTransition(async () => {
-        // Export the mix to WAV if engine has tracks loaded
+        // Export the mix to WAV if the engine has tracks loaded.
         const wavBlob = await stemEngine.exportWav()
 
-        if (wavBlob) {
-          // Upload the mixed WAV
-          const uploadForm = new FormData()
-          uploadForm.append("file", new File([wavBlob], "mashup-mix.wav", { type: "audio/wav" }))
-          const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm })
-          const { url } = await uploadRes.json()
-
-          if (url) {
-            formData.set("audio_url", url)
-          }
+        // Require a real mix — never publish a single unmodified source track.
+        if (!wavBlob) {
+          setPublishError("Blend your tracks in the mixer before publishing.")
+          return
         }
 
-        await createMashup(null, formData)
+        // Upload the mixed WAV client-side, straight to Blob storage.
+        // (The server /api/upload route caps request bodies at ~4.5MB; a WAV is ~10MB/min,
+        // so anything longer than a few seconds must bypass it.)
+        try {
+          const { upload } = await import("@vercel/blob/client")
+          const blob = await upload(
+            `audio/${Date.now()}-mashup-mix.wav`,
+            wavBlob,
+            { access: "public", handleUploadUrl: "/api/upload/client-token" },
+          )
+          formData.set("audio_url", blob.url)
+        } catch {
+          setPublishError("Couldn't upload your mix. Please try again.")
+          return
+        }
+
+        const result = await createMashup(null, formData)
+        // On success createMashup redirects; only a failure returns here.
+        if (result?.error) {
+          setPublishError(result.error)
+        }
       })
     },
     [stemEngine]
@@ -1091,6 +1110,15 @@ function CreatePageContent() {
                   )}
                 </div>
 
+                {publishError && (
+                  <div
+                    role="alert"
+                    className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                  >
+                    {publishError}
+                  </div>
+                )}
+
                 <PublishForm
                   audioUrl={firstAudioUrl}
                   duration={Math.round(totalDuration)}
@@ -1105,7 +1133,7 @@ function CreatePageContent() {
                   initialGenre={forkedFrom?.genre ?? ""}
                   initialBpm={forkedFrom ? String(forkedFrom.bpm) : ""}
                   initialSourceTracks={forkedFrom?.sourceTracks}
-                  forkParentId={forkedFrom?.id}
+                  forkParentId={forkedFrom?.id ?? remixId ?? undefined}
                   challengeId={challengeId}
                 />
               </div>

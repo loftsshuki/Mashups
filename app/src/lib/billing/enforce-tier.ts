@@ -23,8 +23,15 @@ export async function enforceTierLimit(
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Unauthenticated → treat as free tier with userId "anon"
-  const userId = user?.id ?? "anon"
+  // Fail closed: paid compute (GPU/LLM/uploads) is never available to anonymous callers.
+  if (!user) {
+    return NextResponse.json(
+      { error: "Authentication required", upgrade: "/login" },
+      { status: 401 },
+    )
+  }
+
+  const userId = user.id
 
   // Count usage this month
   const now = new Date()
@@ -32,28 +39,26 @@ export async function enforceTierLimit(
 
   let currentCount = 0
 
-  if (userId !== "anon") {
-    try {
-      const table = feature === "mashups" ? "mashups" : "ai_jobs"
-      const column = feature === "mashups" ? "creator_id" : "user_id"
+  try {
+    const table = feature === "mashups" ? "mashups" : "ai_jobs"
+    const column = feature === "mashups" ? "creator_id" : "user_id"
 
-      let query = supabase
-        .from(table)
-        .select("id", { count: "exact", head: true })
-        .eq(column, userId)
-        .gte("created_at", monthStart)
+    let query = supabase
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .eq(column, userId)
+      .gte("created_at", monthStart)
 
-      if (feature !== "mashups") {
-        const jobType =
-          feature === "stem_separations" ? "stem_separation" : "ai_generation"
-        query = query.eq("job_type", jobType)
-      }
-
-      const { count } = await query
-      currentCount = count ?? 0
-    } catch {
-      // If counting fails, allow the request
+    if (feature !== "mashups") {
+      const jobType =
+        feature === "stem_separations" ? "stem_separation" : "ai_generation"
+      query = query.eq("job_type", jobType)
     }
+
+    const { count } = await query
+    currentCount = count ?? 0
+  } catch {
+    // If counting fails, allow the request
   }
 
   const result = await checkUsageLimit(userId, feature, currentCount)
@@ -64,8 +69,7 @@ export async function enforceTierLimit(
         error: `Monthly ${feature.replace("_", " ")} limit reached`,
         limit: result.limit,
         remaining: 0,
-        tier: userId === "anon" ? "free" : undefined,
-        upgrade: userId === "anon" ? undefined : "/pricing",
+        upgrade: "/pricing",
       },
       { status: 403 },
     )
@@ -74,7 +78,7 @@ export async function enforceTierLimit(
   return {
     allowed: true,
     userId,
-    tier: (userId === "anon" ? "free" : "free") as PlatformTier, // getUserTier already called inside checkUsageLimit
+    tier: "free" as PlatformTier, // getUserTier already called inside checkUsageLimit
     remaining: result.remaining,
   }
 }

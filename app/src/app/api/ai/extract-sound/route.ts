@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { chatJSON } from "@/lib/ai/chat"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 interface ExtractedSound {
   id: string
@@ -39,6 +40,10 @@ function mockExtract(description: string, audioFile: File | null): ExtractedSoun
 }
 
 export async function POST(request: NextRequest) {
+  // Require auth + enforce usage limits before any paid LLM call.
+  const tierCheck = await enforceTierLimit("ai_generations")
+  if (tierCheck instanceof NextResponse) return tierCheck
+
   const formData = await request.formData()
   const description = formData.get("description") as string | null
   const audioFile = formData.get("audio") as File | null

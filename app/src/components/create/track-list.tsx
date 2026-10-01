@@ -10,6 +10,7 @@ export interface UploadedTrack {
   size: number
   uploadProgress: number // 0-100, 100 = done
   uploadedUrl?: string // URL after upload completes
+  uploadError?: string // set when the cloud upload failed (local playback still works)
   duration?: number
 }
 
@@ -89,9 +90,18 @@ export function TrackList({ tracks, onRemove }: TrackListProps) {
 
           {/* Upload status */}
           {track.uploadProgress === 100 && (
-            <span className="shrink-0 text-xs font-medium text-emerald-500">
-              Uploaded
-            </span>
+            track.uploadError ? (
+              <span
+                className="shrink-0 text-xs font-medium text-amber-500"
+                title={track.uploadError}
+              >
+                Local only
+              </span>
+            ) : (
+              <span className="shrink-0 text-xs font-medium text-emerald-500">
+                Uploaded
+              </span>
+            )
           )}
 
           {/* Remove button */}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { signAttributionLink } from "@/lib/attribution/signing"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 interface SignBody {
   campaignId: string
@@ -21,6 +22,16 @@ export async function POST(request: Request) {
         { error: "Rate limit exceeded. Try again shortly." },
         { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
       )
+    }
+
+    // Require authentication — this endpoint signs platform-domain redirect links,
+    // so leaving it open is an open-redirect / phishing vector.
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
     const body = (await request.json()) as SignBody

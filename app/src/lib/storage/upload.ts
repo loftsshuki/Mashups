@@ -22,8 +22,8 @@ export async function uploadAudio(formData: FormData): Promise<{ url: string } |
     })
     return { url: blob.url }
   } catch {
-    // Vercel Blob not configured — return a placeholder URL for development
-    return { url: `/audio/dev-upload-${Date.now()}.mp3` }
+    // Never fabricate a placeholder URL — it would "succeed" with audio that 404s forever.
+    return { error: "Upload failed. Storage is not available right now." }
   }
 }
 
@@ -47,6 +47,6 @@ export async function uploadImage(formData: FormData): Promise<{ url: string } |
     })
     return { url: blob.url }
   } catch {
-    return { url: `https://placehold.co/400x400/7c3aed/white?text=Cover` }
+    return { error: "Image upload failed. Please try again." }
   }
 }

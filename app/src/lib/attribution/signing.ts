@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto"
+import { createHmac, timingSafeEqual } from "node:crypto"
 
 interface AttributionPayload {
   campaignId: string
@@ -7,7 +7,12 @@ interface AttributionPayload {
   issuedAt: number
 }
 
-const secret = () => process.env.ATTRIBUTION_SIGNING_SECRET ?? "dev-signing-secret"
+const secret = (): string => {
+  const value = process.env.ATTRIBUTION_SIGNING_SECRET
+  // No hardcoded fallback — a predictable secret would let anyone forge signed links.
+  if (!value) throw new Error("ATTRIBUTION_SIGNING_SECRET is not configured")
+  return value
+}
 
 function encodeBase64Url(value: string): string {
   return Buffer.from(value, "utf8").toString("base64url")
@@ -25,11 +30,15 @@ export function signAttributionLink(payload: AttributionPayload): string {
 }
 
 export function verifyAttributionToken(token: string): AttributionPayload | null {
-  const [encoded, sig] = token.split(".")
-  if (!encoded || !sig) return null
-  const expected = createHmac("sha256", secret()).update(encoded).digest("base64url")
-  if (expected !== sig) return null
   try {
+    const [encoded, sig] = token.split(".")
+    if (!encoded || !sig) return null
+    const expected = createHmac("sha256", secret()).update(encoded).digest()
+    const provided = Buffer.from(sig, "base64url")
+    // Constant-time comparison to avoid signature-timing oracles.
+    if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) {
+      return null
+    }
     const parsed = JSON.parse(decodeBase64Url(encoded)) as AttributionPayload
     if (!parsed.destination || !parsed.campaignId || !parsed.creatorId) return null
     return parsed

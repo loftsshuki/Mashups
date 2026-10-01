@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getMashupById } from "@/lib/data/mashups"
 import { chatJSON } from "@/lib/ai/chat"
+import { enforceTierLimit } from "@/lib/billing/enforce-tier"
 
 interface TranslationResult {
   originalGenre: string
@@ -45,6 +46,10 @@ function mockTranslation(mashup: { genre?: string | null; source_tracks?: { titl
 }
 
 export async function POST(request: NextRequest) {
+  // Require auth + enforce usage limits before any paid LLM call.
+  const tierCheck = await enforceTierLimit("ai_generations")
+  if (tierCheck instanceof NextResponse) return tierCheck
+
   const body = (await request.json()) as { mashupId: string; targetGenre: string }
   const { mashupId, targetGenre } = body
 

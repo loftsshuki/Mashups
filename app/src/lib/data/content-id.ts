@@ -199,12 +199,12 @@ function generateSuggestions(
   
   // Add general suggestions based on risk
   if (overallRisk === "high" || overallRisk === "critical") {
-    suggestions.push("🎚️ Reduce volume of matched segments")
-    suggestions.push("✂️ Shorten or remove high-risk segments")
-    suggestions.push("🎛️ Apply more transformative effects (pitch, tempo)")
+    suggestions.push("🔁 Replace matched material with a cleared or original track")
+    suggestions.push("📝 Request permission from the rights holder before publishing")
+    suggestions.push("🎼 Use catalog you own or have licensed for this mashup")
   } else if (overallRisk === "medium") {
-    suggestions.push("📊 Review matched segments on timeline")
-    suggestions.push("🎚️ Consider reducing match intensity")
+    suggestions.push("📊 Review matched segments and confirm you hold the rights")
+    suggestions.push("📝 Secure permission for any segment you don't own")
   }
   
   return suggestions
