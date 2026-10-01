@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 import { getOpenAI, isOpenAIConfigured } from "@/lib/ai/openai"
 
 export async function POST(request: NextRequest) {
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image generated" }, { status: 500 })
     }
 
+    await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.thumbnail" })
     return NextResponse.json({
       url: firstImage.url,
       revisedPrompt: firstImage.revised_prompt || "",

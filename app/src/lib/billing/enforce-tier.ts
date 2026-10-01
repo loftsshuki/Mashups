@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { checkUsageLimit, type PlatformTier } from "@/lib/billing/entitlements"
 
@@ -80,5 +81,36 @@ export async function enforceTierLimit(
     userId,
     tier: "free" as PlatformTier, // getUserTier already called inside checkUsageLimit
     remaining: result.remaining,
+  }
+}
+
+/**
+ * Record one unit of metered usage after a paid call succeeds, so that
+ * enforceTierLimit() actually sees it next time. (Previously no route wrote
+ * usage rows, so monthly limits never triggered.)
+ *
+ * "mashups" usage is not recorded here — it is counted from the mashups table,
+ * which createMashup() already writes.
+ *
+ * Best-effort: a bookkeeping failure must never fail the user's request.
+ */
+export async function recordUsage(
+  userId: string,
+  feature: Exclude<Feature, "mashups">,
+  inputData: Record<string, unknown> = {},
+): Promise<void> {
+  try {
+    const db = createAdminClient() ?? (await createClient())
+    const now = new Date().toISOString()
+    await db.from("ai_jobs").insert({
+      user_id: userId,
+      job_type: feature === "stem_separations" ? "stem_separation" : "ai_generation",
+      status: "complete",
+      progress: 100,
+      input_data: inputData,
+      completed_at: now,
+    })
+  } catch {
+    // Usage accounting is best-effort.
   }
 }

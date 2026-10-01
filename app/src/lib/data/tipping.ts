@@ -145,7 +145,8 @@ export async function getTipStats(userId: string): Promise<TipStats> {
     totalAmountReceived: totalReceived,
     totalAmountSent: totalSent,
     averageTipAmount: received.length > 0 ? totalReceived / received.length : 0,
-    topSupporters: mockTopSupporters,
+    // Don't present sample supporters as someone's real supporters.
+    topSupporters: received.length > 0 ? mockTopSupporters : [],
     recentTippers: received.slice(0, 5),
   }
 }

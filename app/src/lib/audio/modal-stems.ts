@@ -15,10 +15,23 @@ export interface ModalStemResult {
 }
 
 /**
+ * Server-only Modal endpoint. The browser must never call Modal directly
+ * (that exposed an unauthenticated, unmetered GPU endpoint in the JS bundle).
+ *
+ * NEXT_PUBLIC_MODAL_STEM_ENDPOINT is read here only as a migration fallback for
+ * deployments that configured the old public variable — this module is imported
+ * exclusively by server code, so the value is never shipped to the client.
+ * Prefer setting MODAL_STEM_ENDPOINT and removing the NEXT_PUBLIC_ one.
+ */
+function modalEndpoint(): string | undefined {
+  return process.env.MODAL_STEM_ENDPOINT ?? process.env.NEXT_PUBLIC_MODAL_STEM_ENDPOINT
+}
+
+/**
  * Check if Modal is configured
  */
 export function isModalConfigured(): boolean {
-  return !!process.env.MODAL_STEM_ENDPOINT
+  return !!modalEndpoint()
 }
 
 /**
@@ -26,7 +39,7 @@ export function isModalConfigured(): boolean {
  * Returns data URIs for each stem (MP3 encoded).
  */
 export async function separateStemsModal(audioUrl: string): Promise<ModalStemResult> {
-  const endpoint = process.env.MODAL_STEM_ENDPOINT
+  const endpoint = modalEndpoint()
   if (!endpoint) {
     throw new Error("MODAL_STEM_ENDPOINT is not configured")
   }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { chatJSON } from "@/lib/ai/chat"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 
 interface ExtractedSound {
   id: string
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
         confidence: ai.confidence,
         description: ai.analysis + (audioFile ? ` Source: ${audioFile.name}` : " No audio provided — generated from description."),
       }
+      await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.extract-sound" })
       return NextResponse.json({ result })
     }
 

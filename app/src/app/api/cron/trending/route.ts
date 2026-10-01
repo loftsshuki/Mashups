@@ -5,12 +5,11 @@ import { NextResponse } from "next/server"
  * Fetches trending music from YouTube and upserts into trending_sounds table.
  */
 export async function GET(request: Request) {
-  // Verify cron secret in production
+  // Fail closed: without CRON_SECRET configured, nobody may trigger this job
+  // (it spends YouTube API quota and writes shared data).
+  const cronSecret = process.env.CRON_SECRET
   const authHeader = request.headers.get("authorization")
-  if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -28,8 +27,11 @@ export async function GET(request: Request) {
       const videos = await fetchTrendingMusic(25)
 
       if (videos.length > 0) {
+        // Cron runs without a user session; trending_sounds has no client write
+        // policy, so writes must use the service-role client to persist at all.
+        const { createAdminClient } = await import("@/lib/supabase/admin")
         const { createClient } = await import("@/lib/supabase/server")
-        const supabase = await createClient()
+        const supabase = createAdminClient() ?? (await createClient())
 
         // Compute velocity based on view count thresholds
         const rows = videos.map((v, i) => ({

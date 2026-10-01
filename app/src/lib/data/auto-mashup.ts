@@ -438,19 +438,11 @@ export async function generateAutoMashup(
 }
 
 // ---------------------------------------------------------------------------
-// Stem separation: calls Modal directly from the browser to avoid
-// Vercel serverless timeout (Demucs takes 30-60+ seconds).
-// Falls back to /api/audio/separate if Modal endpoint is not set.
+// Stem separation: always goes through /api/audio/separate, which enforces
+// auth + usage limits and only accepts our own storage URLs. (The browser used
+// to call Modal directly, exposing an unauthenticated GPU endpoint in the JS
+// bundle; the route's timeout was raised so it no longer needs that shortcut.)
 // ---------------------------------------------------------------------------
-
-const MODAL_ENDPOINT = typeof window !== "undefined"
-  ? process.env.NEXT_PUBLIC_MODAL_STEM_ENDPOINT
-  : undefined
-
-// Debug: log Modal endpoint availability at module load
-if (typeof window !== "undefined") {
-  console.log("[AutoMashup] MODAL_ENDPOINT:", MODAL_ENDPOINT ? "configured" : "NOT SET")
-}
 
 async function tryStemSeparation(
   fileA: File,
@@ -556,46 +548,14 @@ async function uploadFileForSeparation(file: File): Promise<string | null> {
   }
 }
 
-/** Call stem separation — tries Modal directly from browser, then API route */
+/** Call stem separation via the authenticated, metered server route */
 async function callStemSeparation(audioUrl: string): Promise<{
   vocals: string
   drums: string
   bass: string
   other: string
 } | null> {
-  // Try Modal directly from browser (no Vercel timeout issue)
-  if (MODAL_ENDPOINT) {
-    try {
-      console.log("[Stems] Calling Modal directly:", MODAL_ENDPOINT)
-      const res = await fetch(MODAL_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ audio_url: audioUrl }),
-      })
-      if (res.ok) {
-        const data = (await res.json()) as Record<string, string>
-        if (data.error) {
-          console.warn("[Stems] Modal returned error:", data.error)
-        } else if (data.vocals || data.drums) {
-          console.log("[Stems] Modal separation successful")
-          return {
-            vocals: data.vocals || "",
-            drums: data.drums || "",
-            bass: data.bass || "",
-            other: data.other || "",
-          }
-        }
-      } else {
-        console.warn("[Stems] Modal HTTP error:", res.status)
-      }
-    } catch (err) {
-      console.warn("[Stems] Modal direct call failed:", err)
-    }
-  }
-
-  // Fallback: try via API route (may timeout on Vercel)
   try {
-    console.log("[Stems] Trying API route fallback")
     const res = await fetch("/api/audio/separate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

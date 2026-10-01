@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { separateStems, isReplicateConfigured, getEstimatedProcessingTime } from "@/lib/audio/replicate"
 import { separateStemsModal, isModalConfigured } from "@/lib/audio/modal-stems"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
+import { resolveSafeStorageUrl } from "@/lib/security/safe-url"
 
-// Demucs takes 30-60+ seconds — extend Vercel function timeout
-export const maxDuration = 60
+// Demucs takes 30-60+ seconds per track, plus GPU cold start. This route is now the
+// only path to the GPU (the browser no longer calls Modal directly), so give it room.
+// 300s is within the Fluid Compute limit on every Vercel plan.
+export const maxDuration = 300
 
 /** Convert a data URI to a Blob, upload to Vercel Blob, return URL */
 async function uploadDataUriToBlob(dataUri: string, stemName: string): Promise<string> {
@@ -66,12 +69,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate audio URL format
-    try {
-      new URL(audioUrl)
-    } catch {
+    // Only hand our own storage URLs to the paid GPU vendors (SSRF / abuse guard).
+    const safeAudioUrl = resolveSafeStorageUrl(audioUrl)
+    if (!safeAudioUrl) {
       return NextResponse.json(
-        { error: "Invalid audioUrl format", code: "INVALID_URL" },
+        { error: "audioUrl must be an uploaded track from Mashups storage", code: "INVALID_URL" },
         { status: 400 }
       )
     }
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
       console.log("[API /audio/separate] Using Modal provider")
       provider = "modal"
       try {
-        const modalResult = await separateStemsModal(audioUrl)
+        const modalResult = await separateStemsModal(safeAudioUrl)
 
         // Upload data URIs to Vercel Blob for smaller JSON response
         const [vocals, drums, bass, other] = await Promise.all([
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
         console.warn("[API /audio/separate] Modal failed, trying Replicate fallback:", modalError)
         if (useReplicate) {
           provider = "replicate"
-          stems = await separateStems(audioUrl)
+          stems = await separateStems(safeAudioUrl)
         } else {
           throw modalError
         }
@@ -108,11 +110,13 @@ export async function POST(request: NextRequest) {
     } else {
       console.log("[API /audio/separate] Using Replicate provider")
       provider = "replicate"
-      stems = await separateStems(audioUrl)
+      stems = await separateStems(safeAudioUrl)
     }
 
     const processingTime = (Date.now() - startTime) / 1000
     console.log(`[API /audio/separate] Complete via ${provider} in ${processingTime.toFixed(1)}s`)
+
+    await recordUsage(tierCheck.userId, "stem_separations", { provider })
 
     return NextResponse.json({
       success: true,
@@ -123,14 +127,12 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    // Full vendor error stays in server logs; don't leak it to clients.
     console.error("[API /audio/separate] Error:", error)
-
-    const message = error instanceof Error ? error.message : "Unknown error"
 
     return NextResponse.json(
       {
         error: "Stem separation failed",
-        details: message,
         code: "SEPARATION_FAILED"
       },
       { status: 500 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { chatJSON } from "@/lib/ai/chat"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 
 interface Suggestion {
   id: string
@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         ...s,
         id: `sug-${Date.now()}-${i}`,
       }))
+      await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.suggest" })
       return NextResponse.json({ suggestions })
     }
 

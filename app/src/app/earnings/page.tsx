@@ -26,24 +26,50 @@ import {
   type Tip,
   type TipStats,
 } from "@/lib/data/tipping"
+import { AuthGuard } from "@/components/auth/auth-guard"
+import { createClient } from "@/lib/supabase/client"
 
+// Earnings is a private money page: require sign-in.
 export default function EarningsPage() {
+  return (
+    <AuthGuard>
+      <EarningsPageContent />
+    </AuthGuard>
+  )
+}
+
+function EarningsPageContent() {
   const [tipStats, setTipStats] = useState<TipStats | null>(null)
   const [recentTips, setRecentTips] = useState<Tip[]>([])
   const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+
+    async function loadData() {
+      // Load the signed-in user's own data (previously hardcoded to "user_001",
+      // so every visitor saw the same identity's earnings).
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user || cancelled) return
+
+      const stats = await getTipStats(user.id)
+      const tips = await getUserTips(user.id, "received", 10)
+      if (cancelled) return
+      setTipStats(stats)
+      setRecentTips(tips)
+    }
+
+    void loadData()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const loadData = async () => {
-    const stats = await getTipStats("user_001")
-    const tips = await getUserTips("user_001", "received", 10)
-    setTipStats(stats)
-    setRecentTips(tips)
-  }
-
-  const totalEarnings = (tipStats?.totalAmountReceived ?? 0) + 284000 // Mock other revenue
+  // Only real tip revenue — no hardcoded "other revenue" inflating the total.
+  const totalEarnings = tipStats?.totalAmountReceived ?? 0
   const monthlyGoal = 50000 // $500 goal
   const progressToGoal = Math.min((totalEarnings / monthlyGoal) * 100, 100)
 
@@ -78,6 +104,14 @@ export default function EarningsPage() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
+        <div
+          role="note"
+          className="mb-6 rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300"
+        >
+          Earnings tracking is in preview. Total Earnings reflects your tips; the other
+          figures on this page are sample data, not your account.
+        </div>
+
         {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <StatCard

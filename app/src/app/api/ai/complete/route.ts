@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 import { chatJSON } from "@/lib/ai/chat"
 
 interface CompletionOption {
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         ...c,
         id: `comp-${Date.now()}-${i}`,
       }))
+      await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.complete" })
       return NextResponse.json({ completions })
     }
 

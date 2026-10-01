@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
+import { isAdminUser } from "@/lib/auth/admin"
 import { createClient } from "@/lib/supabase/server"
+
+const MAX_TERM_DAYS = 365
 
 interface LicenseIssueBody {
   mashupId?: string
@@ -25,8 +28,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
+    if (body.licenseType !== "organic_shorts" && body.licenseType !== "paid_ads_shorts") {
+      return NextResponse.json({ error: "Unknown licenseType" }, { status: 400 })
+    }
+
+    // Paid-ads licenses are a paid product: they must not be self-issued for free.
+    // Only staff may issue them manually; customer issuance belongs in the
+    // payment flow (checkout -> webhook).
+    if (
+      body.licenseType === "paid_ads_shorts" &&
+      !isAdminUser({ email: user.email, id: user.id })
+    ) {
+      return NextResponse.json(
+        { error: "Paid ad licenses must be purchased." },
+        { status: 403 },
+      )
+    }
+
     const startsAt = new Date()
-    const termDays = body.termDays ?? 365
+    // Clamp the term — previously any caller could request an arbitrary duration.
+    const requestedTerm = Math.floor(Number(body.termDays ?? MAX_TERM_DAYS))
+    const termDays = Number.isFinite(requestedTerm)
+      ? Math.min(Math.max(requestedTerm, 1), MAX_TERM_DAYS)
+      : MAX_TERM_DAYS
     const endsAt = new Date(startsAt.getTime() + termDays * 24 * 60 * 60 * 1000)
     const code = `lic_${randomUUID().replace(/-/g, "").slice(0, 18)}`
 

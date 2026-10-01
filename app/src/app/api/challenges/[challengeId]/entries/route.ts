@@ -7,10 +7,6 @@ import {
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
-const isSupabaseConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
 interface EnterBody {
   mashupId?: string
 }
@@ -41,7 +37,9 @@ export async function POST(
       data: { user },
     } = await supabase.auth.getUser()
 
-    if (isSupabaseConfigured() && !user?.id) {
+    // Fail closed: if auth is unavailable (e.g. env misconfiguration), refuse
+    // rather than recording entries as a mock user.
+    if (!user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
     const rate = consumeRateLimit({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 import { chatJSON } from "@/lib/ai/chat"
 
 interface GeneratedStem {
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         audio_url: `/api/placeholder-audio?type=${ai.instrument}&duration=${body.duration ?? ai.duration_seconds}`,
         source: "ai_generated",
       }
+      await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.generate-stem" })
       return NextResponse.json({ stem })
     }
 

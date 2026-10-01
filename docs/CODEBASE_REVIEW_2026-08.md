@@ -2,6 +2,8 @@
 
 **Date:** 2026-08-08 · **Reviewer:** Claude Code (4 parallel read-only review agents + direct verification) · **Scope:** the `app/` Next.js 16 application — 410 TS/TSX files, 56 top-level routes, 66 API routes, 154 components, 19 Supabase migrations (65 tables), the Modal audio service, and the legal docs. **Method:** read-only. Findings are cited `file:line`; the highest-severity claims were re-verified by hand against source.
 
+> **Fix status (2026-10-01):** Fixed on `claude/mashups-rights-cleared-research-qytetc` — C1 (paid compute now auth-gated *and* metered via `recordUsage`; migration `020` lets `ai_generation` usage rows exist), C2 (browser no longer calls Modal; all separation goes through the authenticated, metered `/api/audio/separate`, now `maxDuration = 300`), C3, C4, C6, C8, H1–H4, H5 (no free self-minting of paid licenses; term clamped), the cron fail-open + no-op write, the five fail-open auth checks, the email-bound Stripe portal, the `/earnings` guard, and SSRF in both `/api/fingerprint` and `/api/audio/separate`. **Still open:** C5/H6 RLS (migration `019` written, not applied), C7 fabricated key/structure analysis (the arrangement engine), H8 battle voting, H9 fabricated landing metrics, shared-store rate limiting, `generate-stem` placeholder audio, mock-fallback masking, lint/CI/middleware hygiene.
+>
 > This review reads the code against the product the strategy documents (`docs/RIGHTS_CLEARED_*.md`) describe: a rights-cleared Stage-0 loop — two tracks → three arrangements → publish in-app → link-share → battle → fork. That lens matters, because the gap between what's built and what's *claimed* is the headline.
 
 ---

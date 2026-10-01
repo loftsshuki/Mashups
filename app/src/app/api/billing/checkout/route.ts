@@ -17,10 +17,6 @@ interface CheckoutBody {
   referralCode?: string
 }
 
-const isSupabaseConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CheckoutBody
@@ -33,7 +29,9 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    if (isSupabaseConfigured() && !user?.id) {
+    // Fail closed: if auth is unavailable (e.g. env misconfiguration), refuse
+    // rather than creating an anonymous checkout.
+    if (!user?.id) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 })
     }
     const rate = consumeRateLimit({

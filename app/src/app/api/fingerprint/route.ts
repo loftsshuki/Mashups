@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { NextResponse } from "next/server"
 import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit"
+import { resolveSafeStorageUrl } from "@/lib/security/safe-url"
 
 interface FingerprintRequestBody {
   trackId?: string
@@ -9,34 +10,6 @@ interface FingerprintRequestBody {
 
 function hashHex(value: Uint8Array | string): string {
   return createHash("sha256").update(value).digest("hex")
-}
-
-function supabaseHost(): string | null {
-  try {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.toLowerCase()
-      : null
-  } catch {
-    return null
-  }
-}
-
-/**
- * Only fetch audio from our own storage hosts, and only from absolute https URLs.
- * Never resolve the input against request.url — that allowed SSRF against internal
- * and cloud-metadata hosts.
- */
-function resolveSafeAudioUrl(raw: string): string | null {
-  let url: URL
-  try {
-    url = new URL(raw)
-  } catch {
-    return null
-  }
-  if (url.protocol !== "https:") return null
-  const host = url.hostname.toLowerCase()
-  const allowed = host.endsWith(".blob.vercel-storage.com") || host === supabaseHost()
-  return allowed ? url.toString() : null
 }
 
 function toSegmentHash(bytes: Uint8Array): string {
@@ -79,7 +52,8 @@ export async function POST(request: Request) {
     let engine = "deterministic-seed-v1"
     let byteLength = 0
 
-    const fetchUrl = body.audioUrl ? resolveSafeAudioUrl(body.audioUrl) : null
+    // Only fetch from our own storage hosts (SSRF guard).
+    const fetchUrl = body.audioUrl ? resolveSafeStorageUrl(body.audioUrl) : null
     if (fetchUrl) {
       try {
         const response = await fetch(fetchUrl, { cache: "no-store" })

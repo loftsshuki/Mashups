@@ -156,7 +156,34 @@ export async function createStripePortalSession(input: {
   return { url: payload.url }
 }
 
-// Look up Stripe customer ID by email
+// Resolve the Stripe customer behind a subscription (`sub_...`) or checkout
+// session (`cs_...`) id that our own database already associates with the user.
+// This binds billing access to records the user owns, not to an email address.
+export async function resolveStripeCustomerId(input: {
+  secretKey: string
+  reference: string
+}): Promise<string | null> {
+  const ref = input.reference
+  let path: string | null = null
+  if (ref.startsWith("sub_")) path = `subscriptions/${encodeURIComponent(ref)}`
+  else if (ref.startsWith("cs_")) path = `checkout/sessions/${encodeURIComponent(ref)}`
+  if (!path) return null
+
+  const response = await fetch(`${STRIPE_API_BASE}/${path}`, {
+    headers: { Authorization: `Bearer ${input.secretKey}` },
+  })
+  if (!response.ok) return null
+
+  const payload = (await response.json()) as {
+    customer?: string | { id?: string } | null
+  }
+  const customer = payload.customer
+  if (typeof customer === "string") return customer
+  return customer?.id ?? null
+}
+
+// Look up Stripe customer ID by email.
+// Not used for billing-portal access: email is not proof of account ownership.
 export async function findStripeCustomerByEmail(input: {
   secretKey: string
   email: string

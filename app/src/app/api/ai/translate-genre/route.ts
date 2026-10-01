@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getMashupById } from "@/lib/data/mashups"
 import { chatJSON } from "@/lib/ai/chat"
-import { enforceTierLimit } from "@/lib/billing/enforce-tier"
+import { enforceTierLimit, recordUsage } from "@/lib/billing/enforce-tier"
 
 interface TranslationResult {
   originalGenre: string
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
         replacedStems: ai.replacedStems,
         previewDescription: ai.previewDescription,
       }
+      await recordUsage(tierCheck.userId, "ai_generations", { route: "ai.translate-genre" })
       return NextResponse.json({ translation: result })
     }
 
