@@ -7,6 +7,7 @@ type Bucket = {
 }
 
 export type RateLimitResult = {
+  unavailable?: boolean
   allowed: boolean
   remaining: number
   retryAfterSeconds: number
@@ -61,10 +62,13 @@ export async function consumeRateLimit(input: {
   limit: number
   windowMs: number
 }): Promise<RateLimitResult> {
+  if (process.env.E2E_TEST_MODE === "1" && process.env.VERCEL !== "1") {
+    return consumeLocalRateLimit(input)
+  }
   const admin = createAdminClient()
   if (!admin) {
     if (!isProduction()) return consumeLocalRateLimit(input)
-    return { allowed: false, remaining: 0, retryAfterSeconds: 30 }
+    return { allowed: false, remaining: 0, retryAfterSeconds: 30, unavailable: true }
   }
 
   const { data, error } = await admin.rpc("consume_api_rate_limit", {
@@ -76,12 +80,12 @@ export async function consumeRateLimit(input: {
   if (error) {
     console.error("[RateLimit] Distributed limiter failed:", error.message)
     if (!isProduction()) return consumeLocalRateLimit(input)
-    return { allowed: false, remaining: 0, retryAfterSeconds: 30 }
+    return { allowed: false, remaining: 0, retryAfterSeconds: 30, unavailable: true }
   }
 
   const row = Array.isArray(data) ? data[0] : data
   if (!row || typeof row !== "object") {
-    return { allowed: false, remaining: 0, retryAfterSeconds: 30 }
+    return { allowed: false, remaining: 0, retryAfterSeconds: 30, unavailable: true }
   }
 
   const result = row as Record<string, unknown>

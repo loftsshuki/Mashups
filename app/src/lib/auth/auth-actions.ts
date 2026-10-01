@@ -2,58 +2,48 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
+import { loginSchema, signupSchema } from "@/lib/auth/form-schema"
+import { ensureProfile } from "@/lib/auth/ensure-profile"
+import { buildAuthCallbackUrl, safeReturnPath } from "@/lib/auth/return-path"
 
-type AuthActionState = { error?: string; success?: boolean } | null
+type AuthActionState = { error?: string; success?: boolean; message?: string } | null
 
 export async function login(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
-  const supabase = await createClient()
-
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
+  const parsed = loginSchema.safeParse({ email: formData.get("email"), password: formData.get("password") })
+  if (!parsed.success) return { error: "Enter a valid email and password." }
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signInWithPassword(parsed.data)
+    if (error) return { error: error.message }
+    if (!data.user || !await ensureProfile(supabase, data.user)) return { error: "Your profile could not be loaded. Please try signing in again." }
+  } catch {
+    return { error: "Sign-in is temporarily unavailable. Please try again." }
   }
-
-  const { error } = await supabase.auth.signInWithPassword(data)
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  redirect("/")
+  redirect(safeReturnPath(formData.get("next")))
 }
 
 export async function signup(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
-  const supabase = await createClient()
-
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-  const username = formData.get("username") as string
-
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
+  const parsed = signupSchema.safeParse({
+    email: formData.get("email"), password: formData.get("password"), username: formData.get("username"),
+    confirmPassword: formData.get("confirm-password"), terms: formData.get("terms"),
   })
-
-  if (authError) {
-    return { error: authError.message }
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your signup details." }
+  const next = safeReturnPath(formData.get("next"))
+  try {
+    const supabase = await createClient()
+    const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_APP_URL
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: parsed.data.email, password: parsed.data.password,
+      options: { data: { username: parsed.data.username }, ...(origin ? { emailRedirectTo: buildAuthCallbackUrl(origin, next) } : {}) },
+    })
+    if (authError) return { error: authError.message }
+    if (!authData.session) return { success: true, message: "Check your email to confirm your account. Open the link in this browser to return to your draft." }
+    if (!authData.user || !await ensureProfile(supabase, authData.user)) return { error: "Your account was created, but the profile could not be saved. Please sign in again." }
+  } catch {
+    return { error: "Account creation is temporarily unavailable. Please try again." }
   }
-
-  // Create profile
-  if (authData.user) {
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: authData.user.id,
-        username,
-        display_name: username,
-      })
-
-    if (profileError) {
-      return { error: profileError.message }
-    }
-  }
-
-  redirect("/")
+  redirect(next)
 }
 
 export async function signInWithGoogle(_formData?: FormData) {
@@ -63,7 +53,7 @@ export async function signInWithGoogle(_formData?: FormData) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${siteUrl}/auth/callback`,
+      redirectTo: buildAuthCallbackUrl(siteUrl, _formData?.get("next")),
     },
   })
 

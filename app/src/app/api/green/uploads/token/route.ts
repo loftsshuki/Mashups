@@ -5,6 +5,7 @@ import { consumeRateLimit, resolveRateLimitKey } from "@/lib/security/rate-limit
 import { createClient } from "@/lib/supabase/server"
 
 const AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/flac", "audio/mp4", "audio/ogg", "audio/x-m4a", "audio/aac"]
+const AUDIO_EXTENSIONS = [".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg"]
 
 export async function POST(request: Request) {
   const token = process.env.GREEN_ROOM_READ_WRITE_TOKEN ?? process.env.GREEN_ROOM_BLOB_READ_WRITE_TOKEN
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       onBeforeGenerateToken: async (pathname) => {
         const prefix = `green-room/${userId}/masters/`
         if (!pathname.startsWith(prefix) || pathname.includes("..")) throw new Error("Invalid private master path.")
+        if (!AUDIO_EXTENSIONS.some((extension) => pathname.toLowerCase().endsWith(extension))) throw new Error("Unsupported audio file extension.")
         return { allowedContentTypes: AUDIO_TYPES, maximumSizeInBytes: 250 * 1024 * 1024, addRandomSuffix: true, tokenPayload: JSON.stringify({ userId }) }
       },
       onUploadCompleted: async ({ tokenPayload }) => {

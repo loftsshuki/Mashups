@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test"
 const browserErrors = new WeakMap<object, string[]>()
 
 test.beforeEach(async ({ page }) => {
+  // These tests exercise prototype UI. Foundation tests cover real telemetry failures.
+  await page.route("**/api/green/events", (route) => route.fulfill({ status: 202, json: { accepted: true, persisted: true } }))
   const errors: string[] = []
   browserErrors.set(page, errors)
   page.on("pageerror", (error) => errors.push(error.message))

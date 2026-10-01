@@ -55,6 +55,7 @@ export function MobileNav() {
         </div>
 
         <Separator className="my-5 bg-foreground" />
+        <SheetClose asChild><Link href="/projects" className="mb-5 flex min-h-12 items-center justify-between border border-foreground px-3 py-3 font-semibold">My saved mashups <Library className="size-4" /></Link></SheetClose>
         <p className="mono-label mb-3 flex items-center gap-2 text-muted-foreground"><FlaskConical className="size-3" /> Music partners</p>
         <SheetClose asChild>
           <Link href="/partner" className="flex items-center justify-between border border-foreground bg-secondary p-4 font-semibold">

@@ -1,0 +1,7 @@
+{
+  "algorithm": "Ed25519",
+  "catalogVersion": "2026.08.16",
+  "digest": "b09c000dafc75f8d0773e45ebb577408a70a121010957eca6f406f77c9f52352",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWagG4imMVmGKgusXc3vRpRi9FtRmSnxSHEIkqBybXCo=\n-----END PUBLIC KEY-----\n",
+  "signature": "hx8kEtyfzF5gldU7ITaIcnivbyHcN4zgGFhDDVWVmHp5icSlNnPivwQoUdQszKEle2lJ2bQEa5FLeRaNBfsoBQ=="
+}

@@ -1,18 +1,30 @@
 # Mashups Product Reset: Green Room
 
-**Status:** Active public product direction
+**Status:** Public product principles; current sequence in [PLATFORM_BUILD_PLAN.md](PLATFORM_BUILD_PLAN.md)
 **Date:** August 7, 2026
 **Branch:** `claude/mashups-dev`
 
 ## Decision
 
-Mashups is a consumer creation product first:
+Updated September 12, 2026: Mashups is a broad consumer music platform for
+creation, listening, discovery, and sharing. Emerging-artist discovery is one use
+case, alongside recreational mashups, DJ/creator workflows, and catalog or
+new-release promotion. General users do not need artist onboarding.
+
+The shared creation loop remains:
 
 ```text
 two cleared tracks -> three musical arrangements -> keep one -> publish -> fork
 ```
 
-The rights, campaign, attribution, and label systems already built are not deleted. They become infrastructure and a later artist-facing product. They no longer define the public homepage or primary navigation.
+The rights, campaign, attribution, and label systems support this shared product.
+Artist pilots may run alongside the consumer beta; they do not determine the
+whole homepage or navigation. Creation supports two approved catalog songs, with
+reviewed original music as an additional source option. Web, iOS, and Android are
+in the first release programme.
+
+See [the platform build plan](PLATFORM_BUILD_PLAN.md) for the current milestones
+and [the native handoff](NATIVE_APP_HANDOFF.md) for the shared mobile approach.
 
 ## Product Promise
 
@@ -132,7 +144,11 @@ The existing stem-separation and phrase-arrangement code remains available for t
 
 DMCA procedures, fingerprinting, and user attestations are not substitutes for permission. They remain necessary operational controls but cannot turn an unauthorized recording green.
 
-## Next Build Sequence
+## Original Build Sequence (Historical)
+
+The sequence below records the August reset. The September
+[platform build plan](PLATFORM_BUILD_PLAN.md) supersedes its timing, including
+native implementation and artist-pilot sequencing.
 
 ### R1: Green Catalog Foundation
 

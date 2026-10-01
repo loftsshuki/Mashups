@@ -1,6 +1,7 @@
 import "server-only"
 
 import Stripe from "stripe"
+import { getCheckoutPriceId } from "./checkout-contract"
 
 export type CheckoutSessionType = "subscription" | "license"
 
@@ -24,25 +25,11 @@ export function getStripe(secretKey = process.env.STRIPE_SECRET_KEY): Stripe {
   return stripeClient
 }
 
-function normalizeTarget(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, "_")
-}
-
 export function resolveStripePriceId(
   sessionType: CheckoutSessionType,
   targetId: string,
 ): string | null {
-  const normalized = normalizeTarget(targetId)
-
-  if (sessionType === "subscription") {
-    return normalized.includes("studio")
-      ? process.env.STRIPE_PRICE_ID_PRO_STUDIO ?? null
-      : process.env.STRIPE_PRICE_ID_PRO_CREATOR ?? null
-  }
-
-  return normalized.includes("paid_ads")
-    ? process.env.STRIPE_PRICE_ID_LICENSE_PAID_ADS_SHORTS ?? null
-    : process.env.STRIPE_PRICE_ID_LICENSE_ORGANIC_SHORTS ?? null
+  return getCheckoutPriceId(sessionType, targetId, process.env)
 }
 
 export async function createStripeCheckoutSession(input: {

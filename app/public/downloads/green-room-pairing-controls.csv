@@ -1,0 +1,2 @@
+track_id,allow_or_block,other_track_or_category,max_tempo_change_percent,max_pitch_shift_semitones,explicit_content_allowed,sensitive_use_notes
+your-track-id,allow,approved-green-catalog,6.5,2,false,No political or defamatory use

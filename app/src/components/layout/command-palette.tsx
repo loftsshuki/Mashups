@@ -20,6 +20,7 @@ const commands: CommandItem[] = [
   { label: "Domination OS", href: "/domination?demo=1", keywords: "commercial rights causal lift index trust protection" },
   { label: "Mashups Index", href: "/index?demo=1", keywords: "independent breakout ranking evidence" },
   { label: "Create Mashup", href: "/create", keywords: "create upload mix publish" },
+  { label: "My saved mashups", href: "/projects", keywords: "drafts recipes saved library resume" },
   { label: "Weekly Viral Pack", href: "/packs", keywords: "weekly monday pack hook rights safe" },
   { label: "Creator Scoreboard", href: "/scoreboard", keywords: "leaderboard growth weekly rank" },
   { label: "Momentum Feed", href: "/momentum", keywords: "rising tracks velocity quality gate" },

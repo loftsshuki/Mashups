@@ -16,6 +16,7 @@
 /test-results
 
 # local quality reports
+/.audio-bench/
 /.lint-*.json
 /.lint-*.log
 /.lint-*.txt
