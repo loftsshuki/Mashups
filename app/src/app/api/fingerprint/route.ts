@@ -11,6 +11,34 @@ function hashHex(value: Uint8Array | string): string {
   return createHash("sha256").update(value).digest("hex")
 }
 
+function supabaseHost(): string | null {
+  try {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.toLowerCase()
+      : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Only fetch audio from our own storage hosts, and only from absolute https URLs.
+ * Never resolve the input against request.url — that allowed SSRF against internal
+ * and cloud-metadata hosts.
+ */
+function resolveSafeAudioUrl(raw: string): string | null {
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    return null
+  }
+  if (url.protocol !== "https:") return null
+  const host = url.hostname.toLowerCase()
+  const allowed = host.endsWith(".blob.vercel-storage.com") || host === supabaseHost()
+  return allowed ? url.toString() : null
+}
+
 function toSegmentHash(bytes: Uint8Array): string {
   if (bytes.length === 0) return hashHex("empty")
   const chunkSize = Math.min(64 * 1024, Math.max(1024, Math.floor(bytes.length / 6)))
@@ -51,10 +79,10 @@ export async function POST(request: Request) {
     let engine = "deterministic-seed-v1"
     let byteLength = 0
 
-    if (body.audioUrl) {
+    const fetchUrl = body.audioUrl ? resolveSafeAudioUrl(body.audioUrl) : null
+    if (fetchUrl) {
       try {
-        const resolvedUrl = new URL(body.audioUrl, request.url).toString()
-        const response = await fetch(resolvedUrl, { cache: "no-store" })
+        const response = await fetch(fetchUrl, { cache: "no-store" })
         if (response.ok) {
           const buffer = new Uint8Array(await response.arrayBuffer())
           byteLength = buffer.length

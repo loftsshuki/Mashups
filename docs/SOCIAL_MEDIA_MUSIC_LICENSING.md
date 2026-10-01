@@ -19,7 +19,7 @@
 - **Commercial Sounds:** Business accounts must use the "Commercial Music Library" (royalty-free/cleared tracks). Mashups of commercial tracks are NOT included.
 - **Sound Remixing:** TikTok allows "using this sound" which creates organic viral loops. Mashup audio uploaded as an "original sound" can be reused by others.
 - **DMCA Risk:** TikTok responds to DMCA takedowns. Mashups of major-label tracks risk removal.
-- **Takeaway for Mashups.com:** Export mashups as "original sounds" with clear attribution. Provide TikTok-optimized 15/30/60s clips that minimize detection.
+- **Takeaway for Mashups.com:** Only export content the creator has the rights to share, with clear source attribution. For catalog tracks, keep sharing inside rights-permitted paths (in-app playback, licensed short clips) rather than trying to evade platform detection.
 
 ### Instagram (Reels)
 - **Music Stickers & Reels:** Instagram licenses music from major labels for Reels/Stories. Users can add licensed music directly in-app.
