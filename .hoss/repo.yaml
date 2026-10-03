@@ -38,4 +38,12 @@ context:
     - Keep rights and source credit attached to every remix and export.
     - Distinguish device-local demo behavior from hosted persistence and deployment.
     - Inspect open foundation and release-candidate PRs before duplicating product work.
-  knowledgeConcepts: []
+  # Routing hints only: they add retrieval candidates and never exclude knowledge. Quote-grounded
+  # HOSS proposals pending owner confirmation; evidence per concept in HOSS docs/rollout/fleet-lens-review.md.
+  knowledgeConcepts:
+    - community-and-social
+    - rights-and-licensing
+    - creator-media
+    - pricing-strategy
+    - subscriptions-and-billing
+    - event-ingestion-and-integration
